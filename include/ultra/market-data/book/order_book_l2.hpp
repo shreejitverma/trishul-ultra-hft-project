@@ -1,30 +1,39 @@
 #pragma once
 #include "../../core/compiler.hpp"
 #include "../../core/types.hpp"
+#include "../../core/memory/object_pool.hpp"
 #include "../itch/decoder.hpp"
 #include <array>
 #include <algorithm>
 #include <vector>
-#include <unordered_map>
-#include <map>
+#include <cstring>
 
 namespace ultra::md {
 
 /**
- * L2 Order Book - Aggregated by price level
- * Optimized for:
- * - Sub-100ns updates
- * - Cache-friendly memory layout
- * - Minimal branching
+ * Optimized L2 Order Book
+ * - Flat arrays for Price Levels (No std::map tree traversal)
+ * - Open Addressing Hash Map for Orders (No std::unordered_map allocations)
+ * - Object Pool for Order storage
  */
 class OrderBookL2 {
 public:
     static constexpr size_t MAX_LEVELS = 100;
+    static constexpr size_t MAX_ORDERS = 100000; // Power of 2 recommended for faster mod, but we use strict capacity
+    static constexpr size_t HASH_SIZE = 131072; // Power of 2 > MAX_ORDERS for load factor < 0.8
     
     struct Level {
         Price price{INVALID_PRICE};
         Quantity quantity{0};
         uint32_t order_count{0};
+    };
+
+    struct OrderEntry {
+        OrderId id;
+        Price price;
+        Quantity quantity;
+        Side side;
+        OrderEntry* next{nullptr}; // For collision chaining (simple for now, linear probing better but harder to delete)
     };
 
     // Bids sorted descending, Asks sorted ascending
@@ -36,39 +45,50 @@ public:
     ULTRA_HOT void update(const itch::ITCHDecoder::DecodedMessage& msg) noexcept;
 
     // Get current BBO
-    ULTRA_ALWAYS_INLINE Level best_bid() const noexcept { return bids_[0]; }
-    ULTRA_ALWAYS_INLINE Level best_ask() const noexcept { return asks_[0]; }
+    ULTRA_ALWAYS_INLINE const Level& best_bid() const noexcept { return bids_[0]; }
+    ULTRA_ALWAYS_INLINE const Level& best_ask() const noexcept { return asks_[0]; }
 
     // Get all levels
     const PriceLevelSide& bids() const noexcept { return bids_; }
     const PriceLevelSide& asks() const noexcept { return asks_; }
 
 private:
-    struct L3Order {
-        Price price;
-        Quantity quantity;
-        Side side;
-    };
-    
-    // O(1) Lookup for Order Modify/Delete
-    std::unordered_map<OrderId, L3Order> order_map_;
-    
-    // Sorted Levels (Price -> Quantity)
-    // Using std::map for correctness (O(log N))
-    std::map<Price, Quantity, std::greater<Price>> bid_levels_map_;
-    std::map<Price, Quantity, std::less<Price>> ask_levels_map_;
-    
     SymbolId symbol_id_;
+    
+    // --- 1. Order Storage (Object Pool) ---
+    // Instead of allocating `L3Order` on heap, we use a pool.
+    ObjectPool<OrderEntry, MAX_ORDERS> order_pool_;
+
+    // --- 2. Order Lookup (Custom Hash Map) ---
+    // Simple bucket array with chaining for this iteration. 
+    // Ideally open-addressing, but chaining is safer for generic deletions without tombstones.
+    std::array<OrderEntry*, HASH_SIZE> order_map_{}; // Init to nullptr
+
+    // --- 3. Price Levels (Flat Arrays) ---
     ULTRA_CACHE_ALIGNED PriceLevelSide bids_{};
     ULTRA_CACHE_ALIGNED PriceLevelSide asks_{};
-
-    // Internal handlers
+    
+    // Helpers
+    ULTRA_ALWAYS_INLINE uint32_t hash(OrderId id) const {
+        // Simple hash for sequential/dense IDs, FNV-1a better for random
+        // ITCH Order IDs are 64-bit.
+        id ^= id >> 33;
+        id *= 0xff51afd7ed558ccd;
+        id ^= id >> 33;
+        id *= 0xc4ceb9fe1a85ec53;
+        id ^= id >> 33;
+        return id & (HASH_SIZE - 1);
+    }
+    
     void add_order(OrderId id, Side side, Price price, Quantity qty) noexcept;
     void delete_order(OrderId id) noexcept;
-    void modify_order(OrderId id, Quantity new_qty, Price new_price) noexcept;
-
-    // Refresh the array views from the maps
-    void update_l2_view() noexcept;
+    
+    // Update the flat L2 view when a level changes
+    // This is the most expensive part if not careful.
+    // For "Add", we often just increment qty if level exists.
+    // For "Delete", we decrement. If 0, we shift array (memmove).
+    // This approach avoids full rebuilds.
+    void update_level(Side side, Price price, int32_t qty_delta) noexcept;
 };
 
 } // namespace ultra::md

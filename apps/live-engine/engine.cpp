@@ -1,5 +1,6 @@
 #include "engine.hpp"
-#include "ultra/core/time/rdtsc_clock.hpp" // <-- ADDED
+#include "ultra/core/time/rdtsc_clock.hpp"
+#include "ultra/core/thread_utils.hpp"
 #include <iostream>
 #include <vector>
 
@@ -120,6 +121,7 @@ void Engine::md_thread_loop() {
  * This is the "Trading Logic" + "Risk Engines" + "FPGA Engine"
  */
 void Engine::strategy_thread_loop() {
+    ThreadUtils::pin_thread(2); // Pin Strategy to Core 2
     std::cout << "[Strategy Thread] running." << std::endl;
     
     md::itch::ITCHDecoder::DecodedMessage md_msg;
@@ -161,6 +163,7 @@ void Engine::strategy_thread_loop() {
  * This is the "Order Processing" + "Smart Order Router"
  */
 void Engine::exec_thread_loop() {
+    ThreadUtils::pin_thread(3); // Pin Exec to Core 3
     std::cout << "[Exec Thread] running." << std::endl;
 
     strategy::StrategyOrder order_to_check;

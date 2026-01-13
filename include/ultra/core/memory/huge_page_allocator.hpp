@@ -34,10 +34,15 @@ public:
         // Align allocation to huge page size
         size_type aligned_bytes = ((num_bytes + HUGE_PAGE_SIZE - 1) / HUGE_PAGE_SIZE) * HUGE_PAGE_SIZE;
         
+        int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+#if defined(__linux__)
+        flags |= MAP_HUGETLB | MAP_HUGE_2MB;
+#endif
+        
         void* p = mmap(nullptr, 
                        aligned_bytes, 
                        PROT_READ | PROT_WRITE, 
-                       MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_HUGE_2MB, 
+                       flags, 
                        -1, 0);
                        
         if (p == MAP_FAILED) {

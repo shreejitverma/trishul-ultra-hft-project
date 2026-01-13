@@ -1,12 +1,16 @@
 #include "ultra/market-data/book/order_book_l2.hpp"
 #include <iostream>
+#include <cstring> // for memmove
 
 namespace ultra::md {
 
 OrderBookL2::OrderBookL2(SymbolId symbol_id) : symbol_id_(symbol_id) {
-    // Initialize levels
-    for (auto& level : bids_) { level.price = 0; level.quantity = 0; }
-    for (auto& level : asks_) { level.price = INVALID_PRICE; level.quantity = 0; }
+    // Clear hash map
+    std::fill(order_map_.begin(), order_map_.end(), nullptr);
+    
+    // Clear levels
+    for (auto& level : bids_) { level.price = 0; level.quantity = 0; level.order_count = 0; }
+    for (auto& level : asks_) { level.price = INVALID_PRICE; level.quantity = 0; level.order_count = 0; }
 }
 
 ULTRA_HOT void OrderBookL2::update(const itch::ITCHDecoder::DecodedMessage& msg) noexcept {
@@ -21,90 +25,135 @@ ULTRA_HOT void OrderBookL2::update(const itch::ITCHDecoder::DecodedMessage& msg)
             delete_order(msg.order_id);
             break;
         case MDEventType::MODIFY_ORDER:
-            // This is complex for a map because we need to know the original side
-            // For now, we ignore replaces or handle them simply as Delete + Add if we had the info
-            // Since we don't have the original side in the message (ITCH Replace doesn't have it),
-            // we'd need to look it up.
+            // Partial implementation for replace (delete + add new)
+            // Real ITCH "Order Replace" replaces the order *in place* if size decreases,
+            // or loses priority if size increases. 
+            // We need to look up the old order to know its side/price.
             {
-                auto it = order_map_.find(msg.order_id);
-                if (it != order_map_.end()) {
-                    // Copy details before delete
-                    Side old_side = it->second.side;
-                    delete_order(msg.order_id);
-                    // Add new
-                    add_order(msg.new_order_id, old_side, msg.price, msg.quantity);
+                uint32_t h = hash(msg.order_id);
+                OrderEntry* curr = order_map_[h];
+                while (curr) {
+                    if (curr->id == msg.order_id) {
+                        // Found old order
+                        Side side = curr->side;
+                        // Price price = curr->price; // Unused
+                        // Delete old
+                        delete_order(msg.order_id);
+                        // Add new
+                        add_order(msg.new_order_id, side, msg.price, msg.quantity); // Note: msg.price is new price
+                        return;
+                    }
+                    curr = curr->next;
                 }
             }
             break;
         default:
             break;
     }
-    update_l2_view();
 }
 
 void OrderBookL2::add_order(OrderId id, Side side, Price price, Quantity qty) noexcept {
-    // 1. Store L3
-    order_map_[id] = {price, qty, side};
-
-    // 2. Update Levels Map
-    if (side == Side::BUY) {
-        bid_levels_map_[price] += qty;
-    } else {
-        ask_levels_map_[price] += qty;
+    // 1. Allocate from pool
+    OrderEntry* new_order = order_pool_.allocate();
+    if (ULTRA_UNLIKELY(!new_order)) {
+        // Pool full - in prod we might log or crash. 
+        // For now, silently drop to avoid segfault.
+        return;
     }
+    new_order->id = id;
+    new_order->side = side;
+    new_order->price = price;
+    new_order->quantity = qty;
+    new_order->next = nullptr;
+
+    // 2. Insert into Hash Map (Chaining)
+    uint32_t h = hash(id);
+    new_order->next = order_map_[h];
+    order_map_[h] = new_order;
+
+    // 3. Update Levels
+    update_level(side, price, static_cast<int32_t>(qty));
 }
 
 void OrderBookL2::delete_order(OrderId id) noexcept {
-    auto it = order_map_.find(id);
-    if (it == order_map_.end()) return;
+    uint32_t h = hash(id);
+    OrderEntry* curr = order_map_[h];
+    OrderEntry* prev = nullptr;
 
-    const auto& order = it->second;
-    if (order.side == Side::BUY) {
-        auto level_it = bid_levels_map_.find(order.price);
-        if (level_it != bid_levels_map_.end()) {
-            level_it->second -= order.quantity;
-            if (level_it->second <= 0) {
-                bid_levels_map_.erase(level_it);
+    while (curr) {
+        if (curr->id == id) {
+            // Found it
+            
+            // 1. Update Levels
+            update_level(curr->side, curr->price, -static_cast<int32_t>(curr->quantity));
+
+            // 2. Unlink from Map
+            if (prev) {
+                prev->next = curr->next;
+            } else {
+                order_map_[h] = curr->next;
             }
+
+            // 3. Return to Pool
+            order_pool_.deallocate(curr);
+            return;
         }
-    } else {
-        auto level_it = ask_levels_map_.find(order.price);
-        if (level_it != ask_levels_map_.end()) {
-            level_it->second -= order.quantity;
-            if (level_it->second <= 0) {
-                ask_levels_map_.erase(level_it);
-            }
-        }
+        prev = curr;
+        curr = curr->next;
     }
-    order_map_.erase(it);
 }
 
-void OrderBookL2::modify_order(OrderId id, Quantity new_qty, Price new_price) noexcept {
-    // Placeholder
-    (void)id; (void)new_qty; (void)new_price;
-}
+// Optimized Level Update
+// - Finds level using linear scan (fast for small MAX_LEVELS=100)
+// - Inserts/Removes shifting memory with memmove
+void OrderBookL2::update_level(Side side, Price price, int32_t qty_delta) noexcept {
+    auto& levels = (side == Side::BUY) ? bids_ : asks_;
+    
+    // 1. Find the level
+    for (size_t i = 0; i < MAX_LEVELS; ++i) {
+        // Case A: Found existing level
+        if (levels[i].price == price) {
+            levels[i].quantity += qty_delta;
+            if (qty_delta > 0) levels[i].order_count++;
+            else levels[i].order_count--; // Approximation (doesn't handle multi-order-per-level perfectly without tracking)
+            
+            // If quantity drops to 0 (or less), remove level
+            if (levels[i].quantity <= 0) {
+                // Shift remaining levels left
+                if (i < MAX_LEVELS - 1) {
+                    std::memmove(&levels[i], &levels[i+1], (MAX_LEVELS - 1 - i) * sizeof(Level));
+                }
+                // Clear last
+                levels[MAX_LEVELS-1].price = (side == Side::BUY) ? 0 : INVALID_PRICE;
+                levels[MAX_LEVELS-1].quantity = 0;
+            }
+            return;
+        }
 
-void OrderBookL2::update_l2_view() noexcept {
-    // Copy top levels from maps to arrays
-    size_t i = 0;
-    for (const auto& [price, qty] : bid_levels_map_) {
-        if (i >= MAX_LEVELS) break;
-        bids_[i].price = price;
-        bids_[i].quantity = qty;
-        i++;
-    }
-    // Fill remaining with 0
-    for (; i < MAX_LEVELS; ++i) { bids_[i].price = 0; bids_[i].quantity = 0; }
+        // Case B: Found insertion point (Empty slot OR correct sort order)
+        // BUY: Descending (Current < Price)
+        // SELL: Ascending (Current > Price)
+        bool empty_slot = (side == Side::BUY && levels[i].price == 0) || 
+                          (side == Side::SELL && levels[i].price == INVALID_PRICE);
+        
+        bool correct_order = (side == Side::BUY && levels[i].price < price) ||
+                             (side == Side::SELL && levels[i].price > price);
 
-    i = 0;
-    for (const auto& [price, qty] : ask_levels_map_) {
-        if (i >= MAX_LEVELS) break;
-        asks_[i].price = price;
-        asks_[i].quantity = qty;
-        i++;
+        if (empty_slot || correct_order) {
+            // If we are removing, we shouldn't be here (means price wasn't found)
+            if (qty_delta < 0) return; 
+
+            // Insert New Level
+            // Shift right to make space
+            if (i < MAX_LEVELS - 1) {
+                std::memmove(&levels[i+1], &levels[i], (MAX_LEVELS - 1 - i) * sizeof(Level));
+            }
+            levels[i].price = price;
+            levels[i].quantity = qty_delta;
+            levels[i].order_count = 1;
+            return;
+        }
     }
-    // Fill remaining with INVALID_PRICE
-    for (; i < MAX_LEVELS; ++i) { asks_[i].price = INVALID_PRICE; asks_[i].quantity = 0; }
 }
 
 } // namespace ultra::md
