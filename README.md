@@ -37,7 +37,7 @@ Built and run inside a `linux/amd64` Docker container (even on Apple Silicon) fo
 
 ---
 
-## ⚙️ System Architecture: Event-Driven Pipeline
+## System Architecture: Event-Driven Pipeline
 
 The live-engine is the **heart of the system**, orchestrating all threads and components.
 
