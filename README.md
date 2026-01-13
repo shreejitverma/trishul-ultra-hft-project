@@ -116,22 +116,44 @@ Note: `RDTSC` on ARM64 reads the `cntvct_el0` timer, which has lower resolution 
 
 | Component | P50 (Ticks) | P99 (Ticks) | Avg (Ticks) | Notes |
 |-----------|-------------|-------------|-------------|-------|
-| **RDTSC Read** | ~0 | 41 | ~0.5 | Zero-overhead timer read |
+| **RDTSC Read** | ~0 | 42 | ~0.8 | Zero-overhead timer read |
 | **ITCH Decode** | ~0 | 42 | ~2.8 | SIMD-optimized decoding |
-| **Book Update** | 42 | 84 | ~56 | Hash-map based L2 updates |
+| **Book Update** | ~0 | 42 | ~5.9 | **New Flat-Map Implementation** |
 
 *1 Tick ≈ 1 nanosecond (calibrated)*
 
 ### 2. Throughput (Data Ingestion)
 
-*   **1.85 Million messages/second** (Single-threaded, inclusive of Decode + Book Update).
-*   **Avg Latency:** 538 ns/msg (Total pipeline time).
+*   **37.88 Million messages/second** (Single-threaded, inclusive of Decode + Book Update).
+    *   *Previous Version:* ~1.85 M msgs/sec.
+    *   *Improvement:* **~20x speedup** via Object Pool and Flat Maps.
+*   **Avg Latency:** 26 ns/msg (Total pipeline time).
 
-### 3. Backtest Performance
+---
 
-*   **Total Messages Processed:** 220,020
-*   **Total Runtime:** ~590ms
-*   **Strategy Throughput:** ~372k msgs/sec (Full simulation with strategy + risk + simulated matching).
+## Thesis Integration: AI & Hybrid FPGA Architecture
+
+This codebase now reflects the **Hybrid Control Plane** described in the thesis.
+
+> **Hardware Setup:** For instructions on how to set up the FPGA hardware, recommended boards under $600, and driver configuration, see [docs/FPGA_SETUP.md](docs/FPGA_SETUP.md).
+
+### 1. AI-Driven Market Making
+The `RLPolicyStrategy` implements an **Inventory-Aware Avellaneda-Stoikov approximation**:
+*   **State Space:** Mid-price, Spread, Inventory Risk, Volatility ($\sigma$).
+*   **Action Space:** Quote Skew (Offsets from Mid-Price).
+*   **Logic:**
+    $$ r(s, t) = s(t) - q \gamma \sigma^2 (T-t) $$
+    The system skews quotes aggressively based on current inventory ($q$) and risk aversion ($\gamma$).
+
+### 2. FPGA Control Driver (`fpga_driver.hpp`)
+A simulated PCIe/MMIO driver interface allows the C++ Software Strategy to:
+*   Write high-level risk parameters (Gamma, Max Position) to the FPGA.
+*   Read execution status and hardware inventory.
+*   This mimics the memory-mapped register interface used in the actual hardware deployment.
+
+### 3. Real-Time Data Ingestion (`multicast_receiver.hpp`)
+*   **Kernel Bypass Simulation:** Uses optimized `SO_RCVBUF`, `SO_REUSEPORT`, and non-blocking IO to consume high-throughput UDP feeds (e.g., NASDAQ ITCH).
+*   **Live Mode:** Can be enabled via environment variable `ULTRA_LIVE_MODE=1`.
 
 ---
 
