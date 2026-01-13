@@ -17,8 +17,12 @@ endif()
 # Base flags for all builds
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-# Note: -march=native in an x86-64 container will enable AVX, SSE, etc.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -msse4.2 -mfma")
+
+# Architecture-specific flags
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "amd64")
+    # Note: -march=native in an x86-64 container will enable AVX, SSE, etc.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -msse4.2 -mfma")
+endif()
 
 # Release optimizations (production)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto -ffast-math")
@@ -155,11 +159,11 @@ target_link_libraries(ultra_hft INTERFACE
 # )
 # target_link_libraries(md_replayer ultra_hft)
 
-# Strategy backtester (Future step)
-# add_executable(strategy_backtester
-#     apps/strategy-backtester/main.cpp
-# )
-# target_link_libraries(strategy_backtester ultra_hft)
+# Strategy backtester
+add_executable(strategy_backtester
+    apps/strategy-backtester/main.cpp
+)
+target_link_libraries(strategy_backtester ultra_hft)
 
 # Live trading engine
 add_executable(live_engine
@@ -167,6 +171,29 @@ add_executable(live_engine
     apps/live-engine/engine.cpp
 )
 target_link_libraries(live_engine ultra_hft)
+
+# ============================================================================
+# TOOLS
+# ============================================================================
+
+add_executable(data_generator
+    tools/data-generator/main.cpp
+)
+target_link_libraries(data_generator ultra_hft)
+
+# ============================================================================
+# BENCHMARKS
+# ============================================================================
+
+add_executable(latency_bench
+    benchmarks/latency/main.cpp
+)
+target_link_libraries(latency_bench ultra_hft)
+
+add_executable(throughput_bench
+    benchmarks/throughput/main.cpp
+)
+target_link_libraries(throughput_bench ultra_hft)
 
 # ============================================================================
 # TESTS

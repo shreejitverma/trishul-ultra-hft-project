@@ -11,7 +11,7 @@ RLPolicyStrategy::RLPolicyStrategy(SymbolId symbol_id)
 
 RLPolicyStrategy::~RLPolicyStrategy() = default;
 
-void RLPolicyStrategy::on_market_data(const md::itch::Decoder::DecodedMessage& msg) {
+void RLPolicyStrategy::on_market_data(const md::itch::ITCHDecoder::DecodedMessage& msg) {
     // 1. Update our internal view of the L2 order book
     order_book_.update(msg);
 

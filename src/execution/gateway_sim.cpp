@@ -9,6 +9,10 @@ void GatewaySim::send_order(const strategy::StrategyOrder& order) {
     auto new_order = order;
     new_order.order_id = next_order_id_++;
 
+    std::cout << "GATEWAY: New " << (order.side == Side::BUY ? "BUY" : "SELL") 
+              << " Order " << new_order.order_id << " Accepted. Price: " 
+              << from_price(order.price) << std::endl;
+
     // 1. Send "Accepted" message
     send_accept(new_order);
 
@@ -21,6 +25,7 @@ bool GatewaySim::get_execution_report(ExecutionReport& report) {
 }
 
 void GatewaySim::update_market(const md::itch::ITCHDecoder::DecodedMessage& msg) {
+    (void)msg; // Silence unused parameter warning
     // A real sim would use market data to drive fills
     // e.g., if a market trade comes in, cross our resting orders
 }

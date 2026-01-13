@@ -96,7 +96,6 @@ public:
     ITCHDecoder();
     
     // Fast path: decode single message
-    ULTRA_HOT ULTRA_ALWAYS_INLINE 
     DecodedMessage decode(const uint8_t* data, size_t len, Timestamp rdtsc_ts) noexcept;
     
     // Symbol lookup (pre-registered)

@@ -1,12 +1,8 @@
 #pragma once
 #include "../core/types.hpp"
 #include "../core/lockfree/spsc_queue.hpp"
+#include "../market-data/itch/decoder.hpp"
 #include <vector>
-// #include "../strategy/strategy.hpp" // <-- REMOVED THIS
-
-namespace ultra::md::itch {
-    class ITCHDecoder; // <-- NEEDED FOR DecodedMessage
-}
 
 namespace ultra::strategy {
     struct StrategyOrder; // <-- ADDED FORWARD DECLARATION

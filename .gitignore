@@ -1,0 +1,20 @@
+# Build directories
+build/
+bin/
+lib/
+cmake-build-*/
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+.DS_Store
+
+# Data files
+*.bin
+*.pcap

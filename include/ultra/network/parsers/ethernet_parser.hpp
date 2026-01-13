@@ -2,7 +2,14 @@
 #include "../../core/compiler.hpp"
 #include "../../core/types.hpp"
 #include <cstring>
-#include <netinet/ether.h>
+
+#if defined(__APPLE__)
+    #include <net/ethernet.h>
+    #include <netinet/if_ether.h>
+#else
+    #include <netinet/ether.h>
+#endif
+
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 

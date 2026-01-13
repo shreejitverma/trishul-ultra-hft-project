@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include "ultra/core/time/rdtsc_clock.hpp" // <-- ADDED
 #include <iostream>
 #include <vector>
 
@@ -67,23 +68,34 @@ void Engine::md_thread_loop() {
     std::cout << "[MD Thread] running." << std::endl;
     
     // --- Simulate a Market Data Feed ---
-    // (This would be a network receiver in a real system)
     using namespace md::itch;
     
-    // Create a fake "AAPL" Add Order message
     std::vector<uint8_t> add_order_bytes(sizeof(AddOrder));
     auto* add_msg = reinterpret_cast<AddOrder*>(add_order_bytes.data());
     add_msg->header.type = static_cast<uint8_t>(MessageType::ADD_ORDER);
     add_msg->header.length = __builtin_bswap16(sizeof(AddOrder));
-    add_msg->timestamp = __builtin_bswap64(123456789ULL);
-    add_msg->order_ref_number = __builtin_bswap64(10001ULL);
-    add_msg->buy_sell_indicator = 'B';
     add_msg->shares = __builtin_bswap32(100);
     memcpy(add_msg->stock, "AAPL    ", 8);
-    add_msg->price = __builtin_bswap32(1500000); // $150.0000
-    // --- End of Sim Data ---
     
+    uint64_t order_ref_base = 10000;
+    bool side_toggle = false; 
+
     while (running_) {
+        // Update fields
+        add_msg->timestamp = __builtin_bswap64(RDTSCClock::now());
+        add_msg->order_ref_number = __builtin_bswap64(++order_ref_base);
+        
+        if (!side_toggle) {
+            // BID @ 150.00
+            add_msg->buy_sell_indicator = 'B';
+            add_msg->price = __builtin_bswap32(1500000); 
+        } else {
+            // ASK @ 150.05
+            add_msg->buy_sell_indicator = 'S';
+            add_msg->price = __builtin_bswap32(1500500); 
+        }
+        side_toggle = !side_toggle;
+
         // 1. Get packet from network (simulated)
         const uint8_t* raw_packet = add_order_bytes.data();
         size_t packet_len = add_order_bytes.size();
@@ -100,7 +112,7 @@ void Engine::md_thread_loop() {
         }
         
         // Simulate feed
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 }
 

@@ -5,6 +5,8 @@
 #include <array>
 #include <algorithm>
 #include <vector>
+#include <unordered_map>
+#include <map>
 
 namespace ultra::md {
 
@@ -42,16 +44,19 @@ public:
     const PriceLevelSide& asks() const noexcept { return asks_; }
 
 private:
-    // L3-style book to reconstruct L2.
-    // This is a simplified, non-performant hash map for the *stub*.
-    // A production system would use a custom, open-addressing
-    // hash table (like absl::flat_hash_map) with a custom allocator.
     struct L3Order {
         Price price;
         Quantity quantity;
         Side side;
     };
-    std::vector<L3Order> orders_; // Using vector as a simple map stub
+    
+    // O(1) Lookup for Order Modify/Delete
+    std::unordered_map<OrderId, L3Order> order_map_;
+    
+    // Sorted Levels (Price -> Quantity)
+    // Using std::map for correctness (O(log N))
+    std::map<Price, Quantity, std::greater<Price>> bid_levels_map_;
+    std::map<Price, Quantity, std::less<Price>> ask_levels_map_;
     
     SymbolId symbol_id_;
     ULTRA_CACHE_ALIGNED PriceLevelSide bids_{};
@@ -62,8 +67,8 @@ private:
     void delete_order(OrderId id) noexcept;
     void modify_order(OrderId id, Quantity new_qty, Price new_price) noexcept;
 
-    // Rebuild L2 from L3 (slow, but simple for this stub)
-    void rebuild_l2() noexcept;
+    // Refresh the array views from the maps
+    void update_l2_view() noexcept;
 };
 
 } // namespace ultra::md
