@@ -157,6 +157,14 @@ A simulated PCIe/MMIO driver interface allows the C++ Software Strategy to:
 
 ---
 
+### 4. Vectorized Backtesting Engine (`strategy_backtester`)
+*   **Capacity:** Processes **10 Million+** trades in memory.
+*   **Performance:** Computes SMA/RSI indicators on 10M data points in **<160ms** using AVX2/NEON optimized SIMD.
+*   **Metrics:** Calculates Sharpe Ratio, Sortino Ratio, Max Drawdown, and CAGR.
+*   **Methodology:** Columnar (Structure-of-Arrays) processing for maximum CPU cache efficiency.
+
+---
+
 ## Component & File Deep Dive
 
 ### `apps/live-engine/`

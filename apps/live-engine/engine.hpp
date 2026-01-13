@@ -4,6 +4,8 @@
 #include <ultra/strategy/rl-inference/rl_policy.hpp>
 #include <ultra/risk/pretrade_checker.hpp>
 #include <ultra/execution/gateway_sim.hpp>
+#include <ultra/network/multicast_receiver.hpp>
+#include <ultra/fpga/fpga_driver.hpp>
 #include <memory>
 #include <thread>
 #include <atomic>
@@ -32,6 +34,12 @@ private:
     std::unique_ptr<strategy::RLPolicyStrategy> strategy_;
     std::unique_ptr<risk::PretradeChecker> risk_checker_;
     std::unique_ptr<exec::GatewaySim> gateway_;
+    
+    // New Components (Thesis Integration)
+    std::unique_ptr<network::MulticastReceiver> udp_receiver_;
+    std::unique_ptr<fpga::FPGADriver> fpga_driver_;
+    
+    bool use_live_network_{false}; // Set to true to use UDP Receiver
     
     // --- Message Queues (The "Event Driven Pipeline" from Fig 3) ---
     // (Using SPSC queues as this is a simple 1-to-1 pipeline)

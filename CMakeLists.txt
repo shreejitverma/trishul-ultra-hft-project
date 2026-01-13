@@ -75,6 +75,7 @@ set(ULTRA_CORE_SOURCES
 # Network layer
 set(ULTRA_NETWORK_SOURCES
     src/network/parsers/ethernet_parser.cpp
+    src/network/multicast/multicast_receiver.cpp
 )
 
 # Market data
@@ -86,7 +87,11 @@ set(ULTRA_MD_SOURCES
 # Strategy
 set(ULTRA_STRATEGY_SOURCES
     src/strategy/rl-inference/rl_policy_stub.cpp
-    # src/strategy/avellaneda/as_market_maker.cpp # (Future step)
+)
+
+# FPGA Driver
+set(ULTRA_FPGA_SOURCES
+    src/fpga/driver/fpga_driver.cpp
 )
 
 # Risk management
@@ -124,6 +129,10 @@ target_link_libraries(ultra_md PUBLIC ultra_core ultra_network)
 add_library(ultra_strategy STATIC ${ULTRA_STRATEGY_SOURCES})
 target_link_libraries(ultra_strategy PUBLIC ultra_core ultra_md)
 
+# FPGA library
+add_library(ultra_fpga STATIC ${ULTRA_FPGA_SOURCES})
+target_link_libraries(ultra_fpga PUBLIC ultra_core)
+
 # Risk library
 add_library(ultra_risk STATIC ${ULTRA_RISK_SOURCES})
 target_link_libraries(ultra_risk PUBLIC ultra_core)
@@ -143,6 +152,7 @@ target_link_libraries(ultra_hft INTERFACE
     ultra_network
     ultra_md
     ultra_strategy
+    ultra_fpga
     ultra_risk
     ultra_exec
     ultra_telemetry
@@ -200,6 +210,12 @@ target_link_libraries(throughput_bench ultra_hft)
 # ============================================================================
 
 enable_testing()
+
+add_executable(test_ai_strategy
+    tests/unit/test_ai_strategy.cpp
+)
+target_link_libraries(test_ai_strategy ultra_hft)
+add_test(NAME AIStrategyTest COMMAND test_ai_strategy)
 
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
