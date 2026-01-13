@@ -343,6 +343,15 @@ Ultra HFT: AI-Integrated Trading System
 │   ├── include/ultra/risk/
 │   └── include/ultra/execution/
 └── Future Work
+
+## References
+
+1.  **Thesis:** "AI-Integrated FPGA for Market Making in Volatile Environments." (2024).
+2.  **Market Making:** Avellaneda, M., & Stoikov, S. (2008). *High-frequency trading in a limit order book*. Quantitative Finance, 8(3), 217-224.
+3.  **Architecture:** Aldridge, I. (2013). *High-frequency trading: a practical guide to algorithmic strategies and trading systems*. John Wiley & Sons.
+4.  **C++ Performance:** Meyers, S. (2014). *Effective Modern C++*. O'Reilly Media.
+5.  **FPGA/Hardware:** Xilinx. (2021). *UltraScale Architecture fast Forward*.
+
 ```
 
 ```
