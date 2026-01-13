@@ -25,6 +25,16 @@ The `RLPolicyStrategy` acts as the AI/RL model stub, ready for FPGA communicatio
 ### Production Parity
 Built and run inside a `linux/amd64` Docker container (even on Apple Silicon) for full parity with production x86-64 servers.
 
+## Documentation
+
+*   [**Architecture Overview**](docs/ARCHITECTURE.md): Deep dive into the Hybrid CPU/FPGA design and Memory Model.
+*   [**User Manual**](docs/USER_MANUAL.md): Setup, Build, Simulation, and Benchmarking guide.
+*   [**API Reference**](docs/API_REFERENCE.md): C++ Classes and Interfaces.
+*   [**FPGA Setup Guide**](docs/FPGA_SETUP.md): Hardware selection and driver installation.
+*   [**Examples**](docs/EXAMPLES.md): Custom strategies and PCAP replay.
+*   [**Contributing**](CONTRIBUTING.md): Guidelines for developers.
+*   [**Changelog**](CHANGELOG.md): Version history.
+
 ---
 
 ## ⚙️ System Architecture: Event-Driven Pipeline
