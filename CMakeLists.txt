@@ -247,6 +247,12 @@ add_executable(test_market_maker
 target_link_libraries(test_market_maker ultra_hft)
 add_test(NAME MarketMakerTest COMMAND test_market_maker)
 
+add_executable(test_async_logger
+    tests/unit/test_async_logger.cpp
+)
+target_link_libraries(test_async_logger ultra_hft)
+add_test(NAME AsyncLoggerTest COMMAND test_async_logger)
+
 add_executable(test_matching_engine
     tests/unit/test_matching_engine.cpp
 )
