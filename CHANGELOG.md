@@ -2,7 +2,30 @@
 
 All notable changes to the Trishul Ultra-HFT project will be documented here.
 
-## [Unreleased] - 2026-01-13
+## [0.2.0] - 2026-01-19
+
+### Added
+- **FPGA Hardware Pipeline (`fpga/rtl`)**: Full Verilog implementation of the Tick-to-Trade path.
+    - `rx_parser`: Zero-copy Ethernet/IP/UDP header extraction.
+    - `itch_decoder`: Hardware parsing of ITCH 5.0 "Add Order" messages.
+    - `book2`: Single-cycle L1 Order Book (Best Bid/Offer).
+    - `strat_decide`: Deterministic, threshold-based Strategy Engine.
+    - `order_encode`: OUCH-style binary order packet generation.
+- **Python RL Environment (`tools/rl_trainer`)**:
+    - `MarketMakingEnv`: Gymnasium-compatible environment simulating a Limit Order Book.
+    - `train.py`: PPO training script using Stable-Baselines3.
+- **Execution System (`src/execution`)**:
+    - `OrderManagementSystem`: Core OMS for tracking order state and lifecycle.
+    - `SmartOrderRouter`: Baseline SOR for venue routing logic.
+- **Telemetry System (`src/telemetry`)**:
+    - `LatencyHistogram`: Lock-free histogram for nanosecond-precision latency tracking.
+    - `MetricsPublisher`: Background service for system health monitoring.
+
+### Changed
+- **Strategy Engine**: Replaced stub logic with `RLPolicyStrategy` utilizing the new OMS/SOR interfaces.
+- **Documentation**: Updated Architecture diagrams and component descriptions to match the implementation.
+
+## [0.1.0] - 2026-01-13
 
 ### Added
 - **Vectorized Backtesting Engine (`apps/strategy-backtester`)**: Supports loading 10M+ trades and computing indicators in <200ms.

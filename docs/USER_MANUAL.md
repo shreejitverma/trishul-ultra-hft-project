@@ -9,7 +9,7 @@ Welcome to the **Trishul Ultra-HFT** platform. This manual guides you through bu
 *   **Hardware:**
     *   CPU: Modern multi-core processor (AVX2 support recommended).
     *   RAM: 4GB minimum.
-    *   FPGA (Optional): Xilinx Artix-7 for hardware offload features.
+    *   FPGA (Optional): Xilinx Artix-7/UltraScale+ for hardware offload features.
 
 ## 2. Building the Project
 
@@ -31,7 +31,33 @@ make -j4
 
 ---
 
-## 3. Running Simulations
+## 3. RL Model Training (New)
+
+The system supports training Reinforcement Learning models using Python and Gymnasium.
+
+### Prerequisites
+Install the required Python packages:
+```bash
+pip install -r tools/rl_trainer/requirements.txt
+```
+
+### Training a Model
+To train a PPO agent against the simulated Limit Order Book environment:
+
+```bash
+python3 tools/rl_trainer/train.py
+```
+
+This will:
+1.  Initialize the `MarketMakingEnv`.
+2.  Train a PPO policy for 10,000 timesteps.
+3.  Save the model to `models/ppo_market_maker.zip`.
+
+*Note: Future versions will support exporting this model to ONNX for C++ inference.*
+
+---
+
+## 4. Running Simulations
 
 ### Step 1: Generate Market Data
 Before backtesting, you need data. Generate a synthetic dataset (10 Million trades) with realistic volatility (GBM).
@@ -62,7 +88,7 @@ Total Trades  : 9523813
 
 ---
 
-## 4. Running the Live Engine
+## 5. Running the Live Engine
 
 The `live_engine` can run in **Simulation Mode** (internal data loop) or **Live Mode** (UDP Multicast).
 
@@ -87,7 +113,7 @@ sudo ./build/live_engine
 
 ---
 
-## 5. Benchmarking
+## 6. Benchmarking
 
 Validate the system performance on your hardware.
 
@@ -107,7 +133,7 @@ Measures how many millions of messages per second the system can process.
 
 ---
 
-## 6. FPGA Integration
+## 7. FPGA Integration
 
 If you have a supported FPGA board:
 1.  Follow the [FPGA Setup Guide](FPGA_SETUP.md) to install drivers.

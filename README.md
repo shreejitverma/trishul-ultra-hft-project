@@ -1,5 +1,9 @@
 # Trishul: An AI-Driven Ultra-Low-Latency Market Making and Execution Platform
-A fast, sharp, and lethal system to execute trades
+![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+
+A fast, sharp, and lethal system to execute trades.
 
 This project is the **C++ software implementation** of the *Hybrid Control Plane* and simulation engine described in the Master's thesis, **"AI-Integrated FPGA for Market Making in Volatile Environments."**
 
@@ -22,13 +26,16 @@ A multi-threaded, event-driven system where components communicate via SPSC queu
 ### Hybrid Architecture Ready
 The `RLPolicyStrategy` acts as the AI/RL model stub, ready for FPGA communication and inference integration.
 
+### AI & Reinforcement Learning
+Includes a full **Python-based Gymnasium Environment** (`tools/rl_trainer`) to train PPO/DQN agents against a simulated Limit Order Book, bridging the gap between research and production.
+
 ### Production Parity
 Built and run inside a `linux/amd64` Docker container (even on Apple Silicon) for full parity with production x86-64 servers.
 
 ## Documentation
 
 *   [**Architecture Overview**](docs/ARCHITECTURE.md): Deep dive into the Hybrid CPU/FPGA design and Memory Model.
-*   [**User Manual**](docs/USER_MANUAL.md): Setup, Build, Simulation, and Benchmarking guide.
+*   [**User Manual**](docs/USER_MANUAL.md): Setup, Build, Simulation, RL Training, and Benchmarking guide.
 *   [**API Reference**](docs/API_REFERENCE.md): C++ Classes and Interfaces.
 *   [**FPGA Setup Guide**](docs/FPGA_SETUP.md): Hardware selection and driver installation.
 *   [**Examples**](docs/EXAMPLES.md): Custom strategies and PCAP replay.
@@ -54,15 +61,16 @@ graph TD
         C --> D{Strategy Thread Loop}
         D -->|on_market_data| E[RLPolicyStrategy]
         E -->|StrategyOrder| F(strategy_to_risk_queue)
+        E -->|Metrics| L[MetricsPublisher]
     end
 
     subgraph "Exec Thread (exec_thread_loop)"
         style Exec_Thread fill:#222,stroke:#333,color:#fff
         F --> G{Exec Thread Loop}
-        G -->|check_order| H[PretradeChecker]
-        H -->|Order OK| I(risk_to_gateway_queue)
-        I --> G
-        G -->|send_order| J[GatewaySim]
+        G -->|send_order| M[OrderManagementSystem]
+        M -->|route| N[SmartOrderRouter]
+        N -->|Order OK| I(risk_to_gateway_queue)
+        I --> J[GatewaySim]
     end
 
     subgraph "Feedback Loop"
@@ -71,7 +79,7 @@ graph TD
         K --> D
         D -->|on_execution| E
     end
-````
+```
 
 ---
 

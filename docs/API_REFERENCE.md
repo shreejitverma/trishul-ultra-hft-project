@@ -4,6 +4,17 @@ This document outlines the core C++ interfaces for developers extending the Tris
 
 ## 1. Strategy & Signals
 
+### `ultra::strategy::RLPolicyStrategy`
+Located in `include/ultra/strategy/rl-inference/rl_policy.hpp`.
+Implements the trading logic using a hybrid AI/Heuristic approach.
+
+*   `void on_market_data(const DecodedMessage& msg)`
+    *   Callback for new ITCH messages. Updates internal book and triggers inference.
+*   `void run_inference()`
+    *   Executes the Avellaneda-Stoikov logic to determine quote skew based on inventory.
+*   `void on_execution(const ExecutionReport& report)`
+    *   Callback for fill reports to update inventory state.
+
 ### `ultra::strategy::SignalEngine`
 Located in `include/ultra/strategy/signal_engine.hpp`.
 Provides SIMD-accelerated technical indicators.
@@ -12,21 +23,30 @@ Provides SIMD-accelerated technical indicators.
     *   Computes Simple Moving Average.
 *   `static std::vector<double> rsi(const std::vector<double>& prices, int period)`
     *   Computes Relative Strength Index using rolling averages.
-*   `static std::vector<int> ma_crossover_signal(const std::vector<double>& fast, const std::vector<double>& slow)`
-    *   Returns `1` (Buy), `-1` (Sell), or `0` (Hold) based on crossover logic.
-
-### `ultra::strategy::RLPolicyStrategy`
-Located in `include/ultra/strategy/rl-inference/rl_policy.hpp`.
-Implements the trading logic.
-
-*   `void on_market_data(const DecodedMessage& msg)`
-    *   Callback for new ITCH messages. Updates internal book and runs inference.
-*   `void run_inference()`
-    *   Executes the Avellaneda-Stoikov logic to determine quote skew based on inventory.
 
 ---
 
-## 2. Market Data
+## 2. Execution System
+
+### `ultra::execution::OrderManagementSystem`
+Located in `include/ultra/execution/oms/oms_core.hpp`.
+Manages the lifecycle of orders.
+
+*   `void send_order(const StrategyOrder& order)`
+    *   Assigns a Client Order ID (`ClOrdID`), tracks internal state, and forwards to the router.
+*   `void on_execution_report(const ExecutionReport& report)`
+    *   Updates order state (Filled, Partial, Canceled) based on exchange feedback.
+
+### `ultra::execution::SmartOrderRouter`
+Located in `include/ultra/execution/router/sor.hpp`.
+Determines the optimal venue for execution.
+
+*   `void route(const OrderState& order)`
+    *   Selects destination based on liquidity/fee logic and dispatches to the appropriate gateway.
+
+---
+
+## 3. Market Data
 
 ### `ultra::md::OrderBookL2`
 Located in `include/ultra/market-data/book/order_book_l2.hpp`.
@@ -47,7 +67,26 @@ Located in `include/ultra/market-data/itch/decoder.hpp`.
 
 ---
 
-## 3. Hardware & Network
+## 4. Telemetry & Monitoring
+
+### `ultra::telemetry::LatencyHistogram`
+Located in `include/ultra/telemetry/latency/histogram.hpp`.
+Lock-free statistical tracking.
+
+*   `void record(uint64_t latency_ns)`
+    *   Buckets a latency sample (relaxed atomic operation).
+*   `void print_stats() const`
+    *   Outputs P50/P99/Avg stats to stdout.
+
+### `ultra::telemetry::MetricsPublisher`
+Located in `include/ultra/telemetry/monitoring/publisher.hpp`.
+
+*   `void start()`
+    *   Launches a background thread to snapshot system metrics (1Hz).
+
+---
+
+## 5. Hardware & Network
 
 ### `ultra::fpga::FPGADriver`
 Located in `include/ultra/fpga/fpga_driver.hpp`.
@@ -63,15 +102,3 @@ Located in `include/ultra/network/multicast_receiver.hpp`.
 
 *   `int receive(uint8_t* buffer, size_t max_len)`
     *   Reads a packet from the kernel socket ring buffer. Non-blocking.
-
----
-
-## 4. Utilities
-
-### `ultra::SIMDUtils`
-Located in `include/ultra/core/simd_utils.hpp`.
-
-*   `static void compute_rolling_mean(...)`
-    *   AVX2 implementation of sliding window sum.
-*   `static double calculate_std_dev(...)`
-    *   AVX2 implementation of standard deviation.
