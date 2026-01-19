@@ -11,33 +11,33 @@ This platform bridges the gap between research and live trading, featuring a **M
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### ⚡ Ultra-Low Latency Core
+### Ultra-Low Latency Core
 *   **Zero-Allocation Hot Path:** Object Pools and Ring Buffers prevent runtime heap allocation.
 *   **Lock-Free Concurrency:** SPSC Queues (`lockfree::SPSCQueue`) for thread-safe, contention-free communication.
 *   **Kernel Bypass Foundation:** Simulated `DMARingBuffer` mimics VFIO/DPDK memory management.
 *   **Thread Optimization:** Real-time scheduling (`SCHED_FIFO`), core isolation, and memory prefaulting (`mlockall`).
 *   **Busy-Spin Waiting:** CPU-optimized spin-loops (`_mm_pause`) for sub-microsecond reaction times.
 
-### 🏛️ Advanced Architecture
+### Advanced Architecture
 *   **Matching Engine:** Price-Time Priority simulator with full execution feedback (Fills/Partials).
 *   **OUCH 5.0 Protocol:** Binary order entry protocol encoder/decoder (Little Endian/Packed) for DMA.
 *   **Asynchronous Logging:** High-throughput, non-blocking logger using dedicated background threads.
 *   **Symbol Universe:** O(1) lookup manager for multi-symbol trading environments.
 
-### 🧠 AI & Quantitative Strategy
+### AI and Quantitative Strategy
 *   **RL-Ready:** `RLPolicyStrategy` implements Inventory-Aware Avellaneda-Stoikov logic.
 *   **Predictive Signals:** **Order Book Imbalance (OBI)** signal with skewing logic based on liquidity pressure.
 *   **Vectorized Indicators:** SIMD-accelerated (AVX2/NEON) SMA, RSI, and Standard Deviation calculations.
 
-### 🛡️ Risk & Compliance
+### Risk and Compliance
 *   **Pre-Trade Risk Gateway:** Inline checks for Max Order Size, Position Limits, and Notional Exposure.
 *   **Telemetry:** Centralized `MetricsCollector` aggregating T2T latency, CPU usage, and PnL for InfluxDB.
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 *   [**Architecture Overview**](docs/ARCHITECTURE.md): Deep dive into the Event Pipeline and Memory Model.
 *   [**API Reference**](docs/API_REFERENCE.md): Class documentation for Strategies, Gateways, and Core Utils.
@@ -48,7 +48,7 @@ This platform bridges the gap between research and live trading, featuring a **M
 
 ---
 
-## 🛠️ Build and Run
+## Build and Execution
 
 ### Prerequisites
 *   **OS:** Linux (x86-64) or macOS (Apple Silicon supported via Docker).
@@ -89,7 +89,7 @@ ctest --output-on-failure
 
 ---
 
-## 📊 Performance Benchmarks (Apple M3 Simulation)
+## Performance Benchmarks (Apple M3 Simulation)
 
 | Component | Metric | Result |
 |-----------|--------|--------|
@@ -100,7 +100,7 @@ ctest --output-on-failure
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 Ultra-HFT
@@ -119,7 +119,7 @@ Ultra-HFT
 
 ---
 
-## 📜 References
+## References
 
 1.  **Thesis:** "AI-Integrated FPGA for Market Making in Volatile Environments." (2024).
 2.  **Market Making:** Avellaneda, M., & Stoikov, S. (2008). *High-frequency trading in a limit order book*.
