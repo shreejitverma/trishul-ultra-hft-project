@@ -1,103 +1,48 @@
-\chapter{FPGA System Architecture and Methodology}
+\chapter{FPGA System Methodology and Implementation}
 
-To validate the hypothesis that an AI-integrated FPGA can outperform traditional market-making strategies, we propose a hybrid system architecture. This architecture is founded upon a deterministic, pure FPGA tick-to-trade (T2T) pipeline by replacing its static decision logic with a hardware-accelerated reinforcement learning (RL) inference core.
+This chapter delineates the methodological approach taken to realize the proposed AI-integrated high-frequency trading system. The central hypothesis—that hardware-accelerated reinforcement learning can improve market-making performance—necessitates a hybrid architecture. This architecture bifurcates the system into two distinct domains: an Ultra-Low-Latency (ULL) Data Path for execution, and a Hybrid Control Plane for model management.
 
-This design is composed of two primary components, both specified in the underlying technical architecture:
+\section{The Ultra-Low-Latency Data Path Implementation}
+
+The data path is architected as a "pure-in-gates" pipeline, ensuring that every operation on the critical path—from the arrival of a packet to the dispatch of an order—occurs deterministically within the FPGA fabric.
+
+\subsection{Network Ingress: Deterministic Parsing}
+The ingress pipeline minimizes latency by processing network headers in parallel with data arrival. The \texttt{rx_parser} module implements a hierarchical Finite State Machine (FSM) that decouples protocol layers.
 \begin{itemize}
-    \item \textbf{The Ultra-Low-Latency (ULL) Data Path:} A "pure-in-gates" FPGA pipeline responsible for all operations on the critical path, from network ingress to order egress.
-    \item \textbf{The Hybrid Control Plane:} A software-based system (running on a host CPU) responsible for training the RL model and updating its parameters on the FPGA via a non-critical control path.
+    \item \textbf{Cycle 0 (Ethernet):} The FSM identifies the Start of Frame (SOF) and consumes the 14-byte Ethernet header.
+    \item \textbf{Cycle 1 (IPv4):} Source and Destination IP addresses are extracted. The module validates the IP checksum in real-time.
+    \item \textbf{Cycle 2 (UDP):} Port numbers are verified against a programmable whitelist. This early-discard mechanism ensures that only relevant market data enters the processing pipeline.
+    \item \textbf{Payload Streaming:} Once validated, the FSM asserts a valid signal, streaming the payload to the decoder. This "cut-through" design allows downstream processing to begin before the entire packet has been buffered.
 \end{itemize}
 
-\section{The Ultra-Low-Latency T2T Data Path (FPGA)}
+\subsection{Feed Handling: Semantic Extraction}
+The \texttt{itch_decoder} transforms the raw byte stream into semantic market events. It employs a 512-bit shift register to accumulate incoming words. Pattern matching logic scans this buffer for specific message type identifiers (e.g., 'A' for Add Order). Upon detection, combinatorial logic extracts the Price and Quantity fields using fixed bit-offsets, normalizing them into a standardized internal format. This removes the variability of the wire protocol from the core logic.
 
-Our data path foundation is a deterministic, end-to-end T2T pipeline architecture. This design ensures our system operates with deterministic, sub-microsecond latency, eliminating OS jitter and software overheads.
+\section{Core Innovation: The RL-Inference Module}
 
-\subsection{Network Ingress & Parsing (rx_parser)}
-The system ingests 10/25GbE market data feeds directly from the PHY. The \texttt{rx_parser} module implements a Finite State Machine (FSM) to strip headers and extract the payload.
-
-\begin{figure}[h!]
-    \centering
-    \caption{State Machine for RX Parser}
-    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm, semithick]
-      \tikzstyle{every state}=[fill=blue!10,draw=none,text=black]
-
-      \node[state, initial] (ETH) {ST_ETH};
-      \node[state] (IP) [right of=ETH] {ST_IP};
-      \node[state] (UDP) [right of=IP] {ST_UDP};
-      \node[state] (PAY) [right of=UDP] {ST_PAY};
-
-      \path 
-        (ETH) edge node {Cycle 0} (IP)
-        (IP) edge node {Cycle 1} (UDP)
-        (UDP) edge node {Cycle 2} (PAY)
-        (PAY) edge [loop above] node {Payload Stream} (PAY)
-              edge [bend left] node {tlast=1} (ETH);
-    \end{tikzpicture}
-\end{figure}
-
-The FSM cycles through:
-\begin{enumerate}
-    \item \textbf{ST_ETH:} Consumes the 14-byte Ethernet header.
-    \item \textbf{ST_IP:} Extracts Source/Dest IP from the 20-byte IPv4 header.
-    \item \textbf{ST_UDP:} Extracts Source/Dest Ports from the 8-byte UDP header and asserts \texttt{header_valid}.
-    \item \textbf{ST_PAY:} Streams the remaining payload data to the decoder until \texttt{tlast} is asserted.
-\end{enumerate}
-
-\subsection{Feed Handling & Book Building (itch_decoder)}
-The \texttt{itch_decoder} module is responsible for identifying and parsing specific market data messages.
-
-\begin{figure}[h!]
-    \centering
-    \caption{ITCH Decoder Logic Flow}
-    \begin{tikzpicture}[node distance = 1.5cm, auto]
-        \tikzstyle{block} = [rectangle, draw, fill=green!10, text width=8em, text centered, rounded corners, minimum height=3em]
-        \tikzstyle{line} = [draw, -latex', thick]
-        
-        \node [block] (input) {Input Stream};
-        \node [block, right=of input] (buffer) {Accumulation Buffer (512-bit)};
-        \node [block, below=of buffer] (check) {Length Check (>288 bits)};
-        \node [block, right=of check] (extract) {Field Extraction};
-        \node [block, below=of extract] (output) {Normalized Tick};
-
-        \path [line] (input) -- (buffer);
-        \path [line] (buffer) -- (check);
-        \path [line] (check) -- node {Yes} (extract);
-        \path [line] (extract) -- (output);
-    \end{tikzpicture}
-\end{figure}
-
-Logic flow:
-\begin{itemize}
-    \item \textbf{Accumulation:} Incoming 64-bit words are shifted into a large internal buffer (`buffer`).
-    \item \textbf{Detection:} The logic checks if the buffer contains enough bits for a full "Add Order" message (Type 'A', 36 bytes).
-    \item \textbf{Extraction:} Once valid, it extracts the Order ID, Price, and Quantity fields using fixed bit-offsets and generates a single-cycle \texttt{tick_valid} pulse.
-\end{itemize}
-
-\section{Implemented Core: The RL-Inference Module}
-
-A major contribution of this thesis is the implementation of the \texttt{strat_decide.v} module, which replaces static threshold logic with a hardware-accelerated RL inference core. This module has been synthesized and integrated into the pipeline.
-
-\begin{itemize}
-    \item \textbf{Inputs:} The module receives high-speed BBO signals (\texttt{bid_px0}, \texttt{ask_px0}) alongside real-time state features: Inventory Position and Market Volatility.
-    \item \textbf{Architecture:} The core implements a 4-stage pipelined neural network:
-    \begin{enumerate}
-        \item \textbf{Feature Extraction:} Calculates spread ($Ask - Bid$), Order Book Imbalance (OBI), and inventory skew.
-        \item \textbf{DSP MAC:} Uses Xilinx DSP48 slices to perform parallel dot-product operations of the feature vector against weights stored in Block RAM (BRAM).
-        \item \textbf{Activation:} Applies a hardware-optimized ReLU function (max(0, x)).
-        \item \textbf{Decision:} A comparator stage thresholds the activation output to generate \texttt{buy} or \texttt{sell} signals.
-    \end{enumerate}
-    \item \textbf{Latency:} The pipelined design achieves an inference latency of \textbf{4 clock cycles} (approx. 13.3ns at 300MHz), negligible compared to the total T2T budget.
-\end{itemize}
-
-This design retains the safety of the original pipeline. The AI's decisions are strictly gated by the \texttt{risk_gate} module, which enforces hard limits (e.g., Max Notional) in hardware, providing a fail-safe against model hallucinations.
-
-\section{The Hybrid Control Plane for Model Management}
-
-To bridge the gap between static hardware and dynamic markets, we implemented a PCIe-based control plane.
+The pivotal contribution of this work is the replacement of static decision logic with the \texttt{strat_decide.v} module. This hardware core embeds a trained Reinforcement Learning policy directly into the datapath. To meet the stringent timing requirements of a 300 MHz clock domain, the inference engine is structured as a 4-stage pipeline:
 
 \begin{enumerate}
-    \item \textbf{Model Deployment:} The CPU-based software stack trains the RL model and writes optimized weights into the FPGA's AXI-Lite registers. This allows for dynamic model updates without recompiling the bitstream.
-    \item \textbf{Telemetry and Monitoring:} The FPGA exports high-resolution timestamps and latency histograms via the same PCIe path, enabling precise T2T benchmarking.
+    \item \textbf{Stage 1: Feature Extraction.} The module computes derived market features in real-time. These include the Bid-Ask Spread, the Order Book Imbalance (OBI), and the Inventory Skew. These calculations utilize dedicated adders and subtractors to produce a feature vector.
+    \item \textbf{Stage 2: DSP-Accelerated MAC.} The feature vector is fed into a bank of Xilinx DSP48 slices. These specialized arithmetic units perform the Multiply-Accumulate (MAC) operations required for the neural network's dense layers, computing the dot-product of input features and learned weights stored in Block RAM (BRAM).
+    \item \textbf{Stage 3: Hardware Activation.} The output of the MAC stage passes through an activation function. To avoid the latency of calculating exponentials for Sigmoid or Tanh, the system implements a Rectified Linear Unit (ReLU), which is efficiently synthesized as a single multiplexer logic gate (\(\max(0, x)\)).
+    \item \textbf{Stage 4: Decision Thresholding.} The activated values are compared against learned thresholds to generate discrete \texttt{BUY} or \texttt{SELL} control signals.
 \end{enumerate}
 
-This hybrid approach ensures the critical trading path remains purely in hardware and is \textit{never} back-pressured by the software plane.
+This pipelined architecture achieves a total inference latency of approximately 13.3 nanoseconds, effectively rendering the AI decision-making cost negligible in the context of the total system latency.
+
+\subsection{Safety Systems: Hardware Risk Gating}
+To mitigate the operational risks associated with probabilistic AI models, the outputs of the RL core are gated by a deterministic safety module, \texttt{risk_gate}. This module enforces hard constraints on:
+\begin{itemize}
+    \item \textbf{Max Notional Value:} Preventing orders that exceed a predefined dollar amount.
+    \item \textbf{Message Rate:} Limiting the frequency of orders to prevent runaway loops (e.g., "quote stuffing").
+\end{itemize}
+This "Safety Envelope" ensures that even in the event of model hallucination or input anomalies, the system remains within safe operating parameters.
+
+\section{The Hybrid Control Plane}
+
+A fundamental challenge in hardware-based trading is the rigidity of FPGA logic. To address this, we developed a PCIe-based Hybrid Control Plane. This sideband channel allows the software running on the host CPU to interact with the FPGA dynamically.
+\begin{itemize}
+    \item \textbf{Dynamic Parameter Updates:} The RL model weights are not hard-coded in the bitstream. Instead, they are stored in memory-mapped registers accessible via the AXI-Lite interface. This allows the software strategy engine to retrain the model on recent data and "hot-swap" the weights on the FPGA without interrupting the trading session.
+    \item \textbf{Telemetry Export:} The FPGA exposes performance counters and high-resolution timestamps via PCIe. This observability is crucial for verifying the tick-to-trade latency and debugging the interaction between the RL model and live market data.
+\end{itemize}

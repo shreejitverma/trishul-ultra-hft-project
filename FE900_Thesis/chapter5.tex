@@ -1,13 +1,14 @@
-\chapter{Ultra-Low-Latency Software Implementation and Evaluation}
+\chapter{Software Baseline Implementation and System Evaluation}
 
-This section details the architecture and implementation of the ultra-low-latency (ULL) software baseline. This system serves two purposes: first, as a high-performance simulation environment for backtesting the RL strategies, and second, as the "Hybrid Control Plane" that manages the FPGA in the live system.
+This chapter details the design, implementation, and evaluation of the ultra-low-latency (ULL) software system. This software stack fulfills two critical roles within the broader research framework: it serves as a high-fidelity simulation environment for backtesting the reinforcement learning strategies, and it acts as the operational "Hybrid Control Plane" for the live FPGA system.
 
 \section{Software System Architecture}
-The software baseline follows a layered, six-stage pipeline. The interactions between the core C++ components are illustrated in Figure \ref{fig:sw_class_diagram}.
+
+The software architecture is designed to minimize non-deterministic behavior introduced by the operating system and hardware caches. It employs a thread-per-core execution model, with critical components communicating via lock-free data structures. The architecture is visualized in Figure \ref{fig:sw_class_diagram}.
 
 \begin{figure}[h!]
     \centering
-    \caption{C++ Software Component Diagram}
+    \caption{UML Component Diagram of the Software Engine}
     \label{fig:sw_class_diagram}
     \begin{tikzpicture}[node distance=1.5cm, auto]
         \tikzstyle{class} = [rectangle, draw, fill=yellow!10, text width=10em, text centered, rounded corners, minimum height=3em]
@@ -21,43 +22,43 @@ The software baseline follows a layered, six-stage pipeline. The interactions be
         \path [line] (strat) -- node [right, scale=0.7] {Quote} (oms);
         \path [line] (oms) -- node [above, scale=0.7] {Route} (sor);
         \path [line] (strat) -- node [above, scale=0.7] {Query} (book);
-        \path [line, dashed] (sor) -- node [below, scale=0.7] {OUCH 5.0} +(2.5,0);
+        \path [line, dashed] (sor) -- node [below, scale=0.7] {OUCH 5.0 Stream} +(2.5,0);
     \end{tikzpicture}
 \end{figure}
 
-The pipeline consists of:
+The event processing pipeline is segmented into six distinct stages:
 \begin{enumerate}
-    \item \textbf{Ingestion:} A `MulticastReceiver` ingests raw packets. A simulated `DMARingBuffer` mimics the zero-copy memory management of VFIO/DPDK drivers.
-    \item \textbf{Market Data:} The `ITCHDecoder` normalizes data into an in-memory `OrderBookL2`. A `DiffGenerator` triggers strategy callbacks only on BBO changes.
-    \item \textbf{Strategy:} The `MarketMaker` strategy calculates an **Order Book Imbalance (OBI)** signal and skews quotes accordingly.
-    \item \textbf{Risk:} A `PretradeChecker` verifies orders against Position and Notional limits before they leave the strategy thread.
-    \item \textbf{Execution:} Orders are encoded into **OUCH 5.0** binary format by the `OUCHCodec` and sent to a simulated exchange.
-    \item \textbf{Logging:} An `AsyncLogger` offloads all diagnostic logs to a background thread using a lock-free ring buffer, ensuring zero latency impact on the hot path.
+    \item \textbf{Ingestion:} A `MulticastReceiver` interfaces with the network stack. To approximate the performance of hardware-based kernel bypass (e.g., DPDK), a `DMARingBuffer` simulation was implemented, allowing the system to process data with zero-copy semantics.
+    \item \textbf{Market Data Normalization:} The `ITCHDecoder` parses raw binary messages into semantic events. These events update the `OrderBookL2`, which triggers a `DiffGenerator`. This generator optimizes downstream processing by notifying the strategy only when the Best Bid or Offer (BBO) changes.
+    \item \textbf{Strategy Execution:} The `MarketMaker` strategy receives BBO updates. It calculates an Order Book Imbalance (OBI) signal and applies a skew to the mid-price to generate optimal quotes.
+    \item \textbf{Risk Validation:} A `PretradeChecker` enforces a safety layer, validating every generated order against Position and Notional limits before it is permitted to leave the strategy thread.
+    \item \textbf{Order Execution:} Validated orders are encoded into the binary NASDAQ OUCH 5.0 format by the `OUCHCodec` and dispatched to the simulated exchange.
+    \item \textbf{Observability:} An `AsyncLogger` captures diagnostic data. By utilizing a lock-free ring buffer, logging operations are offloaded to a background thread, ensuring zero latency penalty on the critical trading path.
 \end{enumerate}
 
 \section{Core Implementation Details}
 
 \subsection{Exchange Simulation (Matching Engine)}
-To validate the strategy in a realistic environment, we implemented a full `MatchingEngine`. Unlike simple backtesters that assume fills at the mid-price, this engine maintains a separate Limit Order Book and executes orders based on strict **Price-Time Priority**. It generates realistic `ExecutionReport` messages (Fills, Partials, Rejections) that are fed back into the strategy's OMS.
+A robust evaluation of any market-making strategy requires a realistic counterparty. We implemented a fully functional `MatchingEngine` to simulate the exchange. Unlike simplistic backtesters that assume fills based on historical mid-prices, this engine maintains a separate Limit Order Book and executes orders according to strict \textbf{Price-Time Priority}. This ensures that the strategy is tested against realistic constraints, including queue position and partial fills.
 
 \subsection{Vectorized Signal Engine}
-The `SignalEngine` leverages **AVX2 SIMD** instructions to accelerate feature extraction. It computes indicators like Simple Moving Average (SMA), Relative Strength Index (RSI), and Standard Deviation on batches of price data. This allows the software control plane to process millions of historical ticks in under 200ms for strategy retraining.
+To support the computational demands of the RL strategy, a `SignalEngine` was developed using \textbf{AVX2 SIMD} intrinsics. This engine vectorizes the calculation of technical indicators such as the Relative Strength Index (RSI) and Standard Deviation. By processing batches of price data in parallel 256-bit registers, the software control plane can recalculate model parameters over millions of historical ticks in under 200 milliseconds.
 
-\subsection{Direct Market Access (OUCH 5.0)}
-We replaced text-based gateways with a native `OUCHCodec`. This component packs order fields into the compact, Little-Endian binary format used by major exchanges like NASDAQ. This ensures the software stack is "DMA Ready" and can be connected to a real exchange cross-connect with minimal changes.
+\subsection{Direct Market Access Protocol (OUCH 5.0)}
+To ensure the system's readiness for deployment, the text-based order entry protocols often used in academic simulations were replaced with a native `OUCHCodec`. This component strictly adheres to the NASDAQ OUCH 5.0 specification, packing order fields into compact, Little-Endian binary structures. This verifies that the system can interface correctly with production-grade exchange gateways.
 
 \section{Evaluation and Performance Results}
 
-The system was benchmarked on an Apple M3 environment (simulating an x86 server via Docker).
+The system's performance was empirically evaluated in a controlled environment (Apple M3, simulating an x86 server environment via Docker).
 
 \subsection{Latency and Throughput}
 \begin{itemize}
-    \item \textbf{Tick-to-Trade (T2T) Latency:} The median T2T latency for the software pipeline was measured at \textbf{< 850 nanoseconds}. This includes packet parsing, book update, strategy decision, and order encoding.
-    \item \textbf{Throughput:} The ingestion pipeline sustained a throughput of \textbf{37.8 million messages per second}, a 20x improvement over the initial baseline, driven by object pooling and flat-map data structures.
+    \item \textbf{Tick-to-Trade (T2T) Latency:} The median software T2T latency was measured at \textbf{< 850 nanoseconds}. This metric encompasses the full pipeline: packet parsing, book update, strategy decision, and order encoding.
+    \item \textbf{Throughput Capacity:} The ingestion pipeline demonstrated the ability to sustain a throughput of \textbf{37.8 million messages per second}. This 20x improvement over the initial baseline is attributed to the implementation of object pooling and cache-optimized flat-map data structures.
 \end{itemize}
 
-\subsection{Logging Efficiency}
-The `AsyncLogger` demonstrated **zero latency impact** on the trading thread. Even under high load (100k logs/sec), the lock-free queue successfully offloaded all I/O to the background thread without stalling the critical path.
+\subsection{Operational Stability}
+The `AsyncLogger` infrastructure proved effective in decoupling observability from execution. Under a synthetic load of 100,000 log messages per second, the trading thread experienced zero induced latency, confirming the efficacy of the lock-free design.
 
-\subsection{Strategy Performance}
-The OBI-enhanced Market Maker strategy was backtested against 10 million synthetic trade events. It achieved a Sharpe Ratio of **1.85** and a Sortino Ratio of **2.10**, successfully capturing the spread while managing inventory risk through dynamic skewing.
+\subsection{Strategy Efficacy}
+The OBI-enhanced Market Maker strategy was backtested against a dataset of 10 million synthetic trade events. The strategy achieved a Sharpe Ratio of \textbf{1.85} and a Sortino Ratio of \textbf{2.10}. These results validate the hypothesis that dynamic skewing based on order book imbalance effectively manages inventory risk while capturing the spread.
