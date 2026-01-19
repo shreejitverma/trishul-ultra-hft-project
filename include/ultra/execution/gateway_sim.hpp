@@ -2,6 +2,7 @@
 #include "../core/types.hpp"
 #include "../core/lockfree/spsc_queue.hpp"
 #include "../market-data/itch/decoder.hpp"
+#include "execution_report.hpp"
 #include <vector>
 
 namespace ultra::strategy {
@@ -9,17 +10,6 @@ namespace ultra::strategy {
 }
 
 namespace ultra::exec {
-
-// Exchange -> Engine
-struct ExecutionReport {
-    Timestamp tsc;
-    OrderId order_id;
-    SymbolId symbol_id;
-    OrderStatus status;
-    Price fill_price{0};
-    Quantity fill_quantity{0};
-    Quantity remaining_quantity{0};
-};
 
 /**
  * A simple, single-threaded, simulated exchange gateway

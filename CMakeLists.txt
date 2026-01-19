@@ -247,6 +247,12 @@ add_executable(test_market_maker
 target_link_libraries(test_market_maker ultra_hft)
 add_test(NAME MarketMakerTest COMMAND test_market_maker)
 
+add_executable(test_matching_engine
+    tests/unit/test_matching_engine.cpp
+)
+target_link_libraries(test_matching_engine ultra_hft)
+add_test(NAME MatchingEngineTest COMMAND test_matching_engine)
+
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
 #     tests/unit/test_order_book.cpp
