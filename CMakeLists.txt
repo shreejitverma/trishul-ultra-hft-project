@@ -223,6 +223,12 @@ add_executable(test_order_book_diff
 target_link_libraries(test_order_book_diff ultra_hft)
 add_test(NAME OrderBookDiffTest COMMAND test_order_book_diff)
 
+add_executable(test_thread_utils
+    tests/unit/test_thread_utils.cpp
+)
+target_link_libraries(test_thread_utils ultra_hft)
+add_test(NAME ThreadUtilsTest COMMAND test_thread_utils)
+
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
 #     tests/unit/test_order_book.cpp
