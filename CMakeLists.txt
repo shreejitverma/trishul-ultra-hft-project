@@ -241,6 +241,12 @@ add_executable(test_spin_wait
 target_link_libraries(test_spin_wait ultra_hft)
 add_test(NAME SpinWaitTest COMMAND test_spin_wait)
 
+add_executable(test_market_maker
+    tests/unit/test_market_maker.cpp
+)
+target_link_libraries(test_market_maker ultra_hft)
+add_test(NAME MarketMakerTest COMMAND test_market_maker)
+
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
 #     tests/unit/test_order_book.cpp

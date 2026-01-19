@@ -1,0 +1,79 @@
+#pragma once
+#include "strategy.hpp"
+#include "../market-data/book/order_book_l2.hpp"
+#include "../core/lockfree/spsc_queue.hpp"
+#include "../core/compiler.hpp"
+
+namespace ultra::strategy {
+
+/**
+ * Basic Market Making Strategy (Liquidity Provider)
+ * - Listens to BBO updates
+ * - Maintains a 2-sided quote around the mid-price
+ * - Captures the spread
+ */
+class MarketMaker : public IStrategy {
+public:
+    static constexpr size_t ORDER_QUEUE_CAPACITY = 1024;
+
+    MarketMaker(SymbolId symbol_id) 
+        : symbol_id_(symbol_id), book_(symbol_id) {
+        
+        // Setup BBO listener
+        book_.set_bbo_listener([this](const md::OrderBookL2::BBOUpdate& bbo) {
+            this->on_bbo_update(bbo);
+        });
+    }
+
+    void on_market_data(const md::itch::ITCHDecoder::DecodedMessage& msg) override {
+        // Feed the book, which triggers the listener
+        book_.update(msg);
+    }
+
+    void on_execution(const exec::ExecutionReport& /*report*/) override {
+        // Handle fills (update position) - stub
+    }
+
+    bool get_order(StrategyOrder& order) override {
+        return order_queue_.pop(order);
+    }
+
+private:
+    SymbolId symbol_id_;
+    md::OrderBookL2 book_;
+    SPSCQueue<StrategyOrder, ORDER_QUEUE_CAPACITY> order_queue_;
+    
+    // Strategy Parameters
+    static constexpr Price SPREAD_CAPTURE = 500; // 5 cents
+    static constexpr Quantity QUOTE_QTY = 100;
+    
+    void on_bbo_update(const md::OrderBookL2::BBOUpdate& bbo) {
+        // Simple logic: Quote around Mid Price
+        if (bbo.bid_price == 0 || bbo.ask_price == INVALID_PRICE) return;
+
+        Price mid_price = (bbo.bid_price + bbo.ask_price) / 2;
+        
+        StrategyOrder buy_order;
+        buy_order.action = StrategyOrder::NEW_ORDER;
+        buy_order.symbol_id = symbol_id_;
+        buy_order.side = Side::BUY;
+        buy_order.price = mid_price - SPREAD_CAPTURE;
+        buy_order.quantity = QUOTE_QTY;
+        buy_order.type = OrderType::LIMIT;
+        // order_id would be generated here
+        
+        StrategyOrder sell_order;
+        sell_order.action = StrategyOrder::NEW_ORDER;
+        sell_order.symbol_id = symbol_id_;
+        sell_order.side = Side::SELL;
+        sell_order.price = mid_price + SPREAD_CAPTURE;
+        sell_order.quantity = QUOTE_QTY;
+        sell_order.type = OrderType::LIMIT;
+        
+        // Push orders (if space)
+        order_queue_.push(buy_order);
+        order_queue_.push(sell_order);
+    }
+};
+
+} // namespace ultra::strategy
