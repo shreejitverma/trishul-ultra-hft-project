@@ -46,6 +46,7 @@ private:
     // Strategy Parameters
     static constexpr Price SPREAD_CAPTURE = 500; // 5 cents
     static constexpr Quantity QUOTE_QTY = 100;
+    static constexpr double SKEW_FACTOR = 200.0; // 2 cents max skew
     
     void on_bbo_update(const md::OrderBookL2::BBOUpdate& bbo) {
         // Simple logic: Quote around Mid Price
@@ -53,20 +54,32 @@ private:
 
         Price mid_price = (bbo.bid_price + bbo.ask_price) / 2;
         
+        // 1. Calculate Order Book Imbalance (OBI)
+        // OBI = (BidQty - AskQty) / (BidQty + AskQty)
+        // Range: [-1, 1]
+        double total_qty = static_cast<double>(bbo.bid_qty + bbo.ask_qty);
+        double obi = 0.0;
+        if (total_qty > 0) {
+            obi = static_cast<double>(bbo.bid_qty - bbo.ask_qty) / total_qty;
+        }
+        
+        // 2. Skew Quotes based on OBI
+        // Positive OBI (More Bids) -> Skew Up (Higher Bid, Higher Ask) to capture flow
+        Price skew = static_cast<Price>(obi * SKEW_FACTOR);
+        
         StrategyOrder buy_order;
         buy_order.action = StrategyOrder::NEW_ORDER;
         buy_order.symbol_id = symbol_id_;
         buy_order.side = Side::BUY;
-        buy_order.price = mid_price - SPREAD_CAPTURE;
+        buy_order.price = mid_price - SPREAD_CAPTURE + skew;
         buy_order.quantity = QUOTE_QTY;
         buy_order.type = OrderType::LIMIT;
-        // order_id would be generated here
         
         StrategyOrder sell_order;
         sell_order.action = StrategyOrder::NEW_ORDER;
         sell_order.symbol_id = symbol_id_;
         sell_order.side = Side::SELL;
-        sell_order.price = mid_price + SPREAD_CAPTURE;
+        sell_order.price = mid_price + SPREAD_CAPTURE + skew;
         sell_order.quantity = QUOTE_QTY;
         sell_order.type = OrderType::LIMIT;
         
