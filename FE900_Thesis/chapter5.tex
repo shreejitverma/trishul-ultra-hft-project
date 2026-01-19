@@ -1,6 +1,6 @@
-\chapter{Software Baseline Implementation and System Evaluation}
+\chapter{Software Control Plane Implementation}
 
-This chapter details the design, implementation, and evaluation of the ultra-low-latency (ULL) software system. This software stack fulfills two critical roles within the broader research framework: it serves as a high-fidelity simulation environment for backtesting the reinforcement learning strategies, and it acts as the operational "Hybrid Control Plane" for the live FPGA system.
+This chapter details the design and implementation of the ultra-low-latency (ULL) software system. This software stack fulfills two critical roles within the broader research framework: it serves as a high-fidelity simulation environment for backtesting the reinforcement learning strategies, and it acts as the operational "Hybrid Control Plane" for the live FPGA system.
 
 \section{Software System Architecture}
 
@@ -46,19 +46,3 @@ To support the computational demands of the RL strategy, a `SignalEngine` was de
 
 \subsection{Direct Market Access Protocol (OUCH 5.0)}
 To ensure the system's readiness for deployment, the text-based order entry protocols often used in academic simulations were replaced with a native `OUCHCodec`. This component strictly adheres to the NASDAQ OUCH 5.0 specification, packing order fields into compact, Little-Endian binary structures. This verifies that the system can interface correctly with production-grade exchange gateways.
-
-\section{Evaluation and Performance Results}
-
-The system's performance was empirically evaluated in a controlled environment (Apple M3, simulating an x86 server environment via Docker).
-
-\subsection{Latency and Throughput}
-\begin{itemize}
-    \item \textbf{Tick-to-Trade (T2T) Latency:} The median software T2T latency was measured at \textbf{< 850 nanoseconds}. This metric encompasses the full pipeline: packet parsing, book update, strategy decision, and order encoding.
-    \item \textbf{Throughput Capacity:} The ingestion pipeline demonstrated the ability to sustain a throughput of \textbf{37.8 million messages per second}. This 20x improvement over the initial baseline is attributed to the implementation of object pooling and cache-optimized flat-map data structures.
-\end{itemize}
-
-\subsection{Operational Stability}
-The `AsyncLogger` infrastructure proved effective in decoupling observability from execution. Under a synthetic load of 100,000 log messages per second, the trading thread experienced zero induced latency, confirming the efficacy of the lock-free design.
-
-\subsection{Strategy Efficacy}
-The OBI-enhanced Market Maker strategy was backtested against a dataset of 10 million synthetic trade events. The strategy achieved a Sharpe Ratio of \textbf{1.85} and a Sortino Ratio of \textbf{2.10}. These results validate the hypothesis that dynamic skewing based on order book imbalance effectively manages inventory risk while capturing the spread.

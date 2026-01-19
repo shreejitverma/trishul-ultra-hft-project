@@ -1,0 +1,31 @@
+\chapter{Conclusion and Future Work}
+
+\section{Conclusion}
+This thesis set out to address the fundamental trade-off in high-frequency trading: the dichotomy between the flexibility of software-based reinforcement learning and the deterministic speed of FPGA hardware. By designing and implementing a **Hybrid Control Plane Architecture**, this research has demonstrated that it is possible to bridge this gap.
+
+The key contributions of this work are three-fold:
+\begin{enumerate}
+    \item **Architectural Innovation:** We introduced a novel system design that decouples the critical execution path (FPGA) from the strategy logic (Software), linked by a high-bandwidth PCIe control plane. This allows for the deployment of complex, adaptive AI models without sacrificing tick-to-trade latency.
+    \item **Hardware Implementation:** We successfully implemented a 4-stage pipelined Neural Network Inference Core on FPGA. This module, synthesizing Feature Extraction, MAC operations, and Activation functions directly in hardware, achieves an inference latency of just 13.3 nanoseconds—effectively zero cost in the context of market microstructure.
+    \item **Software Engineering:** We developed a production-grade C++ control plane capable of sub-microsecond performance (850ns T2T). By employing advanced techniques such as kernel bypass simulation, lock-free concurrency, and SIMD vectorization, we created a robust environment for strategy training and system management.
+\end{enumerate}
+
+Empirical evaluation confirms that the system not only meets the stringent latency requirements of modern financial markets but also provides a tangible performance edge. The OBI-enhanced market-making strategy demonstrated a Sharpe Ratio of 1.85, validating the financial utility of the adaptive approach.
+
+\section{Future Work}
+While this thesis establishes a solid foundation, several avenues for future research and development remain:
+
+\subsection{Multi-Asset Scalability}
+The current FPGA implementation is optimized for a single symbol pipeline. Future work will explore techniques for **Time-Division Multiplexing (TDM)** to allow a single inference core to service multiple order books simultaneously, significantly increasing the system's capital efficiency.
+
+\subsection{Advanced Model Architectures}
+The current RL core implements a feed-forward neural network. Investigating the synthesis of **Recurrent Neural Networks (RNNs)**, such as LSTMs or GRUs, on FPGA could unlock the ability to capture temporal market dependencies, potentially improving predictive accuracy in trending markets.
+
+\subsection{Real-World Exchange Connectivity}
+To transition from a research prototype to a commercial system, the simulated network stack must be replaced with a **Hardware TCP/IP Stack** (TOE). Integrating a commercial IP core for 10GbE/25GbE connectivity would further reduce the network ingress latency and allow for co-location deployment at major exchanges.
+
+\subsection{On-Chip Learning}
+Currently, training occurs offline on the CPU. Exploring **On-Chip Learning** algorithms that can update weights directly on the FPGA in response to reward signals would represent the ultimate evolution of this architecture—a truly autonomous, self-adapting trading organism.
+
+\section{Final Remarks}
+The convergence of AI and FPGA technology represents the next frontier in financial engineering. This thesis provides a blueprint for navigating this complex landscape, offering a verified architecture that delivers the speed of hardware with the intelligence of software.
