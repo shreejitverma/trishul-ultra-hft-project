@@ -21,6 +21,7 @@ This platform bridges the gap between research and live trading, featuring a **M
 *   **Busy-Spin Waiting:** CPU-optimized spin-loops (`_mm_pause`) for sub-microsecond reaction times.
 
 ### Advanced Architecture
+*   **Hybrid Execution Routing:** Dynamic `SmartOrderRouter` directs latency-sensitive stocks to FPGA while handling others on CPU.
 *   **Matching Engine:** Price-Time Priority simulator with full execution feedback (Fills/Partials).
 *   **OUCH 5.0 Protocol:** Binary order entry protocol encoder/decoder (Little Endian/Packed) for DMA.
 *   **Asynchronous Logging:** High-throughput, non-blocking logger using dedicated background threads.

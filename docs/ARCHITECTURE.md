@@ -57,6 +57,7 @@ graph TD
 *   **Symbol Universe:** O(1) lookup manager for handling multiple symbols with specific metadata (tick size, lot size).
 
 ### C. Execution & Protocols
+*   **Smart Order Router (SOR):** A hybrid routing engine that inspects the target symbol of every order. High-priority stocks (e.g., AAPL) are routed to the FPGA driver for ultra-low latency execution, while standard assets are handled by the software gateway.
 *   **Matching Engine:** A Price-Time Priority simulator that mimics a real exchange. It supports Limit Orders, Aggressive Matching, and Partial Fills.
 *   **OUCH 5.0:** The system speaks the native binary protocol of major exchanges (NASDAQ), ensuring the software stack is "Direct Market Access" (DMA) ready.
 *   **Execution Reports:** Feedback loop providing Fill Price, Quantity, and Order Status back to the strategy.

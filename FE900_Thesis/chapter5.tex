@@ -38,6 +38,14 @@ The event processing pipeline is segmented into six distinct stages:
 
 \section{Core Implementation Details}
 
+\subsection{Smart Order Router (Hybrid Execution)}
+To maximize system efficiency, we implemented a `SmartOrderRouter` (SOR) that dynamically routes orders based on the asset's latency sensitivity. The router inspects the `SymbolInfo` for each order.
+\begin{itemize}
+    \item \textbf{FPGA Path:} High-priority stocks are routed to the `FPGADriver`, which writes the order details to memory-mapped registers, triggering an immediate hardware dispatch.
+    \item \textbf{CPU Path:} Standard assets are routed to the software `GatewaySim`, preserving FPGA resources for the most critical flows.
+\end{itemize}
+This hybrid approach allows the system to scale to thousands of symbols while ensuring microsecond latency for the top-tier assets.
+
 \subsection{Exchange Simulation (Matching Engine)}
 A robust evaluation of any market-making strategy requires a realistic counterparty. We implemented a fully functional `MatchingEngine` to simulate the exchange. Unlike simplistic backtesters that assume fills based on historical mid-prices, this engine maintains a separate Limit Order Book and executes orders according to strict \textbf{Price-Time Priority}. This ensures that the strategy is tested against realistic constraints, including queue position and partial fills.
 
