@@ -229,6 +229,12 @@ add_executable(test_thread_utils
 target_link_libraries(test_thread_utils ultra_hft)
 add_test(NAME ThreadUtilsTest COMMAND test_thread_utils)
 
+add_executable(test_memory_utils
+    tests/unit/test_memory_utils.cpp
+)
+target_link_libraries(test_memory_utils ultra_hft)
+add_test(NAME MemoryUtilsTest COMMAND test_memory_utils)
+
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
 #     tests/unit/test_order_book.cpp
