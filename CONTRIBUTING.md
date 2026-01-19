@@ -21,15 +21,15 @@ Thank you for your interest in contributing to the Trishul Ultra-HFT platform! T
 ### C++ Code Style
 *   We use **C++20**.
 *   Follow the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
-*   Use `clang-format` (config provided in `.clang-format`) before committing.
 *   **Performance is paramount.** Avoid:
     *   Virtual functions in the hot path.
-    *   Heap allocations (use `ObjectPool` or `HugePageAllocator`).
+    *   Heap allocations (use `ObjectPool` or `Stack`).
     *   `std::shared_ptr` (use unique ownership or raw pointers with care).
+    *   Blocking I/O (use `AsyncLogger`).
     *   Exceptions in the hot path (use error codes or `std::optional`).
 
 ### FPGA / Verilog
-*   Use **SystemVerilog** (`.sv`) or **Verilog 2001** (`.v`).
+*   Use **Verilog 2001** (`.v`) or **SystemVerilog** (`.sv`).
 *   Modules must have a synchronized reset (`rst`).
 *   Follow **AXI-Stream** conventions for data flow (`tdata`, `tvalid`, `tready`, `tlast`).
 *   Verify modules with a self-checking testbench in `fpga/tb/`.
@@ -43,10 +43,15 @@ Thank you for your interest in contributing to the Trishul Ultra-HFT platform! T
 
 1.  Create a new branch for your feature or fix: `git checkout -b feature/my-new-feature`.
 2.  Implement your changes.
-3.  Add tests (C++ Unit Tests in `tests/`, Verilog Testbenches in `fpga/tb/`).
-4.  Verify everything builds and passes:
+3.  **Add Tests:**
+    *   C++ Unit Tests in `tests/unit/`.
+    *   Verilog Testbenches in `fpga/tb/`.
+4.  **Verify Build & Test:**
     ```bash
-    cd build && make -j4 && ctest
+    mkdir -p build && cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release
+    make -j$(nproc)
+    ctest --output-on-failure
     ```
 5.  Commit your changes with clear messages.
 6.  Push to your fork and submit a **Pull Request**.

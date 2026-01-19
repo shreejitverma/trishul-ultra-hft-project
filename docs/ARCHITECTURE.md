@@ -1,88 +1,90 @@
 # Architecture Overview
 
-**Trishul Ultra-HFT** is designed as a hybrid hardware/software trading platform where the critical path (execution and risk) is offloaded to FPGA, while the control plane (strategy logic, complex inference) runs on a highly optimized C++ software stack.
+**Trishul Ultra-HFT** is a hybrid hardware/software trading platform designed for microsecond-latency market making. It implements the **"Hybrid Control Plane"** architecture, offloading critical path execution to FPGA while managing complex strategy logic in C++.
 
-## 1. High-Level Design (Hybrid Control Plane)
+---
 
-The system follows the **"Hybrid Control Plane"** architecture described in the project's thesis.
+## 1. System Design: The Hybrid Control Plane
+
+The system is divided into two domains:
+1.  **Software Domain (C++):** Handles Strategy Logic (RL/Signals), Risk Management, and Parameter Optimization.
+2.  **Hardware Domain (FPGA):** Handles Network I/O, Packet Parsing, Book Building, and "Fast Path" Execution.
+
+### Software Architecture (The Event Pipeline)
+
+The C++ engine uses a **Thread-Pinned, Lock-Free Pipeline** pattern to maximize throughput and minimize jitter.
 
 ```mermaid
 graph TD
-    subgraph "Host CPU (C++ Engine)"
-        Strategy[AI Strategy (RLPolicy)]
-        RiskControl[Risk Parameters]
-        Driver[FPGA PCIe Driver]
+    subgraph "Core 1: Market Data"
+        Net[Network / Simulation] -->|ITCH 5.0| Decoder[ITCH Decoder]
+        Decoder -->|Update| Book[L2 Order Book]
+        Book -->|BBO Change| Diff[Diff Generator]
+        Diff -->|SPSC Queue| Strategy
     end
 
-    subgraph "FPGA (Hardware)"
-        MMIO[AXI-Lite Registers]
-        HwRisk[Hardware Risk Engine]
-        HwExec[Execution Engine (TCP/IP)]
-        HwBook[L2 Order Book]
+    subgraph "Core 2: Strategy"
+        Strategy{Market Maker Strategy}
+        Signal[Signal Engine (AVX2)] -->|OBI / RSI| Strategy
+        Strategy -->|Quote| Risk[Risk Gateway]
+        Risk -->|Valid Order| ExecQueue(SPSC Queue)
     end
 
-    Strategy -->|Params (Skew, Gamma)| Driver
-    RiskControl -->|Limits (Max Pos)| Driver
-    Driver -->|PCIe Write| MMIO
-    MMIO --> HwRisk
-    MMIO --> HwExec
-```
-
-### Key Components
-
-1.  **C++ Control Plane (`apps/live-engine`)**:
-    *   Runs the reinforcement learning models (or approximations like Avellaneda-Stoikov).
-    *   Adjusts high-level parameters (Inventory Skew, Risk Aversion) based on market regimes.
-    *   Communicates with the FPGA via a memory-mapped driver (`src/fpga/driver`).
-
-2.  **FPGA Execution Plane (Simulated by `gateway_sim`)**:
-    *   In the real system, this handles the physical network layer (UDP/TCP), parsing, and order generation in nanoseconds.
-    *   In this software project, we simulate this interaction using `FPGADriver` and `GatewaySim`.
-
----
-
-## 2. Software Architecture: The Event Pipeline
-
-The software engine uses a **Thread-Pinned, Lock-Free Pipeline** to minimize latency and jitter.
-
-### Core Threads
-The system pins threads to specific CPU cores to prevent cache thrashing:
-1.  **MD Thread (Core 1):** Ingests UDP Multicast market data, decodes ITCH 5.0, and updates the Order Book.
-2.  **Strategy Thread (Core 2):** Reads the updated book, runs SIMD-optimized signal engines, and updates FPGA parameters.
-3.  **Exec Thread (Core 3):** Handles execution reports and synchronous risk checks (for software-only trades).
-
-### Data Flow
-```
-[Network] -> (UDP Recv) -> [MD Thread] -> (SPSC Queue) -> [Strategy Thread] -> (SPSC Queue) -> [Exec Thread]
-                                                                    |
-                                                                    v
-                                                               [FPGA Driver] -> (PCIe) -> [Hardware]
+    subgraph "Core 3: Execution"
+        ExecQueue -->|OUCH 5.0| OUCH[OUCH Codec]
+        OUCH -->|Bytes| Matcher[Matching Engine / Exchange]
+        Matcher -->|Fill Report| Strategy
+    end
+    
+    subgraph "Background Threads"
+        Logger[Async Logger]
+        Metrics[Metrics Collector]
+    end
 ```
 
 ---
 
-## 3. Memory Model & Optimization
+## 2. Key Components
 
-### Zero-Allocation Principle
-Dynamic memory allocation (`malloc`/`new`) is strictly forbidden in the hot path.
-*   **Object Pools:** Order objects are allocated from a fixed-size `ObjectPool` backed by Huge Pages (`2MB`).
-*   **Flat Maps:** The `OrderBookL2` uses open-addressing hash maps and flat arrays (`std::array`) instead of node-based trees (`std::map`) to ensure cache locality.
+### A. Market Data Ingestion
+*   **ITCH Decoder:** Optimized zero-copy decoder for NASDAQ ITCH 5.0.
+*   **L2 Order Book:** Flat-map based order book implementation.
+*   **Diff Generator:** A smart notifier that triggers strategy callbacks *only* when the Best Bid/Offer (BBO) changes, reducing noise.
 
-### SIMD Acceleration
-The `SignalEngine` uses AVX2 (x86) and NEON (ARM64) intrinsics to vectorize CPU-bound tasks:
-*   **Indicators:** SMA, RSI, and StdDev are computed on arrays of data in parallel.
-*   **Search:** Finding price levels uses SIMD compare-and-mask operations.
+### B. Strategy & Signals
+*   **Market Maker:** An implementation of the Avellaneda-Stoikov model, enhanced with **Order Book Imbalance (OBI)** signals.
+*   **Signal Engine:** Uses **AVX2 SIMD** intrinsics to compute indicators (SMA, RSI, StdDev) on batches of price data in parallel.
+*   **Symbol Universe:** O(1) lookup manager for handling multiple symbols with specific metadata (tick size, lot size).
 
-### Kernel Bypass
-*   **Networking:** Uses `SO_REUSEPORT` and busy-polling on sockets (simulating DPDK/Solarflare `ef_vi` behavior).
-*   **Timing:** Uses `RDTSC` (Time Stamp Counter) for sub-nanosecond precision measurements.
+### C. Execution & Protocols
+*   **Matching Engine:** A Price-Time Priority simulator that mimics a real exchange. It supports Limit Orders, Aggressive Matching, and Partial Fills.
+*   **OUCH 5.0:** The system speaks the native binary protocol of major exchanges (NASDAQ), ensuring the software stack is "Direct Market Access" (DMA) ready.
+*   **Execution Reports:** Feedback loop providing Fill Price, Quantity, and Order Status back to the strategy.
+
+### D. Core Infrastructure
+*   **Async Logger:** A ring-buffer based logger that serializes messages to a background thread, ensuring zero-latency penalties during trading.
+*   **Memory Model:**
+    *   **Lock-Free Queues:** SPSC queues for inter-thread communication.
+    *   **Object Pools:** Pre-allocated memory for orders to avoid `new`/`delete`.
+    *   **Prefaulting:** `mlockall` and stack warmup to prevent Page Faults.
+*   **Thread Isolation:** `SCHED_FIFO` priority and CPU affinity settings to minimize OS scheduler jitter.
 
 ---
 
-## 4. Directory Structure
+## 3. FPGA Integration (Hardware Path)
 
-*   `apps/`: Executables (Live Engine, Backtester).
-*   `include/ultra/`: Header-only core libraries.
-*   `src/`: Implementation files.
-*   `fpga/`: Hardware Description Language (Verilog/VHDL) files.
-*   `benchmarks/`: Micro-benchmarks for latency and throughput.
+The `fpga/` directory contains the Verilog RTL for the hardware components described in the thesis.
+
+*   **RL Core (`strat_decide.v`):** A 4-stage pipeline (Feature Extraction -> DSP48 MAC -> ReLU -> Comparator) that executes the neural network policy in hardware.
+*   **Data Flow:**
+    1.  C++ Strategy computes optimal weights/parameters.
+    2.  Writes parameters to FPGA via PCIe (simulated driver).
+    3.  FPGA uses these parameters to make nanosecond-scale decisions on incoming tick data.
+
+---
+
+## 4. Risk Management
+
+Risk is handled in two layers:
+1.  **Software Pre-Trade:** The `PretradeChecker` verifies Max Order Size, Position Limits, and Notional Exposure *before* an order leaves the strategy thread.
+2.  **Hardware Gate:** The FPGA contains a logic gate that blocks orders violating hard limits (Max Notional), providing a fail-safe.

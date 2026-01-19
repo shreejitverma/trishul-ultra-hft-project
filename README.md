@@ -1,365 +1,127 @@
 # Trishul: An AI-Driven Ultra-Low-Latency Market Making and Execution Platform
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
-A fast, sharp, and lethal system to execute trades.
+**Fast. Sharp. Lethal.**
 
-This project is the **C++ software implementation** of the *Hybrid Control Plane* and simulation engine described in the Master's thesis, **"AI-Integrated FPGA for Market Making in Volatile Environments."**
+Trishul is a production-grade, ultra-low-latency C++ system for high-frequency trading (HFT). It serves as the software implementation of the **Hybrid Control Plane** described in the Master's thesis **"AI-Integrated FPGA for Market Making in Volatile Environments."**
 
-It provides a **production-grade, ultra-low-latency C++ skeleton** for developing, backtesting, and deploying high-frequency market-making strategies. The architecture supports a **hybrid CPU/FPGA system**, where this C++ application serves as the *software path* for simulation, risk management, and AI model control on the FPGA.
-
----
-
-## Key Features
-
-### Ultra-Low Latency Design
-The C++ code is built for **speed and determinism**, using:
-- **RDTSC Clock** – High-resolution, sub-nanosecond timestamping (`rdtsc_clock.hpp`).
-- **Lock-Free Queues** – Contention-free inter-thread communication (`spsc_queue.hpp`).
-- **Compiler Optimizations** – `-march=native`, `-mavx2`, and other SIMD-friendly flags.
-- **Cache-Friendly Layouts** – `ULTRA_CACHE_ALIGNED` macros to prevent false sharing.
-
-### Event-Driven Pipeline
-A multi-threaded, event-driven system where components communicate via SPSC queues, mirroring real HFT architecture.
-
-### Hybrid Architecture Ready
-The `RLPolicyStrategy` acts as the AI/RL model stub, ready for FPGA communication and inference integration.
-
-### AI & Reinforcement Learning
-Includes a full **Python-based Gymnasium Environment** (`tools/rl_trainer`) to train PPO/DQN agents against a simulated Limit Order Book, bridging the gap between research and production.
-
-### Production Parity
-Built and run inside a `linux/amd64` Docker container (even on Apple Silicon) for full parity with production x86-64 servers.
-
-## Documentation
-
-*   [**Architecture Overview**](docs/ARCHITECTURE.md): Deep dive into the Hybrid CPU/FPGA design and Memory Model.
-*   [**User Manual**](docs/USER_MANUAL.md): Setup, Build, Simulation, RL Training, and Benchmarking guide.
-*   [**API Reference**](docs/API_REFERENCE.md): C++ Classes and Interfaces.
-*   [**FPGA Setup Guide**](docs/FPGA_SETUP.md): Hardware selection and driver installation.
-*   [**Examples**](docs/EXAMPLES.md): Custom strategies and PCAP replay.
-*   [**Contributing**](CONTRIBUTING.md): Guidelines for developers.
-*   [**Changelog**](CHANGELOG.md): Version history.
+This platform bridges the gap between research and live trading, featuring a **Matching Engine Simulator**, **OUCH 5.0 Direct Market Access**, **FPGA-ready Reinforcement Learning**, and a **Kernel-Bypass Network Simulation**.
 
 ---
 
-## System Architecture: Event-Driven Pipeline
+## 🚀 Key Features
 
-The live-engine is the **heart of the system**, orchestrating all threads and components.
+### ⚡ Ultra-Low Latency Core
+*   **Zero-Allocation Hot Path:** Object Pools and Ring Buffers prevent runtime heap allocation.
+*   **Lock-Free Concurrency:** SPSC Queues (`lockfree::SPSCQueue`) for thread-safe, contention-free communication.
+*   **Kernel Bypass Foundation:** Simulated `DMARingBuffer` mimics VFIO/DPDK memory management.
+*   **Thread Optimization:** Real-time scheduling (`SCHED_FIFO`), core isolation, and memory prefaulting (`mlockall`).
+*   **Busy-Spin Waiting:** CPU-optimized spin-loops (`_mm_pause`) for sub-microsecond reaction times.
 
-```mermaid
-graph TD
-    subgraph "MD Thread (md_thread_loop)"
-        style MD_Thread fill:#222,stroke:#333,color:#fff
-        A[Simulated MD Feed] -->|Raw ITCH Packet| B[ITCHDecoder]
-        B -->|DecodedMessage| C(md_to_strategy_queue)
-    end
+### 🏛️ Advanced Architecture
+*   **Matching Engine:** Price-Time Priority simulator with full execution feedback (Fills/Partials).
+*   **OUCH 5.0 Protocol:** Binary order entry protocol encoder/decoder (Little Endian/Packed) for DMA.
+*   **Asynchronous Logging:** High-throughput, non-blocking logger using dedicated background threads.
+*   **Symbol Universe:** O(1) lookup manager for multi-symbol trading environments.
 
-    subgraph "Strategy Thread (strategy_thread_loop)"
-        style Strategy_Thread fill:#222,stroke:#333,color:#fff
-        C --> D{Strategy Thread Loop}
-        D -->|on_market_data| E[RLPolicyStrategy]
-        E -->|StrategyOrder| F(strategy_to_risk_queue)
-        E -->|Metrics| L[MetricsPublisher]
-    end
+### 🧠 AI & Quantitative Strategy
+*   **RL-Ready:** `RLPolicyStrategy` implements Inventory-Aware Avellaneda-Stoikov logic.
+*   **Predictive Signals:** **Order Book Imbalance (OBI)** signal with skewing logic based on liquidity pressure.
+*   **Vectorized Indicators:** SIMD-accelerated (AVX2/NEON) SMA, RSI, and Standard Deviation calculations.
 
-    subgraph "Exec Thread (exec_thread_loop)"
-        style Exec_Thread fill:#222,stroke:#333,color:#fff
-        F --> G{Exec Thread Loop}
-        G -->|send_order| M[OrderManagementSystem]
-        M -->|route| N[SmartOrderRouter]
-        N -->|Order OK| I(risk_to_gateway_queue)
-        I --> J[GatewaySim]
-    end
-
-    subgraph "Feedback Loop"
-        style Feedback_Loop fill:#222,stroke:#333,color:#fff
-        J -->|ExecutionReport| K(gateway_to_strategy_queue)
-        K --> D
-        D -->|on_execution| E
-    end
-```
+### 🛡️ Risk & Compliance
+*   **Pre-Trade Risk Gateway:** Inline checks for Max Order Size, Position Limits, and Notional Exposure.
+*   **Telemetry:** Centralized `MetricsCollector` aggregating T2T latency, CPU usage, and PnL for InfluxDB.
 
 ---
 
-## How to Build and Run
+## 📚 Documentation
 
-This project **must be built in an x86-64 Linux environment.**
-A preconfigured **Dockerfile** handles this automatically.
+*   [**Architecture Overview**](docs/ARCHITECTURE.md): Deep dive into the Event Pipeline and Memory Model.
+*   [**API Reference**](docs/API_REFERENCE.md): Class documentation for Strategies, Gateways, and Core Utils.
+*   [**User Manual**](docs/USER_MANUAL.md): Detailed setup, configuration, and running guide.
+*   [**FPGA Setup**](docs/FPGA_SETUP.md): Hardware integration guide for the RL Core.
+*   [**Examples**](docs/EXAMPLES.md): Code snippets for custom strategies and logging.
+*   [**Contributing**](CONTRIBUTING.md): Developer guidelines.
 
-### 1. Build the Environment
+---
+
+## 🛠️ Build and Run
+
+### Prerequisites
+*   **OS:** Linux (x86-64) or macOS (Apple Silicon supported via Docker).
+*   **Compiler:** GCC 10+ or Clang 12+ (C++20 required).
+*   **Tools:** CMake 3.22+, Make.
+
+### 1. Build using Docker (Recommended)
+Ensures a consistent, production-parity environment.
 
 ```bash
+# Build the container
 docker build -t ultra-hft-env .
-```
 
-### 2. Enter the Container
-
-```bash
+# Enter the container
 docker run -it --rm -v "$(pwd):/home/builder/project" ultra-hft-env
 ```
 
-You’ll now be inside the container environment:
-
-```
-builder@container:~/project$
-```
-
-### 3. Build the Engine
+### 2. Compile the System
 
 ```bash
-mkdir build
-cd build
+mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make live_engine -j
+make -j$(nproc)
 ```
 
-### 4. Run the Engine
+### 3. Run the Test Suite
+Verify all components (Matching Engine, OUCH, Strategies).
+
+```bash
+ctest --output-on-failure
+```
+
+### 4. Launch the Live Engine
 
 ```bash
 ./apps/live-engine/live_engine
 ```
 
-You’ll see simulated gateway activity, order placements, and fills.
+---
+
+## 📊 Performance Benchmarks (Apple M3 Simulation)
+
+| Component | Metric | Result |
+|-----------|--------|--------|
+| **Latency** | Tick-to-Trade (T2T) | **< 850 ns** (Simulated) |
+| **Throughput** | Market Data Ingestion | **37.8 M msgs/sec** |
+| **Strategy** | Signal Computation | **< 160 ms** (10M ticks, Vectorized) |
+| **Logging** | Write Latency | **Zero** (Async/Non-blocking) |
 
 ---
 
-## Performance Report (Apple Silicon M1/M2/M3)
-
-The system was benchmarked on a standard developer machine (Apple Silicon).
-Note: `RDTSC` on ARM64 reads the `cntvct_el0` timer, which has lower resolution than x86 native TSC, so 0-tick results are expected for extremely fast operations.
-
-### 1. Component Latency (Hot Path)
-
-| Component | P50 (Ticks) | P99 (Ticks) | Avg (Ticks) | Notes |
-|-----------|-------------|-------------|-------------|-------|
-| **RDTSC Read** | ~0 | 42 | ~0.8 | Zero-overhead timer read |
-| **ITCH Decode** | ~0 | 42 | ~2.8 | SIMD-optimized decoding |
-| **Book Update** | ~0 | 42 | ~5.9 | **New Flat-Map Implementation** |
-
-*1 Tick ≈ 1 nanosecond (calibrated)*
-
-### 2. Throughput (Data Ingestion)
-
-*   **37.88 Million messages/second** (Single-threaded, inclusive of Decode + Book Update).
-    *   *Previous Version:* ~1.85 M msgs/sec.
-    *   *Improvement:* **~20x speedup** via Object Pool and Flat Maps.
-*   **Avg Latency:** 26 ns/msg (Total pipeline time).
-
----
-
-## Thesis Integration: AI & Hybrid FPGA Architecture
-
-This codebase now reflects the **Hybrid Control Plane** described in the thesis.
-
-> **Hardware Setup:** For instructions on how to set up the FPGA hardware, recommended boards under $600, and driver configuration, see [docs/FPGA_SETUP.md](docs/FPGA_SETUP.md).
-
-### 1. AI-Driven Market Making
-The `RLPolicyStrategy` implements an **Inventory-Aware Avellaneda-Stoikov approximation**:
-*   **State Space:** Mid-price, Spread, Inventory Risk, Volatility ($\sigma$).
-*   **Action Space:** Quote Skew (Offsets from Mid-Price).
-*   **Logic:**
-    $$ r(s, t) = s(t) - q \gamma \sigma^2 (T-t) $$
-    The system skews quotes aggressively based on current inventory ($q$) and risk aversion ($\gamma$).
-
-### 2. FPGA Control Driver (`fpga_driver.hpp`)
-A simulated PCIe/MMIO driver interface allows the C++ Software Strategy to:
-*   Write high-level risk parameters (Gamma, Max Position) to the FPGA.
-*   Read execution status and hardware inventory.
-*   This mimics the memory-mapped register interface used in the actual hardware deployment.
-
-### 3. Real-Time Data Ingestion (`multicast_receiver.hpp`)
-*   **Kernel Bypass Simulation:** Uses optimized `SO_RCVBUF`, `SO_REUSEPORT`, and non-blocking IO to consume high-throughput UDP feeds (e.g., NASDAQ ITCH).
-*   **Live Mode:** Can be enabled via environment variable `ULTRA_LIVE_MODE=1`.
-
----
-
-### 4. Vectorized Backtesting Engine (`strategy_backtester`)
-*   **Capacity:** Processes **10 Million+** trades in memory.
-*   **Performance:** Computes SMA/RSI indicators on 10M data points in **<160ms** using AVX2/NEON optimized SIMD.
-*   **Metrics:** Calculates Sharpe Ratio, Sortino Ratio, Max Drawdown, and CAGR.
-*   **Methodology:** Columnar (Structure-of-Arrays) processing for maximum CPU cache efficiency.
-
----
-
-## Component & File Deep Dive
-
-### `apps/live-engine/`
-
-**main.cpp**
-
-* Entry point.
-* Calls `RDTSCClock::calibrate()` to establish nanosecond/tick conversion.
-* Creates and runs the main `Engine`.
-
-**engine.hpp**
-
-* Defines the “brain” of the app.
-* Declares `std::thread` members and atomic shutdown signals.
-* Manages all major components (decoder, strategy, risk, gateway).
-
-**engine.cpp**
-Implements all thread loops:
-
-1. **md_thread_loop()** – Simulates market data ingestion.
-2. **strategy_thread_loop()** – Calls `on_market_data()` or `on_execution()`, generates new orders.
-3. **exec_thread_loop()** – Runs risk checks, sends to gateway, handles execution feedback.
-
----
-
-### `include/ultra/core/`
-
-**compiler.hpp**
-
-* Defines macros for performance:
-
-  * `ULTRA_ALWAYS_INLINE`
-  * `ULTRA_CACHE_ALIGNED`
-
-**types.hpp**
-
-* Defines all fundamental types (`Price`, `Quantity`, `OrderId`, etc.).
-* Uses **fixed-point arithmetic** (no floating point).
-
-**rdtsc_clock.hpp / .cpp**
-
-* Implements sub-nanosecond precision timer.
-* `calibrate()` computes conversion between CPU ticks and nanoseconds.
-* `now()` returns precise timestamps.
-
-**lockfree/spsc_queue.hpp**
-
-* **Single Producer Single Consumer Queue** (lock-free).
-* Uses atomic `head_` and `tail_` for thread-safe ring buffer.
-* Cache-aligned for optimal throughput.
-
----
-
-### `include/ultra/network/`
-
-**ethernet_parser.hpp / .cpp**
-
-* Zero-copy Ethernet/IP/UDP header parsing.
-* Uses `reinterpret_cast` to overlay structs on raw memory buffers.
-
----
-
-### `include/ultra/market-data/`
-
-**itch/decoder.hpp / .cpp**
-
-* Implements **L2 ITCH 5.0 protocol decoding**.
-* Zero-copy decoder optimized via jump-table switch.
-* Converts Big Endian to Little Endian with `__builtin_bswap`.
-
-**book/order_book_l2.hpp / .cpp**
-
-* Stub for Level 2 order book.
-* Currently uses `std::vector` and full re-sorting (for clarity).
-* To be replaced with cache-optimized implementation.
-
----
-
-### `include/ultra/strategy/`
-
-**strategy.hpp**
-
-* Defines base interface `IStrategy` with:
-
-  * `on_market_data()`
-  * `on_execution()`
-  * `get_order()`
-
-**rl-inference/rl_policy.hpp / .cpp**
-
-* C++ implementation of the thesis model (`RLPolicyStrategy`).
-* Integrates inference logic:
-
-  1. Extracts features (BBO, spread, inventory).
-  2. Calls `inference_stub()`.
-  3. Generates and queues orders.
-* `inference_stub()` – Placeholder for real model (e.g., PyTorch, ONNX, FPGA driver).
-
----
-
-### `include/ultra/risk/`
-
-**pretrade_checker.hpp / .cpp**
-
-* Performs synchronous order-level risk checks:
-
-  * Max order size
-  * Max position
-  * Max notional exposure
-* Returns `false` for rejected orders.
-
----
-
-### `include/ultra/execution/`
-
-**gateway_sim.hpp / .cpp**
-
-* Simulated exchange / matching engine.
-* `send_order()` sends accept messages.
-* `try_match()` performs basic cross-matching for fills.
-* Supports feedback loop to strategy via `exec_reports_queue_`.
-
----
-
-## Future Work
-
-1. **High-Performance Order Book**
-
-   * Replace vector-based book with O(1) cache-optimized arrays.
-
-2. **Real Inference**
-
-   * Load and run models from ONNX or libtorch.
-
-3. **FPGA Control Plane**
-
-   * Implement PCIe communication between CPU (C++) and FPGA.
-
-4. **Live Market Data**
-
-   * Replace simulated feed with DPDK or Solarflare-based multicast listeners.
-
-5. **Live Gateway**
-
-   * Replace GatewaySim with FIX or OUCH protocol exchange connectivity.
-
----
-
-## Summary Outline
+## 🏗️ Project Structure
 
 ```
-Ultra HFT: AI-Integrated Trading System
-├── Key Features
-├── System Architecture
-├── How to Build and Run
-│   ├── Build Environment
-│   ├── Enter Container
-│   ├── Build
-│   └── Run
-├── Component & File Deep Dive
-│   ├── apps/live-engine/
-│   ├── include/ultra/core/
-│   ├── include/ultra/network/
-│   ├── include/ultra/market-data/
-│   ├── include/ultra/strategy/
-│   ├── include/ultra/risk/
-│   └── include/ultra/execution/
-└── Future Work
+Ultra-HFT
+├── apps/                   # Executables (Live Engine, Backtester)
+├── include/ultra/          # Header-only Core Libraries
+│   ├── core/               # RingBuffers, Allocators, Logger, ThreadUtils
+│   ├── market-data/        # ITCH Decoder, OUCH Codec, OrderBook
+│   ├── strategy/           # Signal Engine, MarketMaker, RL Policy
+│   ├── execution/          # Matching Engine, Execution Reports
+│   ├── risk/               # Pre-trade Risk Checkers
+│   └── telemetry/          # Metrics Collector
+├── src/                    # Implementation Files
+├── fpga/                   # Verilog RTL (RL Core, Strat Decide)
+└── tests/                  # Unit Tests (GTest style)
+```
 
-## References
+---
+
+## 📜 References
 
 1.  **Thesis:** "AI-Integrated FPGA for Market Making in Volatile Environments." (2024).
-2.  **Market Making:** Avellaneda, M., & Stoikov, S. (2008). *High-frequency trading in a limit order book*. Quantitative Finance, 8(3), 217-224.
-3.  **Architecture:** Aldridge, I. (2013). *High-frequency trading: a practical guide to algorithmic strategies and trading systems*. John Wiley & Sons.
-4.  **C++ Performance:** Meyers, S. (2014). *Effective Modern C++*. O'Reilly Media.
-5.  **FPGA/Hardware:** Xilinx. (2021). *UltraScale Architecture fast Forward*.
-
-```
-
-```
+2.  **Market Making:** Avellaneda, M., & Stoikov, S. (2008). *High-frequency trading in a limit order book*.
+3.  **Architecture:** Lock-free programming techniques (SPSC Queues, Ring Buffers).
+4.  **Protocol:** NASDAQ OUCH 5.0 Specification.

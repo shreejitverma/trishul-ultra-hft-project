@@ -23,15 +23,6 @@ For an ultra-low-latency HFT lab setup under $600, we recommend **Xilinx Artix-7
 *   **Approx. Cost:** ~$250
 *   **Note:** Requires custom cooling in some setups.
 
-### Required Components
-1.  **FPGA Board** (one of the above).
-2.  **JTAG Programmer:** Xilinx Platform Cable USB II or Digilent HS2/HS3 (~$50-$100).
-    *   *Note:* Some boards have built-in USB-JTAG. Check your specific board.
-3.  **Host PC:**
-    *   OS: Ubuntu 20.04 or 22.04 LTS (x86_64).
-    *   Slot: 1x Free PCIe x4 (or wider) slot OR 1x Free M.2 NVMe slot.
-4.  **Cooling:** Ensure the FPGA has a heatsink/fan, especially for HFT logic running at high clock speeds.
-
 ---
 
 ## 2. Software Prerequisites
@@ -52,7 +43,23 @@ sudo modprobe xdma
 
 ---
 
-## 3. Step-by-Step Setup Instruction
+## 3. RL Core Integration (`strat_decide.v`)
+
+The repository includes a hardware implementation of the Reinforcement Learning policy in `fpga/rtl/strategy/strat_decide.v`. This module implements a 4-stage pipeline:
+
+1.  **Feature Extraction:** Computes Spread, Inventory Imbalance, and Volatility.
+2.  **DSP MAC:** Uses DSP48 slices to compute dot-products of features against stored weights.
+3.  **Activation:** Implements a hardware-efficient ReLU.
+4.  **Decision:** Comparator logic to trigger Buy/Sell signals.
+
+### Integration Steps
+1.  Add `fpga/rtl/strategy/strat_decide.v` to your Vivado project sources.
+2.  Connect the **AXI-Stream** interface from the XDMA (Host) to the `strat_decide` input registers.
+3.  Map the output signals (`buy`, `sell`) to the **OUCH Encoder** module (also in `fpga/rtl`).
+
+---
+
+## 4. Step-by-Step Setup Instruction
 
 ### Step 1: Hardware Installation
 1.  Power off the Host PC.
@@ -62,15 +69,14 @@ sudo modprobe xdma
 4.  Power on the PC.
 
 ### Step 2: Build the FPGA Bitstream (Hardware Persona)
-*Note: This repository contains the C++ Software Driver. The RTL (Verilog/VHDL) would be in `fpga/rtl`. For this guide, we assume using a standard XDMA Shell.*
-
 1.  Open Vivado.
 2.  Create a project for your part (e.g., `xc7a100tfgg484-2`).
 3.  Add the **XDMA (DMA/Bridge Subsystem for PCI Express)** IP.
     *   Config: PCIe Gen2 x4, AXI4-Lite Master Interface (for Registers), AXI4-Stream (for Data).
-4.  Map the AXI4-Lite interface to **BAR0** (Base Address Register).
-5.  Generate Bitstream (`.bit`).
-6.  Open **Hardware Manager** in Vivado and Program Device.
+4.  Instantiate `strat_decide.v` in your top-level wrapper.
+5.  Map the AXI4-Lite interface to **BAR0** (Base Address Register) for parameter updates.
+6.  Generate Bitstream (`.bit`).
+7.  Open **Hardware Manager** in Vivado and Program Device.
 
 ### Step 3: Verify PCIe Link
 Once programmed, restart the PC (warm reboot) so the BIOS enumerates the PCIe device.
@@ -114,7 +120,7 @@ bool FPGADriver::init() {
 
 ### Step 5: Run the Engine
 ```bash
-sudo ./build/live_engine
+sudo ./apps/live-engine/live_engine
 ```
 The application will now write Strategy Parameters directly to the FPGA's AXI-Lite registers via PCIe.
 

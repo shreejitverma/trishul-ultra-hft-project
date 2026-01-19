@@ -19,10 +19,17 @@ The project uses CMake.
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j4
+make -j$(nproc)
+```
+
+### Run Tests
+To verify the build integrity:
+```bash
+ctest --output-on-failure
 ```
 
 ### Build Artifacts
+Binaries are typically located in the `build/` directory (or subdirectories if configured):
 *   `live_engine`: The main trading application.
 *   `strategy_backtester`: The vectorized backtesting engine.
 *   `data_generator`: Tool to create synthetic market data.
@@ -93,12 +100,12 @@ Total Trades  : 9523813
 The `live_engine` can run in **Simulation Mode** (internal data loop) or **Live Mode** (UDP Multicast).
 
 ### Simulation Mode (Default)
-Simply run the executable. It will simulate market data and order matching internally.
+Simply run the executable. It will simulate market data and order matching internally using the `MatchingEngine`.
 
 ```bash
 sudo ./build/live_engine
 ```
-*Note: `sudo` is recommended on Linux for thread pinning.*
+*Note: `sudo` is recommended on Linux to enable thread pinning and real-time scheduling.*
 
 ### Live Mode (UDP Ingestion)
 To connect to a real multicast feed (e.g., a local replay or exchange feed):
@@ -136,5 +143,5 @@ Measures how many millions of messages per second the system can process.
 ## 7. FPGA Integration
 
 If you have a supported FPGA board:
-1.  Follow the [FPGA Setup Guide](FPGA_SETUP.md) to install drivers.
+1.  Follow the [FPGA Setup Guide](FPGA_SETUP.md) to install drivers and program the `strat_decide.v` core.
 2.  The `live_engine` will automatically detect the PCIe device (`/dev/xdma0_user`) and switch the driver from simulation to MMIO mode.
