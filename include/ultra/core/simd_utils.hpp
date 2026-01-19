@@ -96,6 +96,35 @@ public:
 #endif
         return std::sqrt(ssd / (n - 1));
     }
+
+    /**
+     * Compares two arrays and returns a mask where a[i] > b[i]
+     */
+    static void batch_compare_gt(const double* a, const double* b, size_t n, uint8_t* result_mask) {
+#if ULTRA_HAS_AVX2
+        size_t i = 0;
+        for (; i + 4 <= n; i += 4) {
+            __m256d va = _mm256_loadu_pd(&a[i]);
+            __m256d vb = _mm256_loadu_pd(&b[i]);
+            __m256d cmp = _mm256_cmp_pd(va, vb, _CMP_GT_OQ);
+            
+            // Extract mask to result_mask[i...i+3]
+            // cmp is all 1s (true) or 0s (false)
+            double tmp[4];
+            _mm256_storeu_pd(tmp, cmp);
+            for (int j = 0; j < 4; ++j) {
+                result_mask[i + j] = (tmp[j] != 0);
+            }
+        }
+        for (; i < n; ++i) {
+            result_mask[i] = (a[i] > b[i]);
+        }
+#else
+        for (size_t i = 0; i < n; ++i) {
+            result_mask[i] = (a[i] > b[i]);
+        }
+#endif
+    }
 };
 
 } // namespace ultra

@@ -253,6 +253,12 @@ add_executable(test_async_logger
 target_link_libraries(test_async_logger ultra_hft)
 add_test(NAME AsyncLoggerTest COMMAND test_async_logger)
 
+add_executable(test_symbol_universe
+    tests/unit/test_symbol_universe.cpp
+)
+target_link_libraries(test_symbol_universe ultra_hft)
+add_test(NAME SymbolUniverseTest COMMAND test_symbol_universe)
+
 add_executable(test_matching_engine
     tests/unit/test_matching_engine.cpp
 )

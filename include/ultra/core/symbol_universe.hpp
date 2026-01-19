@@ -1,0 +1,57 @@
+#pragma once
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include "types.hpp"
+
+namespace ultra {
+
+struct SymbolInfo {
+    SymbolId id;
+    std::string name;
+    uint32_t lot_size;
+    Price tick_size;
+    double maker_fee;
+    double taker_fee;
+};
+
+/**
+ * Manages the universe of tradable symbols.
+ * Provides O(1) lookup by ID.
+ */
+class SymbolUniverse {
+public:
+    static SymbolUniverse& instance() {
+        static SymbolUniverse instance;
+        return instance;
+    }
+
+    void add_symbol(const SymbolInfo& info) {
+        if (info.id >= symbols_.size()) {
+            symbols_.resize(info.id + 1);
+        }
+        symbols_[info.id] = info;
+        name_to_id_[info.name] = info.id;
+    }
+
+    const SymbolInfo* get_symbol(SymbolId id) const {
+        if (id < symbols_.size()) return &symbols_[id];
+        return nullptr;
+    }
+
+    SymbolId get_id(const std::string& name) const {
+        auto it = name_to_id_.find(name);
+        if (it != name_to_id_.end()) return it->second;
+        return INVALID_SYMBOL;
+    }
+
+    size_t size() const { return name_to_id_.size(); }
+
+private:
+    SymbolUniverse() = default;
+    
+    std::vector<SymbolInfo> symbols_;
+    std::unordered_map<std::string, SymbolId> name_to_id_;
+};
+
+} // namespace ultra
