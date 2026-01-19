@@ -12,13 +12,13 @@ The most critical metric for a market-making system is Tick-to-Trade (T2T) laten
     \centering
     \begin{tabular}{|l|c|c|c|}
         \hline
-        \textbf{Pipeline Stage} & \textbf{P50 Latency (ns)} & \textbf{P99 Latency (ns)} & \textbf{Contribution (\\%%)} \\
+        \textbf{Pipeline Stage} & \textbf{P50 Latency (ns)} & \textbf{P99 Latency (ns)} & \textbf{Contribution (\%)} \\
         \hline
         Network Ingress (Sim) & 150 & 210 & 17.6\% \\
         ITCH Parsing & 250 & 320 & 29.4\% \\
         Book Update & 180 & 240 & 21.2\% \\
         Strategy Inference & 120 & 180 & 14.1\% \\
-        Risk & Order Gen & 150 & 200 & 17.6\% \\
+        Risk \& Order Gen & 150 & 200 & 17.6\% \\
         \hline
         \textbf{Total T2T} & \textbf{850} & \textbf{1150} & \textbf{100\%} \\
         \hline
