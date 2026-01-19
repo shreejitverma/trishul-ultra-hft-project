@@ -235,6 +235,12 @@ add_executable(test_memory_utils
 target_link_libraries(test_memory_utils ultra_hft)
 add_test(NAME MemoryUtilsTest COMMAND test_memory_utils)
 
+add_executable(test_spin_wait
+    tests/unit/test_spin_wait.cpp
+)
+target_link_libraries(test_spin_wait ultra_hft)
+add_test(NAME SpinWaitTest COMMAND test_spin_wait)
+
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
 #     tests/unit/test_order_book.cpp
