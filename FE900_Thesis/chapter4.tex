@@ -12,16 +12,68 @@ This design is composed of two primary components, both specified in the underly
 
 Our data path foundation is a deterministic, end-to-end T2T pipeline architecture. This design ensures our system operates with deterministic, sub-microsecond latency, eliminating OS jitter and software overheads.
 
-The pipeline stages, implemented in Verilog and VHDL (see Appendix A), are as follows:
+\subsection{Network Ingress \& Parsing (rx\_parser)}
+The system ingests 10/25GbE market data feeds directly from the PHY. The \texttt{rx\_parser} module implements a Finite State Machine (FSM) to strip headers and extract the payload.
 
+\begin{figure}[h!]
+    \centering
+    \caption{State Machine for RX Parser}
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm, semithick]
+      \tikzstyle{every state}=[fill=blue!10,draw=none,text=black]
+
+      \node[state, initial] (ETH) {ST\_ETH};
+      \node[state] (IP) [right of=ETH] {ST\_IP};
+      \node[state] (UDP) [right of=IP] {ST\_UDP};
+      \node[state] (PAY) [right of=UDP] {ST\_PAY};
+
+      \path 
+        (ETH) edge node {Cycle 0} (IP)
+        (IP) edge node {Cycle 1} (UDP)
+        (UDP) edge node {Cycle 2} (PAY)
+        (PAY) edge [loop above] node {Payload Stream} (PAY)
+              edge [bend left] node {tlast=1} (ETH);
+    \end{tikzpicture}
+\end{figure}
+
+The FSM cycles through:
 \begin{enumerate}
-    \item \textbf{Network Ingress \& Parsing:} The system ingests 10/25GbE market data feeds directly from the PHY. A minimal L2/L3/L4 parser (Listing 1) strips the Ethernet/IP/UDP headers. A multicast gate (Listing 2) filters for relevant data streams.
-    \item \textbf{Feed Handling \& Book Building:} A feed-specific extractor (Listing 3) parses ITCH/FIX messages. These messages drive a "normalized book builder" (Listing 4) that maintains the state of the order book (BBO, etc.) in on-chip memory.
-    \item \textbf{Strategy \& Risk (The Core Integration):} This is the heart of our thesis, detailed in Section 4.2.
-    \item \textbf{Order Encoding \& Egress:} Valid trade decisions are passed to a FIX/OUCH encoder (Listing 7) which packetizes the order. The packet is sent to the MAC TX path (Listing 8) for wire egress.
+    \item \textbf{ST\_ETH:} Consumes the 14-byte Ethernet header.
+    \item \textbf{ST\_IP:} Extracts Source/Dest IP from the 20-byte IPv4 header.
+    \item \textbf{ST\_UDP:} Extracts Source/Dest Ports from the 8-byte UDP header and asserts \texttt{header\_valid}.
+    \item \textbf{ST\_PAY:} Streams the remaining payload data to the decoder until \texttt{tlast} is asserted.
 \end{enumerate}
 
-This baseline hardware architecture provides a total wire-to-wire latency budget of approximately \textbf{360–790 nanoseconds}, creating the deterministic, high-performance foundation required for our AI integration.
+\subsection{Feed Handling \& Book Building (itch\_decoder)}
+The \texttt{itch\_decoder} module is responsible for identifying and parsing specific market data messages.
+
+\begin{figure}[h!]
+    \centering
+    \caption{ITCH Decoder Logic Flow}
+    \begin{tikzpicture}[node distance = 1.5cm, auto]
+        \tikzstyle{block} = [rectangle, draw, fill=green!10, text width=8em, text centered, rounded corners, minimum height=3em]
+        \tikzstyle{line} = [draw, -latex', thick]
+        
+        \node [block] (input) {Input Stream};
+        \node [block, right=of input] (buffer) {Accumulation Buffer (512-bit)};
+        \node [block, below=of buffer] (check) {Length Check (>288 bits)};
+        \node [block, right=of check] (extract) {Field Extraction};
+        \node [block, below=of extract] (output) {Normalized Tick};
+
+        \path [line] (input) -- (buffer);
+        \path [line] (buffer) -- (check);
+        \path [line] (check) -- node {Yes} (extract);
+        \path [line] (extract) -- (output);
+    \end{tikzpicture}
+\end{figure}
+
+Logic flow:
+\begin{itemize}
+    \item \textbf{Accumulation:} Incoming 64-bit words are shifted into a large internal buffer (`buffer`).
+    \item \textbf{Detection:} The logic checks if the buffer contains enough bits for a full "Add Order" message (Type 'A', 36 bytes).
+    \item \textbf{Extraction:} Once valid, it extracts the Order ID, Price, and Quantity fields using fixed bit-offsets and generates a single-cycle \texttt{tick\_valid} pulse.
+\end{itemize}
+
+\subsection{Strategy \& Risk (The Core Integration)}
 
 \section{Core Integration: The RL-Inference Module}
 

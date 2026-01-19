@@ -14,7 +14,29 @@ The software system is engineered to meet aggressive latency targets for each st
 \end{itemize}
 
 \section{Software System Architecture}
-The software baseline follows a layered, six-stage pipeline:
+The software baseline follows a layered, six-stage pipeline. The interactions between the core C++ components are illustrated in Figure \ref{fig:sw_class_diagram}.
+
+\begin{figure}[h!]
+    \centering
+    \caption{C++ Software Component Diagram}
+    \label{fig:sw_class_diagram}
+    \begin{tikzpicture}[node distance=1.5cm, auto]
+        \tikzstyle{class} = [rectangle, draw, fill=yellow!10, text width=10em, text centered, rounded corners, minimum height=3em]
+        \tikzstyle{line} = [draw, -latex', thick]
+        
+        \node [class] (oms) {\textbf{OrderManagementSystem} \\ +send\_order() \\ +on\_exec\_report()};
+        \node [class, right=of oms] (sor) {\textbf{SmartOrderRouter} \\ +route()};
+        \node [class, below=of oms] (strat) {\textbf{RLPolicyStrategy} \\ +on\_market\_data() \\ +run\_inference()};
+        \node [class, left=of strat] (book) {\textbf{OrderBookL2} \\ +update() \\ +best\_bid()};
+
+        \path [line] (strat) -- node [right, scale=0.7] {New Order} (oms);
+        \path [line] (oms) -- node [above, scale=0.7] {Route} (sor);
+        \path [line] (strat) -- node [above, scale=0.7] {Query} (book);
+        \path [line, dashed] (sor) -- node [below, scale=0.7] {To Gateway} +(2.5,0);
+    \end{tikzpicture}
+\end{figure}
+
+The pipeline consists of:
 \begin{enumerate}
     \item \textbf{Hardware \& Kernel Bypass:} Utilizes 10/25GbE NICs (e.g., Mellanox/Intel) with kernel-bypass technologies like DPDK or Solarflare Onload to ingest raw packets directly into user space, eliminating OS overhead.
     \item \textbf{Network \& Parsing:} A zero-copy parser decodes Ethernet, IP, and UDP headers, followed by a protocol-specific (e.g., ITCH) decoder.
@@ -44,8 +66,8 @@ The ingress pipeline is optimized for zero-copy, branchless processing.
 \section{Strategy and Risk Management}
 This is the "brain" of the software system, designed to mirror the RL logic on the FPGA.
 \begin{itemize}
-    \item \textbf{Neural Network Inference:} (Listing 16) The RL policy is implemented as a small feed-forward neural network. The inference code is heavily optimized using AVX2/AVX512 SIMD instructions for matrix multiplication and fused operations (e.g., matmul + bias + ReLU) to execute the full forward pass in <100ns.
-    \item \textbf{Feature Extraction:} (Listing 17) This module calculates features (e.g., imbalance, spread, volatility) from the order book state to be fed into the neural network.
+    \item \textbf{Heuristic Strategy Logic:} (Listing 16) The baseline strategy implements an approximation of the Avellaneda-Stoikov market-making model. This heuristic approach calculates reservation prices and optimal spreads based on inventory risk and volatility, providing a deterministic performance baseline against which the AI-driven FPGA model can be compared.
+    \item \textbf{Feature Extraction:} (Listing 17) This module calculates features (e.g., imbalance, spread, volatility) from the order book state to be fed into the strategy logic.
     \item \textbf{Pre-Trade Risk Checks:} (Listing 18) A critical safety component. This logic is implemented to be branchless using bitwise operations to check all limits (notional, position, rate) simultaneously in <30ns.
 \end{itemize}
 

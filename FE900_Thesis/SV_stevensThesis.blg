@@ -1,0 +1,61 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: SV_stevensThesis.aux
+A level-1 auxiliary file: SV_Introduction.aux
+A level-1 auxiliary file: chapter2.aux
+A level-1 auxiliary file: chapter3.aux
+A level-1 auxiliary file: chapter4.aux
+A level-1 auxiliary file: chapter5.aux
+A level-1 auxiliary file: Appendix.aux
+The style file: apalike.bst
+Database file #1: SV_References.bib
+Warning--I didn't find a database entry for "LitzND"
+Warning--I didn't find a database entry for "NapatechND"
+Warning--I didn't find a database entry for "Markets2025"
+Warning--I didn't find a database entry for "Briere2025"
+Warning--I didn't find a database entry for "Zhang2024"
+Warning--I didn't find a database entry for "Schneider2023"
+Warning--empty year in MDPI_SpecialIssue
+Warning--empty journal in Spooner2020
+You've used 22 entries,
+            1935 wiz_defined-function locations,
+            608 strings with 6901 characters,
+and the built_in function-call counts, 6791 in all, are:
+= -- 675
+> -- 253
+< -- 22
++ -- 88
+- -- 78
+* -- 480
+:= -- 1257
+add.period$ -- 57
+call.type$ -- 22
+change.case$ -- 137
+chr.to.int$ -- 22
+cite$ -- 24
+duplicate$ -- 280
+empty$ -- 458
+format.name$ -- 114
+if$ -- 1312
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 11
+newline$ -- 104
+num.names$ -- 66
+pop$ -- 108
+preamble$ -- 1
+purify$ -- 137
+quote$ -- 0
+skip$ -- 243
+stack$ -- 0
+substring$ -- 382
+swap$ -- 21
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 132
+warning$ -- 2
+while$ -- 50
+width$ -- 0
+write$ -- 253
+(There were 8 warnings)

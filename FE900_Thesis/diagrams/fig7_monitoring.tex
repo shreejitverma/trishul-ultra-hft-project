@@ -1,0 +1,26 @@
+\begin{tikzpicture}[node distance=1.5cm, auto]
+    \tikzstyle{block} = [rectangle, draw, fill=purple!10, text width=8em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex', thick]
+
+    \node [block] (oms) {Order Management System (OMS)};
+    
+    % Metrics
+    \node [block, right=of oms, yshift=1cm] (thru) {Throughput Metrics};
+    \node [block, right=of oms] (err) {Error Rates};
+    \node [block, right=of oms, yshift=-1cm] (queue) {Queue Depths};
+    
+    \node [block, right=of err, xshift=1cm] (alert) {Alerting System};
+    \node [block, below=of alert] (dash) {Latency Dashboard};
+
+    \path [line] (oms) -- (thru);
+    \path [line] (oms) -- (err);
+    \path [line] (oms) -- (queue);
+    
+    \path [line] (thru) -- (alert);
+    \path [line] (err) -- (alert);
+    \path [line] (queue) -- (alert);
+    
+    \path [line] (oms) |- (dash);
+
+\end{tikzpicture}
+

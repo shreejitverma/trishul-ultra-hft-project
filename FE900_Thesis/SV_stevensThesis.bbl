@@ -1,0 +1,104 @@
+\begin{thebibliography}{}
+
+\bibitem[Al-Ahmed et~al., 2024]{AlAhmed2024}
+Al-Ahmed, S.~A. et~al. (2024).
+\newblock A framework for high-frequency trading algorithms on fpga using soc.
+\newblock {\em Alexandria Engineering Journal}, 97:112--125.
+
+\bibitem[Aouini et~al., 2025]{Aouini2025}
+Aouini, S. et~al. (2025).
+\newblock Dynamic fpga reconfiguration for scalable embedded artificial intelligence.
+
+\bibitem[Fund, 2024]{IMF2024}
+Fund, I.~M. (2024).
+\newblock Artificial intelligence can make markets more efficient—and more volatile.
+
+\bibitem[Gupta et~al., 2024]{Gupta2024}
+Gupta, D. et~al. (2024).
+\newblock Fpga for high-frequency trading: Reducing latency in financial systems.
+\newblock {\em IEEE Xplore}.
+
+\bibitem[Jiang et~al., 2025]{Jiang2025}
+Jiang, B. et~al. (2025).
+\newblock Resolving latency and inventory risk in market making with reinforcement learning.
+
+\bibitem[Joshua et~al., 2025]{Joshua2025}
+Joshua, C., Safaei, L.~K., Bargh, H.~G., Beshel, J.~A., and Motahar, S. (2025).
+\newblock Architecting low-latency interconnects for high-frequency trading using fpgas and rdma.
+\newblock {\em ResearchGate}.
+
+\bibitem[Kumar et~al., 2023]{Kumar2023}
+Kumar, S. et~al. (2023).
+\newblock Deep reinforcement learning for high-frequency market making.
+\newblock {\em Proceedings of Machine Learning Research}, 189.
+
+\bibitem[Kuzmanovic et~al., 2023]{Kuzmanovic2023}
+Kuzmanovic, S. et~al. (2023).
+\newblock Acceleration of trading system back end with fpgas using high-level synthesis.
+\newblock {\em Electronics}, 12(3):520.
+
+\bibitem[Lee et~al., 2023]{Lee2023}
+Lee, S. et~al. (2023).
+\newblock Lighttrader: A standalone high-frequency trading system with deep neural networks in 12+ tbps networks.
+\newblock In {\em Proceedings of the IEEE Symposium on High-Performance Computer Architecture (HPCA)}.
+
+\bibitem[Li et~al., 2025]{Li2025}
+Li, H. et~al. (2025).
+\newblock A multi-objective reinforcement learning approach with pareto fronts.
+\newblock {\em Expert Systems with Applications}, 262:125484.
+
+\bibitem[Lockwood and Gupte, 2012]{Lockwood2012}
+Lockwood, J.~W. and Gupte, N. (2012).
+\newblock A low-latency library in fpga hardware for high-frequency trading (hft).
+\newblock In {\em 20th Annual IEEE Symposium on High-Performance Interconnects}.
+
+\bibitem[MarketsandMarkets, 2025]{MarketsandMarkets2025}
+MarketsandMarkets (2025).
+\newblock Ai impact analysis on fpga industry: Key revenue insights.
+
+\bibitem[MDPI, ]{MDPI_SpecialIssue}
+MDPI.
+\newblock Special issue: Advanced ai hardware designs based on fpgas.
+
+\bibitem[Patel et~al., 2022]{Patel2022}
+Patel, J. et~al. (2022).
+\newblock A reinforcement learning approach to improve the performance of the avellaneda-stoikov market-making algorithm.
+\newblock {\em PLOS ONE}, 17(12):e0277042.
+
+\bibitem[Ragel, 2025]{Ragel2025}
+Ragel, N. (2025).
+\newblock Reinforcement learning for systematic market making strategies.
+\newblock Doctoral dissertation.
+
+\bibitem[Review, 2025]{GlobalBanking2025}
+Review, G. B. .~F. (2025).
+\newblock Why more trading firms are moving to fpga for low-latency gains.
+
+\bibitem[Semiconductor, 2025]{Lattice2025}
+Semiconductor, L. (2025).
+\newblock Contextual ai: Enhancing edge intelligence with fpga technology.
+
+\bibitem[Shams et~al., 2024]{Shams2024}
+Shams, A. et~al. (2024).
+\newblock Comparative study of fpga and gpu for high-performance computing and ai.
+\newblock {\em ResearchGate}.
+
+\bibitem[Spooner et~al., 2020]{Spooner2020}
+Spooner, T. et~al. (2020).
+\newblock Deep reinforcement learning for market making.
+\newblock pages 1892--1900.
+
+\bibitem[Su et~al., 2025]{Su2025}
+Su, Z. et~al. (2025).
+\newblock Market making strategies with reinforcement learning.
+
+\bibitem[Systems, 2024]{Fidus2024}
+Systems, F. (2024).
+\newblock The role of fpgas in ai acceleration.
+
+\bibitem[Vakkilainen, 2023]{Vakkilainen2023}
+Vakkilainen, A. (2023).
+\newblock Further optimizing market making with deep reinforcement learning.
+\newblock Master's thesis, Aalto University.
+
+\end{thebibliography}

@@ -1,0 +1,51 @@
+\contentsline {chapter}{Abstract}{iii}{Doc-Start}%
+\contentsline {chapter}{Acknowledgments}{v}{Doc-Start}%
+\contentsline {chapter}{List of Tables}{ix}{Doc-Start}%
+\contentsline {chapter}{List of Figures}{x}{Doc-Start}%
+\contentsline {chapter}{\numberline {1}Introduction and System Overview}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Literature Review}{16}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Introduction}{16}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Theoretical Background}{17}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Overview of Existing Research}{18}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}From Classical Market Making to Learning-Based Control}{18}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Hardware Acceleration and FPGA Design in HFT}{19}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}AI on FPGAs and Edge Inference}{19}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Hybrid Systems Integrating Learning and Hardware}{20}{subsection.2.3.4}%
+\contentsline {section}{\numberline {2.4}Critical Evaluation}{20}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Identification of Gaps}{21}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Relevance to the Present Research}{21}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Conceptual Framework}{22}{section.2.7}%
+\contentsline {section}{\numberline {2.8}Summary and Transition}{22}{section.2.8}%
+\contentsline {chapter}{\numberline {3}High-Level Architecture of an FPGA Matching Engine}{24}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Description of Key Modules}{24}{section.3.1}%
+\contentsline {chapter}{\numberline {4}FPGA System Architecture and Methodology}{26}{chapter.4}%
+\contentsline {section}{\numberline {4.1}The Ultra-Low-Latency T2T Data Path (FPGA)}{26}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Network Ingress \& Parsing (rx\_parser)}{27}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}Feed Handling \& Book Building (itch\_decoder)}{27}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}Strategy \& Risk (The Core Integration)}{28}{subsection.4.1.3}%
+\contentsline {section}{\numberline {4.2}Core Integration: The RL-Inference Module}{28}{section.4.2}%
+\contentsline {section}{\numberline {4.3}The Hybrid Control Plane for Model Management}{29}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Ultra-Low-Latency Software Baseline Implementation}{31}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Target Performance Metrics}{31}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Software System Architecture}{31}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Core Infrastructure Components}{33}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Network and Market Data Processing}{33}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Strategy and Risk Management}{34}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Performance Tuning and Benchmarking}{34}{section.5.6}%
+\contentsline {chapter}{\numberline {A}Appendix}{36}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Setup Guide: Verilog on Apple Silicon}{36}{section.A.1}%
+\contentsline {section}{\numberline {A.2}FPGA Code Explanation and Module Overview}{37}{section.A.2}%
+\contentsline {subsection}{\numberline {A.2.1}Network Ingress Modules}{38}{subsection.A.2.1}%
+\contentsline {subsection}{\numberline {A.2.2}Feed Handler Modules}{38}{subsection.A.2.2}%
+\contentsline {subsection}{\numberline {A.2.3}Strategy and Decision Logic}{38}{subsection.A.2.3}%
+\contentsline {subsection}{\numberline {A.2.4}Order Transmission Modules}{38}{subsection.A.2.4}%
+\contentsline {subsection}{\numberline {A.2.5}Control Plane and Integration}{39}{subsection.A.2.5}%
+\contentsline {section}{\numberline {A.3}Appendix: Core Implementation Snippets}{39}{section.A.3}%
+\contentsline {subsection}{\numberline {A.3.1}1. Network Ingress: Parser (Verilog)}{39}{subsection.A.3.1}%
+\contentsline {subsection}{\numberline {A.3.2}2. Strategy Logic: Decision Block (Verilog)}{40}{subsection.A.3.2}%
+\contentsline {subsection}{\numberline {A.3.3}3. Hardware Pre-Trade Risk Gate (Verilog)}{41}{subsection.A.3.3}%
+\contentsline {section}{\numberline {A.4}Appendix: C++ Software Baseline Snippets}{42}{section.A.4}%
+\contentsline {subsection}{\numberline {A.4.1}1. High-Precision Timing (C++)}{42}{subsection.A.4.1}%
+\contentsline {subsection}{\numberline {A.4.2}2. RL Strategy Logic (C++)}{44}{subsection.A.4.2}%
+\contentsline {subsection}{\numberline {A.4.3}3. Zero-Copy Parser (C++)}{45}{subsection.A.4.3}%
+\contentsline {chapter}{Bibliography}{47}{lstnumber.A.6.22}%

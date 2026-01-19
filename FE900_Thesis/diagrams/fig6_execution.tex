@@ -1,0 +1,24 @@
+\begin{tikzpicture}[node distance=1.5cm, auto]
+    \tikzstyle{block} = [rectangle, draw, fill=yellow!10, text width=8em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex', thick]
+
+    \node [block] (strat) {Trading Strategy};
+    \node [block, below=of strat] (sor) {Smart Order Router};
+    \node [block, below=of sor] (risk) {Pre-Trade Risk Checks};
+    \node [block, below=of risk] (exchange) {Exchange};
+    
+    \node [block, right=of exchange] (log) {Execution Log};
+    \node [block, right=of log] (analytics) {Analytics Engine};
+
+    \path [line] (strat) -- (sor);
+    \path [line] (sor) -- (risk);
+    \path [line] (risk) -- (exchange);
+    
+    \path [line] (exchange) -- (log);
+    \path [line] (log) -- (analytics);
+    
+    % Feedback
+    \path [line, dashed] (analytics) |- (strat);
+
+\end{tikzpicture}
+

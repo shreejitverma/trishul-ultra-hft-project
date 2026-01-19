@@ -1,0 +1,33 @@
+\begin{tikzpicture}[node distance=2.0cm, auto]
+    \tikzstyle{block} = [rectangle, draw, fill=green!10, text width=7em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{db} = [cylinder, shape border rotate=90, draw, fill=yellow!10, aspect=0.25, text width=6em, text centered]
+    \tikzstyle{line} = [draw, -latex', thick]
+
+    % Nodes
+    \node [block] (pipeline) {Market Data Pipeline};
+    
+    % Replicated Book
+    \node [db, right=of pipeline, xshift=1cm] (bookA) {Order Book Replica A};
+    \node [db, below=of bookA] (bookB) {Order Book Replica B};
+    
+    \node [block, right=of bookA, xshift=2cm, text width=8em] (stream) {Event Stream (Lock-Free)};
+    
+    % Consumers
+    \node [block, right=of stream, yshift=2cm] (trading) {Trading Logic (Software)};
+    \node [block, right=of stream] (fpga) {FPGA Engine (Hardware)};
+    \node [block, right=of stream, yshift=-2cm] (router) {Smart Router};
+
+    % Edges
+    \path [line] (pipeline) -- (bookA);
+    \path [line] (pipeline) -- (bookB);
+    \path [line] (bookA) -- node {State Change} (stream);
+    \path [line] (bookB) -- (stream);
+    
+    \path [line] (stream) -- (trading);
+    \path [line] (stream) -- (fpga);
+    \path [line] (stream) -- (router);
+    
+    % Sync
+    \path [line, dashed, <->] (bookA) -- node {Replication} (bookB);
+
+\end{tikzpicture}

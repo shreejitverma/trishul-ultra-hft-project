@@ -1,0 +1,22 @@
+\begin{tikzpicture}[node distance=1.5cm, auto]
+    \tikzstyle{block} = [rectangle, draw, fill=orange!10, text width=8em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex', thick]
+
+    \node [block] (feed) {Market Data Feed};
+    \node [block, below=of feed] (handler) {Feed Handler};
+    \node [block, below=of handler] (queue) {Event Queue (Direct Tick)};
+    
+    % FPGA Block
+    \node [block, right=of queue, minimum height=6em, text width=10em] (fpga) {FPGA Acceleration \\ (RL Logic)};
+    
+    \node [block, right=of fpga] (router) {Order Router};
+    \node [block, right=of router] (exchange) {Exchange};
+
+    \path [line] (feed) -- (handler);
+    \path [line] (handler) -- (queue);
+    \path [line] (queue) -- node {Tick Event} (fpga);
+    \path [line] (fpga) -- node {Order} (router);
+    \path [line] (router) -- (exchange);
+
+\end{tikzpicture}
+

@@ -4,31 +4,35 @@ An FPGA-based matching engine is not a monolithic entity but rather a system of 
 
 \begin{figure}[h!]
     \centering
-    \caption{High-Level Data Flow in an FPGA Matching Engine}
+    \caption{High-Level Data Flow in the Implemented FPGA Matching Engine}
     \label{fig:matching_engine_arch}
-    \begin{tikzpicture}[node distance = 1.2cm and 0.8cm]
-        % Define Nodes
-        \node [block, text width=6em] (net_in) {Network};
-        \node [block, text width=6em, right=of net_in] (phy) {PHY Layer};
-        \node [block, right=of phy] (mac) {10G Ethernet MAC};
-        \node [block, below=of mac] (parser) {Packet Parser};
-        \node [block, below=of parser] (orderbook) {Order Book Management};
-        \node [block, right=of orderbook] (matcher) {Matching Logic};
-        \node [block, below=of orderbook] (execgen) {Execution Report Generator};
-        \node [block, below=of execgen] (formatter) {Packet Formatter \& Sender};
+    \begin{tikzpicture}[node distance = 1.0cm and 0.5cm, auto]
+        % Define styles
+        \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em]
+        \tikzstyle{line} = [draw, -latex', thick]
+        \tikzstyle{cloud} = [draw, ellipse, fill=red!10, node distance=2cm, minimum height=2em]
         
-        % Draw Arrows (Data Flow)
-        \path [line] (net_in) -- (phy);
-        \path [line] (phy) -- (mac);
-        \path [line] (mac) -- (parser);
-        \path [line] (parser) -- (orderbook);
-        \path [line] (orderbook) -- (matcher);
-        \path [line, dashed] (matcher) edge[bend left=10] (orderbook);
-        \path [line] (matcher) -- (execgen);
-        \path [line] (orderbook) -- (execgen);
-        \path [line] (execgen) -- (formatter);
-        \path [line] (formatter) -| node[near start, right] {} (mac.south);
-        \path [line, dashed] (mac) edge[bend left=10] (phy);
+        % Nodes
+        \node [block] (mac_rx) {MAC RX (AXI-S)};
+        \node [block, below=of mac_rx] (parser) {RX Parser (L2/L3/L4)};
+        \node [block, below=of parser] (decoder) {ITCH Decoder};
+        \node [block, right=of decoder] (book) {Order Book (L1/BBO)};
+        \node [block, right=of book] (strategy) {Strategy Engine};
+        \node [block, above=of strategy] (encoder) {Order Encoder};
+        \node [block, above=of encoder] (bridge) {TX Bridge};
+        \node [block, left=of bridge] (mac_tx) {MAC TX (AXI-S)};
+
+        % Edges
+        \path [line] (mac_rx) -- (parser);
+        \path [line] (parser) -- node[midway, right, scale=0.7] {UDP Payload} (decoder);
+        \path [line] (decoder) -- node[midway, below, scale=0.7] {Tick (Price/Qty)} (book);
+        \path [line] (book) -- node[midway, below, scale=0.7] {BBO State} (strategy);
+        \path [line] (strategy) -- node[midway, right, scale=0.7] {Buy/Sell Signal} (encoder);
+        \path [line] (encoder) -- node[midway, left, scale=0.7] {Binary Order} (bridge);
+        \path [line] (bridge) -- (mac_tx);
+        
+        % Feedback loop (conceptual)
+        %\path [line, dashed] (mac_tx) -- (mac_rx);
     \end{tikzpicture}
 \end{figure}
 
@@ -37,32 +41,26 @@ An FPGA-based matching engine is not a monolithic entity but rather a system of 
 The system is composed of several core modules, each designed to perform a specific task with minimal latency.
 
 \begin{description}
-    \item[Physical Layer (PHY) \& MAC]
-    \textit{Responsibility:} Manages the physical connection to the network, typically via an SFP+ port. The Media Access Control (MAC) core handles low-level Ethernet framing, including preamble generation/checking and CRC checksums. \\
-    \textit{Implementation:} This functionality is typically instantiated using pre-verified Intellectual Property (IP) cores provided by the FPGA vendor (e.g., Xilinx or Intel).
+    \item[RX Parser (\texttt{rx\_parser})]
+    \textit{Responsibility:} Inspects incoming Ethernet packets to extract the UDP payload containing market data. \\
+    \textit{Implementation:} A Finite State Machine (FSM) that tracks byte offsets to strip Ethernet (14 bytes), IP (20 bytes), and UDP (8 bytes) headers, streaming only the payload to the downstream decoder.
 
-    \item[Packet Parser/Decoder]
-    \textit{Responsibility:} Inspects incoming Ethernet packets to extract the relevant trading message payload. This involves stripping away the Ethernet, IP, and UDP headers. \\
-    \textit{Logic:} The logic must rapidly identify the message type (e.g., New Order, Cancel Order) and extract key fields such as Symbol, OrderID, Price, Quantity, and Side (Buy/Sell). This is achieved through parallel hardware logic that processes the packet as it streams from the MAC.
+    \item[ITCH Decoder (\texttt{itch\_decoder})]
+    \textit{Responsibility:} Parses the raw binary payload to identify specific market messages (e.g., "Add Order"). \\
+    \textit{Logic:} It accumulates streaming data into a buffer and extracts fixed-width fields (Timestamp, Price, Quantity) once a complete message is received, normalizing them into a unified "Tick" format.
 
-    \item[Order Book Management]
-    \textit{Responsibility:} This is the core stateful component of the system, responsible for maintaining the entire order book for one or more financial instruments. \\
-    \textit{Implementation:} To ensure extremely fast access times, the order book is implemented using the FPGA's on-chip memory blocks (BRAMs or URAMs). The hardware logic is designed to:
-    \begin{itemize}
-        \item Add new orders to the book in the correct price-time priority position.
-        \item Remove orders that are cancelled or fully filled.
-        \item Modify the quantity of orders that are partially filled.
-    \end{itemize}
-    The underlying data structure is optimized for parallel hardware access, often using implementations of linked lists or priority queues directly in hardware.
+    \item[Order Book (\texttt{book2})]
+    \textit{Responsibility:} Maintains the "Best Bid and Offer" (BBO) state in hardware registers. \\
+    \textit{Implementation:} Optimized for single-cycle updates. It compares incoming ticks against the current BBO registers (`bid\_px0`, `ask\_px0`) and updates them immediately if the new price is more competitive.
 
-    \item[Matching Logic]
-    \textit{Responsibility:} This is the combinatorial heart of the engine. Upon the arrival of a new order from the Packet Parser, the Matching Logic compares it against the top of the Order Book (i.e., the best bid and ask). \\
-    \textit{Logic:} The engine strictly enforces a price-time priority algorithm. An incoming buy order is checked against the best ask price, while a sell order is checked against the best bid price. If the prices cross, a match occurs. This logic is heavily pipelined to enable a matching decision within a few clock cycles.
+    \item[Strategy Engine (\texttt{strat\_decide})]
+    \textit{Responsibility:} The decision-making core. It compares the current market BBO against pre-calculated "fair value" thresholds. \\
+    \textit{Logic:} Combinatorial logic checks conditions like `(Ask < FairPrice - Threshold)` to trigger a BUY signal instantly when the market moves favorably.
 
-    \item[Execution Report Generator]
-    \textit{Responsibility:} When a trade occurs (a "fill") or an order is accepted by the book ("acknowledged"), this module is responsible for generating the appropriate outbound message. \\
-    \textit{Logic:} It formats a data payload containing critical information for the trader, such as TradeID, FillPrice, FillQuantity, and the original OrderID.
+    \item[Order Encoder (\texttt{order\_encode})]
+    \textit{Responsibility:} Formats the internal BUY/SELL signal into a valid exchange-compliant binary message (e.g., OUCH). \\
+    \textit{Logic:} A simple state machine that constructs a multi-word packet with the required headers, Price, and Quantity fields, ready for transmission.
 
-    \item[Packet Formatter \& Sender]
-    \textit{Responsibility:} This module performs the reverse operation of the parser. It takes the application-level payload from the Execution Report Generator and encapsulates it within the necessary UDP, IP, and Ethernet headers. The complete packet is then sent to the Ethernet MAC for transmission onto the network.
+    \item[TX Bridge (\texttt{tx\_bridge})]
+    \textit{Responsibility:} Adapts the encoder's output to the MAC layer's timing requirements, ensuring valid AXI-Stream handshaking before the packet is placed on the wire.
 \end{description}

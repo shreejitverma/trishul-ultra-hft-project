@@ -22,7 +22,7 @@ This thesis aims to bridge these gaps by developing an integrated reinforcement 
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/1.png}
+    \input{diagrams/fig1_ingestion.tex}
     \caption{High Level Design - Part 1}
     \label{fig:hld_1}
 \end{figure}
@@ -39,7 +39,7 @@ This stage, illustrated in Figure~\ref{fig:hld_1}, provides the \textbf{foundati
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/2.png}
+    \input{diagrams/fig2_orderbook.tex}
     \caption{Order Book Management and Event-Driven Propagation}
     \label{fig:order_book_management}
 \end{figure}
@@ -52,7 +52,7 @@ Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/3.png}
+    \input{diagrams/fig3_event_pipeline.tex}
     \caption{Event-Driven Pipeline and Nanosecond-Precision Timing} 
     \label{fig:event_pipeline_timing}
 \end{figure}
@@ -65,7 +65,7 @@ Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/4.png}
+    \input{diagrams/fig4_fpga_t2t.tex}
     \caption{FPGA-Accelerated Tick-to-Trade Pipeline}
     \label{fig:tick_to_trade_pipeline}
 \end{figure}
@@ -74,7 +74,7 @@ Figure ~\ref{fig:tick_to_trade_pipeline} illustrates the most latency-sensitive 
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/5.png}
+    \input{diagrams/fig5_fpga_internal.tex}
     \caption{Internal Architecture of the FPGA Acceleration Module} 
     \label{fig:fpga_internal_architecture}
 \end{figure}
@@ -87,7 +87,7 @@ Figure ~\ref{fig:fpga_internal_architecture} provides a granular view of the int
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/6.png}
+    \input{diagrams/fig6_execution.tex}
     \caption{Order Processing and Post-Trade Analytics} 
     \label{fig:order_processing_analytics} 
 \end{figure}
@@ -102,7 +102,7 @@ Figure ~\ref{fig:order_processing_analytics} illustrates the final stages of the
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/7.png}
+    \input{diagrams/fig7_monitoring.tex}
     \caption{System-Wide Monitoring and Metrics Infrastructure} 
     \label{fig:monitoring_metrics}
 \end{figure}
@@ -120,7 +120,7 @@ This robust monitoring framework ensures that every aspect of the trading system
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{Images/8.png}
+    \input{diagrams/fig8_unified.tex}
     \caption{Unified High-Frequency Trading System Architecture}
     \label{fig:unified_architecture}
 \end{figure}

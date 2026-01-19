@@ -1,0 +1,21 @@
+\begin{tikzpicture}[node distance=1.5cm, auto]
+    \tikzstyle{block} = [rectangle, draw, fill=white, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{line} = [draw, -latex', thick]
+    
+    % Unified Flow
+    \node [block] (market) {Market Data};
+    \node [block, right=of market] (fpga) {FPGA (RL)};
+    \node [block, below=of fpga] (cpu) {CPU (Strategy)};
+    \node [block, right=of fpga] (risk) {Risk Gate};
+    \node [block, right=of risk] (exchange) {Exchange};
+    \node [block, below=of exchange] (monitor) {Monitoring};
+
+    \path [line] (market) -- (fpga);
+    \path [line] (market) |- (cpu);
+    \path [line] (fpga) -- (risk);
+    \path [line] (cpu) -| (risk);
+    \path [line] (risk) -- (exchange);
+    \path [line] (exchange) -- (monitor);
+
+\end{tikzpicture}
+
