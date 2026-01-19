@@ -121,8 +121,53 @@ always @(posedge clk) begin
 end
 \end{lstlisting}
 
+\begin{lstlisting}[language=Verilog, caption={Multicast Gate Logic}, label={lst:gate}]
+always @(posedge clk) begin
+    if (valid_udp) begin
+        // Check Dest IP and Port against whitelist
+        if (udp_dst_ip == 32'hE9_36_0C_6F && // 233.54.12.111
+            udp_dst_port == 16'd5000) begin
+            pass <= 1'b1;
+        end else begin
+            pass <= 1'b0; // Drop packet
+        end
+    end
+end
+\end{lstlisting}
+
 %-----------------------------------
-\subsection{2. Strategy Logic: Decision Block (Verilog)}
+\subsection{2. Feed Handler Modules}
+
+\begin{lstlisting}[language=Verilog, caption={Frame Extractor}, label={lst:frame}]
+// Accumulates bytes until a full message is received
+always @(posedge clk) begin
+    if (payload_valid) begin
+        buffer <= {buffer[W-9:0], s_axis_tdata};
+        count <= count + 1;
+        if (count == MSG_LEN) begin
+            msg_out <= buffer;
+            msg_valid <= 1'b1;
+            count <= 0;
+        end
+    end
+end
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog, caption={Order Book Update Logic}, label={lst:book}]
+always @(posedge clk) begin
+    if (tick_valid) begin
+        if (tick_side == "B" && tick_price > best_bid) begin
+            best_bid <= tick_price; // New Best Bid
+        end
+        if (tick_side == "S" && tick_price < best_ask) begin
+            best_ask <= tick_price; // New Best Ask
+        end
+    end
+end
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{3. Strategy Logic: Decision Block (Verilog)}
 The hardware circuit that generates buy/sell signals based on pre-calculated price thresholds.
 
 \begin{lstlisting}[language=Verilog, caption={Hardware Strategy Decision Logic}, label={lst:strategy}]
@@ -147,7 +192,7 @@ end
 \end{lstlisting}
 
 %-----------------------------------
-\subsection{3. Hardware Pre-Trade Risk Gate (Verilog)}
+\subsection{4. Hardware Pre-Trade Risk Gate (Verilog)}
 Ensures strict compliance with notional and message rate limits before order generation.
 
 \begin{lstlisting}[language=Verilog, caption={Risk Check Logic}, label={lst:risk}]
@@ -172,6 +217,65 @@ always @(posedge clk) begin
         end
     end
 end
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{5. Order Transmission Modules}
+
+\begin{lstlisting}[language=Verilog, caption={Order Encoder (OUCH)}, label={lst:encoder}]
+always @(posedge clk) begin
+    if (trigger_buy) begin
+        // Construct OUCH 'Enter Order' message
+        packet[7:0]   <= 8'h4F; // Type 'O'
+        packet[39:8]  <= token;
+        packet[47:40] <= 8'h42; // 'B'uy
+        packet[79:48] <= price;
+        // ... (remaining fields)
+        tx_valid <= 1'b1;
+    end
+end
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog, caption={TX Bridge}, label={lst:tx}]
+// Adapts internal parallel bus to AXI-Stream MAC interface
+assign m_axis_tdata = packet_shift_reg[63:0];
+always @(posedge clk) begin
+    if (m_axis_tready) begin
+        packet_shift_reg <= packet_shift_reg >> 64;
+    end
+end
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{6. Control Plane and Integration}
+
+\begin{lstlisting}[language=Verilog, caption={AXI-Lite Register Interface}, label={lst:axi}]
+// Maps PCIe writes to internal control registers
+always @(posedge clk) begin
+    if (axi_wvalid && axi_wready) begin
+        case (axi_awaddr[7:0])
+            8'h00: control_reg <= axi_wdata;
+            8'h04: risk_limit_reg <= axi_wdata;
+            8'h08: strategy_param_reg <= axi_wdata;
+        endcase
+    end
+end
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog, caption={Top-Level Integration}, label={lst:top}]
+module top_wrapper (
+    input wire clk,
+    input wire [63:0] eth_rx_data,
+    output wire [63:0] eth_tx_data
+);
+    // Instantiate and connect all modules
+    rx_parser   u_parser (...);
+    book_engine u_book (...);
+    strat_core  u_strat (...);
+    risk_gate   u_risk (...);
+    tx_encoder  u_enc (...);
+    // ...
+endmodule
 \end{lstlisting}
 
 % -----------------------------------------------------
@@ -210,7 +314,8 @@ void RDTSCClock::calibrate() noexcept {
 }
 \end{lstlisting}
 
-\subsection{2. RL Strategy Logic (C++)}
+\subsection{2. RL Strategy Logic (C++)
+}
 The Avellaneda-Stoikov approximation used as the baseline heuristic strategy.
 
 \begin{lstlisting}[style=cppstyle, caption={Heuristic Strategy Inference Logic}, label={lst:nn}]
@@ -247,7 +352,8 @@ void RLPolicyStrategy::run_inference() noexcept {
 }
 \end{lstlisting}
 
-\subsection{3. Zero-Copy Parser (C++)}
+\subsection{3. Zero-Copy Parser (C++)
+}
 Optimized Ethernet header parsing using pointer arithmetic.
 
 \begin{lstlisting}[style=cppstyle, caption={Ethernet/IP/UDP Header Parsing}, label={lst:cpp_parser}]
