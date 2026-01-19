@@ -1,7 +1,7 @@
 \contentsline {chapter}{Abstract}{iii}{Doc-Start}%
 \contentsline {chapter}{Acknowledgments}{v}{Doc-Start}%
-\contentsline {chapter}{List of Tables}{ix}{Doc-Start}%
-\contentsline {chapter}{List of Figures}{x}{Doc-Start}%
+\contentsline {chapter}{List of Tables}{vii}{Doc-Start}%
+\contentsline {chapter}{List of Figures}{viii}{Doc-Start}%
 \contentsline {chapter}{\numberline {1}Introduction and System Overview}{1}{chapter.1}%
 \contentsline {chapter}{\numberline {2}Literature Review}{16}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Introduction}{16}{section.2.1}%

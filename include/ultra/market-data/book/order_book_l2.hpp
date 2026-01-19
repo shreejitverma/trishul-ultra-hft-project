@@ -39,7 +39,20 @@ public:
     // Bids sorted descending, Asks sorted ascending
     using PriceLevelSide = std::array<Level, MAX_LEVELS>;
     
+    struct BBOUpdate {
+        SymbolId symbol_id;
+        Price bid_price;
+        Quantity bid_qty;
+        Price ask_price;
+        Quantity ask_qty;
+        uint64_t timestamp; // System time of update
+    };
+
+    using BBOListener = std::function<void(const BBOUpdate&)>;
+
     OrderBookL2(SymbolId symbol_id);
+
+    void set_bbo_listener(BBOListener listener) { listener_ = std::move(listener); }
 
     // Apply a decoded ITCH message
     ULTRA_HOT void update(const itch::ITCHDecoder::DecodedMessage& msg) noexcept;
@@ -68,6 +81,8 @@ private:
     ULTRA_CACHE_ALIGNED PriceLevelSide bids_{};
     ULTRA_CACHE_ALIGNED PriceLevelSide asks_{};
     
+    BBOListener listener_;
+
     // Helpers
     ULTRA_ALWAYS_INLINE uint32_t hash(OrderId id) const {
         // Simple hash for sequential/dense IDs, FNV-1a better for random

@@ -1,22 +1,37 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    \tikzstyle{block} = [rectangle, draw, fill=orange!10, text width=8em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{fpga_mod} = [rectangle, draw, fill=orange!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{fifo} = [rectangle, draw, fill=gray!20, text width=2em, text centered, minimum height=2em]
+    \tikzstyle{axis} = [draw, -latex', line width=2pt]
 
-    \node [block] (feed) {Market Data Feed};
-    \node [block, below=of feed] (handler) {Feed Handler};
-    \node [block, below=of handler] (queue) {Event Queue (Direct Tick)};
-    
-    % FPGA Block
-    \node [block, right=of queue, minimum height=6em, text width=10em] (fpga) {FPGA Acceleration \\ (RL Logic)};
-    
-    \node [block, right=of fpga] (router) {Order Router};
-    \node [block, right=of router] (exchange) {Exchange};
+    % Ingress
+    \node [fpga_mod] (mac_rx) {AXI MAC RX};
+    \node [fifo, right=of mac_rx] (f1) {CDC FIFO};
+    \node [fpga_mod, right=of f1] (parser) {RTL Parser};
+    \node [fpga_mod, right=of parser] (decoder) {ITCH Decoder};
 
-    \path [line] (feed) -- (handler);
-    \path [line] (handler) -- (queue);
-    \path [line] (queue) -- node {Tick Event} (fpga);
-    \path [line] (fpga) -- node {Order} (router);
-    \path [line] (router) -- (exchange);
+    % Core Logic
+    \node [fpga_mod, below=of decoder] (book) {RTL Order Book};
+    \node [fpga_mod, left=of book] (algo) {Strategy Engine};
+    \node [fpga_mod, left=of algo] (risk) {Risk Gate};
+
+    % Egress
+    \node [fpga_mod, below=of risk] (encoder) {OUCH Encoder};
+    \node [fifo, right=of encoder] (f2) {CDC FIFO};
+    \node [fpga_mod, right=of f2] (mac_tx) {AXI MAC TX};
+
+    % Wiring (AXI Stream)
+    \path [axis] (mac_rx) -- (f1);
+    \path [axis] (f1) -- (parser);
+    \path [axis] (parser) -- (decoder);
+    \path [axis] (decoder) -- (book);
+    \path [axis] (book) -- (algo);
+    \path [axis] (algo) -- (risk);
+    \path [axis] (risk) -- (encoder);
+    \path [axis] (encoder) -- (f2);
+    \path [axis] (f2) -- (mac_tx);
+
+    % Clock Domains
+    \node [draw, dashed, fit=(mac_rx) (f1), label=above:Net Clk (156MHz)] {};
+    \node [draw, dashed, fit=(parser) (risk), label=right:Core Clk (300MHz)] {};
 
 \end{tikzpicture}
-

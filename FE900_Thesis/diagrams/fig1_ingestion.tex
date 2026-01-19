@@ -1,24 +1,36 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    % Styles
-    \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=8em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{cloud} = [draw, ellipse, fill=red!10, node distance=3cm, minimum height=2em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.0cm, auto, >=latex', thick]
+    \tikzstyle{hw_block} = [rectangle, draw, fill=red!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{sw_block} = [rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{buffer} = [rectangle, draw, fill=yellow!10, text width=6em, text centered, minimum height=2em, dashed]
+    \tikzstyle{interface} = [draw, -latex', line width=1.5pt]
 
-    % Nodes
-    \node [cloud] (exchange) {Exchange (NASDAQ/NYSE)};
-    \node [block, below=of exchange] (nic) {Ultra-Low Latency NIC (FPGA/SmartNIC)};
-    \node [block, below=of nic] (bypass) {Kernel Bypass (DPDK/Solarflare)};
-    \node [block, below=of bypass] (handler) {Market Data Feed Handler};
-    \node [block, below=of handler] (norm) {Normalization & Decoding};
+    % Physical Layer
+    \node [hw_block] (nic) {FPGA SmartNIC};
+    \node [hw_block, right=of nic] (phy) {10GbE PHY};
+    \node [hw_block, right=of phy] (mac) {MAC Core};
+    \node [hw_block, below=of mac] (filter) { flow_steering (Hardware Filter)};
+
+    % System/Kernel
+    \node [buffer, below=of nic] (dma) {DMA Ring Buffer (Huge Pages)};
+    \node [sw_block, left=of dma] (driver) {Kernel Bypass (vfio-pci)};
+
+    % User Space
+    \node [sw_block, below=of dma] (poll) {Poller Thread};
+    \node [sw_block, right=of poll] (parser) {Protocol Parser (ITCH 5.0)};
+    \node [sw_block, right=of parser] (norm) {Msg Normalizer};
 
     % Connections
-    \path [line] (exchange) -- node {Multicast Feed} (nic);
-    \path [line] (nic) -- node {DMA (No OS)} (bypass);
-    \path [line] (bypass) -- node {Raw Packets} (handler);
-    \path [line] (handler) -- (norm);
-    
-    % Grouping
-    \begin{scope}[on background layer]
-        \node [fit=(nic) (norm), fill=yellow!10, rounded corners, label=above:Co-Location Server] {};
-    \end{scope}
+    \path [interface] (nic) -- (phy);
+    \path [interface] (phy) -- (mac);
+    \path [interface] (mac) -- (filter);
+    \path [interface] (filter) -- node[left, scale=0.7] {PCIe Write} (dma);
+    \path [interface, dashed] (driver) -- node[above, scale=0.7] {Map} (dma);
+    \path [interface] (dma) -- node[right, scale=0.7] {Zero-Copy Read} (poll);
+    \path [interface] (poll) -- (parser);
+    \path [interface] (parser) -- (norm);
+
+    % Context
+    \node [draw, dashed, fit=(nic) (filter), label=above:Hardware Domain] {};
+    \node [draw, dashed, fit=(dma) (norm), label=below:User Space Domain] {};
+
 \end{tikzpicture}

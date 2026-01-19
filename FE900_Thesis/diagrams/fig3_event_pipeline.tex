@@ -1,24 +1,28 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=8em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.2cm, auto, >=latex']
+    \tikzstyle{thread} = [circle, draw, fill=blue!10, text width=4em, text centered]
+    \tikzstyle{buffer} = [rectangle, draw, fill=gray!10, text width=8em, minimum height=2em, rounded corners]
+    \tikzstyle{barrier} = [rectangle, draw, fill=red!10, text width=0.5em, minimum height=2em]
 
-    \node [block] (book) {In-Memory Order Book};
-    \node [block, below=of book] (queue) {Lock-Free Queue};
-    \node [block, below=of queue] (stamp) {Nanosecond Timestamping};
-    \node [block, below=of stamp] (multicast) {Event Multicast};
+    % Ring Buffer
+    \node [buffer] (ring) {Lock-Free Ring Buffer};
+    
+    % Producer
+    \node [thread, left=of ring] (prod) {MD Thread};
+    \node [barrier, left=0.1cm of ring] (seq_p) {};
     
     % Consumers
-    \node [block, right=of multicast, yshift=1.5cm] (downstream) {Downstream Systems};
-    \node [block, right=of multicast] (external) {External Systems};
-    \node [block, right=of multicast, yshift=-1.5cm] (monitor) {Latency Monitor};
+    \node [barrier, right=0.1cm of ring] (seq_c) {};
+    \node [thread, right=of ring, yshift=1cm] (strat) {Strategy Thread};
+    \node [thread, right=of ring, yshift=-1cm] (log) {Logger Thread};
 
-    \path [line] (book) -- (queue);
-    \path [line] (queue) -- (stamp);
-    \path [line] (stamp) -- (multicast);
+    % Wiring
+    \path [draw, ->, thick] (prod) -- node[above, scale=0.7] {Publish(Seq)} (seq_p);
+    \path [draw, ->, thick] (seq_p) -- (ring);
+    \path [draw, ->, thick] (ring) -- (seq_c);
+    \path [draw, ->, thick] (seq_c) -- node[above, scale=0.7] {Claim(Seq)} (strat);
+    \path [draw, ->, thick] (seq_c) -- (log);
     
-    \path [line] (multicast) -- (downstream);
-    \path [line] (multicast) -- (external);
-    \path [line] (multicast) -- (monitor);
+    % Feedback (Gating)
+    \path [draw, dashed, ->] (strat) to[bend right=45] node[below, scale=0.7] {Gating Sequence} (prod);
 
 \end{tikzpicture}
-

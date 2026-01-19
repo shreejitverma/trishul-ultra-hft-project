@@ -1,26 +1,31 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    \tikzstyle{block} = [rectangle, draw, fill=purple!10, text width=8em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{metric} = [circle, draw, fill=orange!20, inner sep=2pt, text width=3em, text centered]
+    \tikzstyle{proc} = [rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners]
 
-    \node [block] (oms) {Order Management System (OMS)};
+    % Components
+    \node [proc] (fpga) {FPGA};
+    \node [proc, below=of fpga] (sw) {Software};
     
     % Metrics
-    \node [block, right=of oms, yshift=1cm] (thru) {Throughput Metrics};
-    \node [block, right=of oms] (err) {Error Rates};
-    \node [block, right=of oms, yshift=-1cm] (queue) {Queue Depths};
-    
-    \node [block, right=of err, xshift=1cm] (alert) {Alerting System};
-    \node [block, below=of alert] (dash) {Latency Dashboard};
+    \node [metric, right=of fpga] (t2t) {T2T Latency};
+    \node [metric, right=of sw] (cpu) {CPU Usage};
+    \node [metric, below=of cpu] (pnl) {PnL};
 
-    \path [line] (oms) -- (thru);
-    \path [line] (oms) -- (err);
-    \path [line] (oms) -- (queue);
+    % Collector
+    \node [proc, right=of t2t, yshift=-1cm] (col) {Metrics Collector};
+    \node [proc, right=of col] (db) {InfluxDB};
+    \node [proc, below=of db] (graf) {Grafana};
+
+    % Wiring
+    \path [draw, dashed, ->] (fpga) -- (t2t);
+    \path [draw, dashed, ->] (sw) -- (cpu);
+    \path [draw, dashed, ->] (sw) -- (pnl);
     
-    \path [line] (thru) -- (alert);
-    \path [line] (err) -- (alert);
-    \path [line] (queue) -- (alert);
+    \path [draw, ->] (t2t) -- (col);
+    \path [draw, ->] (cpu) -- (col);
+    \path [draw, ->] (pnl) -- (col);
     
-    \path [line] (oms) |- (dash);
+    \path [draw, ->] (col) -- (db);
+    \path [draw, ->] (db) -- (graf);
 
 \end{tikzpicture}
-

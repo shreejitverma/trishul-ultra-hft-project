@@ -1,28 +1,34 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    \tikzstyle{block} = [rectangle, draw, fill=cyan!10, text width=7em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{logic} = [rectangle, draw, fill=red!10, text width=6em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{reg} = [rectangle, draw, fill=yellow!10, text width=4em, text centered, minimum height=2em]
+    \tikzstyle{logic} = [rectangle, draw, fill=red!10, text width=6em, text centered, rounded corners]
+    \tikzstyle{mem} = [rectangle, draw, fill=blue!10, text width=5em, text centered, minimum height=4em]
 
-    \node [block] (input) {Tick Queue};
-    \node [block, below=of input] (ts) {Timestamping Unit};
-    
-    % Logic Blocks
-    \node [logic, right=of ts] (mm) {Market-Making Logic (RL)};
-    \node [logic, above=of mm] (arb) {Arbitrage Logic};
-    \node [logic, below=of mm] (stuff) {Quote-Stuffing Logic};
-    
-    \node [block, right=of mm] (decision) {Decision Engine};
-    \node [block, right=of decision] (output) {Order Output};
+    % Inputs
+    \node [reg] (bbo) {BBO Regs};
+    \node [reg, below=of bbo] (pos) {Inventory};
+    \node [reg, below=of pos] (vol) {Volatility};
 
-    \path [line] (input) -- (ts);
-    \path [line] (ts) -- (mm);
-    \path [line] (ts) -- (arb);
-    \path [line] (ts) -- (stuff);
+    % Feature Extraction
+    \node [logic, right=of pos] (feat) {Feature Vector};
     
-    \path [line] (mm) -- (decision);
-    \path [line] (arb) -- (decision);
-    \path [line] (stuff) -- (decision);
+    % Inference Core
+    \node [mem, right=of feat, yshift=1cm] (weights) {Weight ROM};
+    \node [logic, right=of feat] (dsp) {DSP48 (MAC)};
+    \node [logic, right=of dsp] (act) {Activation (ReLU/LUT)};
+
+    % Decision
+    \node [logic, right=of act] (comp) {Comparator};
+    \node [reg, right=of comp] (out) {Signal};
+
+    % Wiring
+    \path [draw, ->] (bbo) -| (feat);
+    \path [draw, ->] (pos) -- (feat);
+    \path [draw, ->] (vol) -| (feat);
     
-    \path [line] (decision) -- (output);
+    \path [draw, ->] (feat) -- (dsp);
+    \path [draw, ->] (weights) -- (dsp);
+    \path [draw, ->] (dsp) -- (act);
+    \path [draw, ->] (act) -- (comp);
+    \path [draw, ->] (comp) -- (out);
 
 \end{tikzpicture}

@@ -22,7 +22,42 @@ This thesis aims to bridge these gaps by developing an integrated reinforcement 
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig1_ingestion.tex}
+\begin{tikzpicture}[node distance=1.0cm, auto, >=latex', thick]
+    \tikzstyle{hw_block} = [rectangle, draw, fill=red!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{sw_block} = [rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{buffer} = [rectangle, draw, fill=yellow!10, text width=6em, text centered, minimum height=2em, dashed]
+    \tikzstyle{interface} = [draw, -latex', line width=1.5pt]
+
+    % Physical Layer
+    \node [hw_block] (nic) {FPGA SmartNIC};
+    \node [hw_block, right=of nic] (phy) {10GbE PHY};
+    \node [hw_block, right=of phy] (mac) {MAC Core};
+    \node [hw_block, below=of mac] (filter) {Hardware Filter};
+
+    % System/Kernel
+    \node [buffer, below=of nic] (dma) {DMA Ring Buffer};
+    \node [sw_block, left=of dma] (driver) {Kernel Bypass};
+
+    % User Space
+    \node [sw_block, below=of dma] (poll) {Poller Thread};
+    \node [sw_block, right=of poll] (parser) {Protocol Parser};
+    \node [sw_block, right=of parser] (norm) {Msg Normalizer};
+
+    % Connections
+    \path [interface] (nic) -- (phy);
+    \path [interface] (phy) -- (mac);
+    \path [interface] (mac) -- (filter);
+    \path [interface] (filter) -- node[left, scale=0.6] {PCIe} (dma);
+    \path [interface, dashed] (driver) -- node[above, scale=0.6] {Map} (dma);
+    \path [interface] (dma) -- node[right, scale=0.6] {Read} (poll);
+    \path [interface] (poll) -- (parser);
+    \path [interface] (parser) -- (norm);
+
+    % Context
+    \node [draw, dashed, fit=(nic) (filter), label=above:Hardware Domain] {};
+    \node [draw, dashed, fit=(dma) (norm), label=below:User Space Domain] {};
+
+\end{tikzpicture}
     \caption{High Level Design - Part 1}
     \label{fig:hld_1}
 \end{figure}
@@ -39,7 +74,37 @@ This stage, illustrated in Figure~\ref{fig:hld_1}, provides the \textbf{foundati
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig2_orderbook.tex}
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{process} = [rectangle, draw, fill=green!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{memory} = [rectangle, draw, fill=yellow!10, text width=6em, text centered, minimum height=4em]
+    \tikzstyle{stream} = [draw, -latex', line width=1.5pt]
+
+    % Input
+    \node [process] (feed) {Normalized Feed};
+
+    % Book Logic
+    \node [process, right=of feed] (logic) {Book Update};
+    \node [memory, above=of logic] (map) {Order ID Map};
+    \node [memory, below=of logic] (levels) {Price Levels};
+
+    % Output Stream
+    \node [process, right=of logic] (diff) {Diff Gen};
+    \node [process, right=of diff] (pub) {Publisher};
+
+    % Consumers
+    \node [process, above=of pub, xshift=2cm] (strat) {Strategy};
+    \node [process, below=of pub, xshift=2cm] (risk) {Risk Monitor};
+
+    % Wiring
+    \path [stream] (feed) -- (logic);
+    \path [stream, <->] (logic) -- (map);
+    \path [stream, <->] (logic) -- (levels);
+    \path [stream] (logic) -- node[above, scale=0.6] {Delta} (diff);
+    \path [stream] (diff) -- (pub);
+    \path [stream] (pub) -- (strat);
+    \path [stream] (pub) -- (risk);
+
+\end{tikzpicture}
     \caption{Order Book Management and Event-Driven Propagation}
     \label{fig:order_book_management}
 \end{figure}
@@ -52,7 +117,34 @@ Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig3_event_pipeline.tex}
+\begin{tikzpicture}[node distance=1.2cm, auto, >=latex']
+    \tikzstyle{thread} = [circle, draw, fill=blue!10, text width=4em, text centered]
+    \tikzstyle{buffer} = [rectangle, draw, fill=gray!10, text width=8em, minimum height=2em, rounded corners]
+    \tikzstyle{barrier} = [rectangle, draw, fill=red!10, text width=0.5em, minimum height=2em]
+
+    % Ring Buffer
+    \node [buffer] (ring) {Lock-Free Ring};
+    
+    % Producer
+    \node [thread, left=of ring] (prod) {MD Thread};
+    \node [barrier, left=0.1cm of ring] (seq_p) {};
+    
+    % Consumers
+    \node [barrier, right=0.1cm of ring] (seq_c) {};
+    \node [thread, right=of ring, yshift=1cm] (strat) {Strategy};
+    \node [thread, right=of ring, yshift=-1cm] (log) {Logger};
+
+    % Wiring
+    \path [draw, ->, thick] (prod) -- node[above, scale=0.6] {Pub} (seq_p);
+    \path [draw, ->, thick] (seq_p) -- (ring);
+    \path [draw, ->, thick] (ring) -- (seq_c);
+    \path [draw, ->, thick] (seq_c) -- node[above, scale=0.6] {Claim} (strat);
+    \path [draw, ->, thick] (seq_c) -- (log);
+    
+    % Feedback (Gating)
+    \path [draw, dashed, ->] (strat) to[bend right=45] node[below, scale=0.6] {Gate} (prod);
+
+\end{tikzpicture}
     \caption{Event-Driven Pipeline and Nanosecond-Precision Timing} 
     \label{fig:event_pipeline_timing}
 \end{figure}
@@ -65,7 +157,43 @@ Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig4_fpga_t2t.tex}
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{fpga_mod} = [rectangle, draw, fill=orange!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{fifo} = [rectangle, draw, fill=gray!20, text width=2em, text centered, minimum height=2em]
+    \tikzstyle{axis} = [draw, -latex', line width=2pt]
+
+    % Ingress
+    \node [fpga_mod] (mac_rx) {AXI RX};
+    \node [fifo, right=of mac_rx] (f1) {FIFO};
+    \node [fpga_mod, right=of f1] (parser) {Parser};
+    \node [fpga_mod, right=of parser] (decoder) {Decoder};
+
+    % Core Logic
+    \node [fpga_mod, below=of decoder] (book) {Book};
+    \node [fpga_mod, left=of book] (algo) {Strategy};
+    \node [fpga_mod, left=of algo] (risk) {Risk};
+
+    % Egress
+    \node [fpga_mod, below=of risk] (encoder) {Encoder};
+    \node [fifo, right=of encoder] (f2) {FIFO};
+    \node [fpga_mod, right=of f2] (mac_tx) {AXI TX};
+
+    % Wiring (AXI Stream)
+    \path [axis] (mac_rx) -- (f1);
+    \path [axis] (f1) -- (parser);
+    \path [axis] (parser) -- (decoder);
+    \path [axis] (decoder) -- (book);
+    \path [axis] (book) -- (algo);
+    \path [axis] (algo) -- (risk);
+    \path [axis] (risk) -- (encoder);
+    \path [axis] (encoder) -- (f2);
+    \path [axis] (f2) -- (mac_tx);
+
+    % Clock Domains
+    \node [draw, dashed, fit=(mac_rx) (f1), label=above:Net Clk] {};
+    \node [draw, dashed, fit=(parser) (risk), label=right:Core Clk] {};
+
+\end{tikzpicture}
     \caption{FPGA-Accelerated Tick-to-Trade Pipeline}
     \label{fig:tick_to_trade_pipeline}
 \end{figure}
@@ -74,7 +202,40 @@ Figure ~\ref{fig:tick_to_trade_pipeline} illustrates the most latency-sensitive 
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig5_fpga_internal.tex}
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{reg} = [rectangle, draw, fill=yellow!10, text width=4em, text centered, minimum height=2em]
+    \tikzstyle{logic} = [rectangle, draw, fill=red!10, text width=6em, text centered, rounded corners]
+    \tikzstyle{mem} = [rectangle, draw, fill=blue!10, text width=5em, text centered, minimum height=4em]
+
+    % Inputs
+    \node [reg] (bbo) {BBO};
+    \node [reg, below=of bbo] (pos) {Inv};
+    \node [reg, below=of pos] (vol) {Vol};
+
+    % Feature Extraction
+    \node [logic, right=of pos] (feat) {Features};
+    
+    % Inference Core
+    \node [mem, right=of feat, yshift=1cm] (weights) {ROM};
+    \node [logic, right=of feat] (dsp) {DSP48};
+    \node [logic, right=of dsp] (act) {ReLU};
+
+    % Decision
+    \node [logic, right=of act] (comp) {Cmp};
+    \node [reg, right=of comp] (out) {Signal};
+
+    % Wiring
+    \path [draw, ->] (bbo) -| (feat);
+    \path [draw, ->] (pos) -- (feat);
+    \path [draw, ->] (vol) -| (feat);
+    
+    \path [draw, ->] (feat) -- (dsp);
+    \path [draw, ->] (weights) -- (dsp);
+    \path [draw, ->] (dsp) -- (act);
+    \path [draw, ->] (act) -- (comp);
+    \path [draw, ->] (comp) -- (out);
+
+\end{tikzpicture}
     \caption{Internal Architecture of the FPGA Acceleration Module} 
     \label{fig:fpga_internal_architecture}
 \end{figure}
@@ -87,7 +248,30 @@ Figure ~\ref{fig:fpga_internal_architecture} provides a granular view of the int
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig6_execution.tex}
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{srv} = [rectangle, draw, fill=cyan!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{net} = [cloud, draw, node distance=3cm, minimum height=2em]
+
+    % Strategy
+    \node [srv] (strat) {Strategy};
+    
+    % Execution Stack
+    \node [srv, below=of strat] (sor) {Router};
+    \node [srv, below=of sor] (tcp) {TCP Stack};
+    \node [srv, right=of tcp] (gw) {Gateway};
+    
+    % Feedback
+    \node [srv, right=of strat] (oms) {OMS};
+
+    % Wiring
+    \path [draw, ->] (strat) -- (sor);
+    \path [draw, ->] (sor) -- (tcp);
+    \path [draw, ->] (tcp) -- (gw);
+    
+    \path [draw, dashed, ->] (gw) -- node[right, scale=0.6] {Fill} (oms);
+    \path [draw, dashed, ->] (oms) -- node[above, scale=0.6] {Update} (strat);
+
+\end{tikzpicture}
     \caption{Order Processing and Post-Trade Analytics} 
     \label{fig:order_processing_analytics} 
 \end{figure}
@@ -102,7 +286,37 @@ Figure ~\ref{fig:order_processing_analytics} illustrates the final stages of the
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig7_monitoring.tex}
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{metric} = [circle, draw, fill=orange!20, inner sep=2pt, text width=3em, text centered]
+    \tikzstyle{proc} = [rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners]
+
+    % Components
+    \node [proc] (fpga) {FPGA};
+    \node [proc, below=of fpga] (sw) {Software};
+    
+    % Metrics
+    \node [metric, right=of fpga] (t2t) {Lat};
+    \node [metric, right=of sw] (cpu) {CPU};
+    \node [metric, below=of cpu] (pnl) {PnL};
+
+    % Collector
+    \node [proc, right=of t2t, yshift=-1cm] (col) {Collector};
+    \node [proc, right=of col] (db) {DB};
+    \node [proc, below=of db] (graf) {Grafana};
+
+    % Wiring
+    \path [draw, dashed, ->] (fpga) -- (t2t);
+    \path [draw, dashed, ->] (sw) -- (cpu);
+    \path [draw, dashed, ->] (sw) -- (pnl);
+    
+    \path [draw, ->] (t2t) -- (col);
+    \path [draw, ->] (cpu) -- (col);
+    \path [draw, ->] (pnl) -- (col);
+    
+    \path [draw, ->] (col) -- (db);
+    \path [draw, ->] (db) -- (graf);
+
+\end{tikzpicture}
     \caption{System-Wide Monitoring and Metrics Infrastructure} 
     \label{fig:monitoring_metrics}
 \end{figure}
@@ -120,7 +334,46 @@ This robust monitoring framework ensures that every aspect of the trading system
 
 \begin{figure}[h!]
     \centering
-    \input{diagrams/fig8_unified.tex}
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    % Styles
+    \tikzstyle{domain_style} = [rectangle, draw, dashed, fill=white, minimum width=12cm, minimum height=3cm]
+    \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=5em, text centered, rounded corners]
+    \tikzstyle{mem} = [rectangle, draw, fill=yellow!10, text width=4em, text centered]
+    
+    % Hardware Domain
+    \node [domain_style, label=left:Hardware] (hw) {};
+    \node [block, right=of hw.west, xshift=0.5cm] (rx) {RX};
+    \node [block, right=of rx] (book) {Book};
+    \node [block, right=of book] (rl) {RL};
+    \node [block, right=of rl] (risk) {Risk};
+    \node [block, right=of risk] (tx) {TX};
+    
+    % Software Domain
+    \node [domain_style, below=of hw, label=left:Software, yshift=-0.5cm] (sw) {};
+    \node [block, right=of sw.west, xshift=0.5cm] (train) {Train};
+    \node [mem, right=of train] (shm) {SHM};
+    \node [block, right=of shm] (sim) {Sim};
+    \node [block, right=of sim] (log) {Log};
+    
+    % Interconnect
+    \node [rectangle, fill=gray!20, minimum width=10cm, minimum height=0.5cm, below=of hw, yshift=0.25cm] (pcie) {PCIe};
+    
+    % Flows - Critical Path
+    \path [draw, ->, line width=1.5pt] (rx) -- (book);
+    \path [draw, ->, line width=1.5pt] (book) -- (rl);
+    \path [draw, ->, line width=1.5pt] (rl) -- (risk);
+    \path [draw, ->, line width=1.5pt] (risk) -- (tx);
+    
+    % Flows - Control/Feedback
+    \path [draw, <->, dashed] (rl) -- (pcie);
+    \path [draw, <->, dashed] (train) -- (pcie);
+    
+    % Software Loop
+    \path [draw, ->] (sim) -- (train);
+    \path [draw, ->] (train) -- (shm);
+    \path [draw, ->] (shm) -- (log);
+
+\end{tikzpicture}
     \caption{Unified High-Frequency Trading System Architecture}
     \label{fig:unified_architecture}
 \end{figure}

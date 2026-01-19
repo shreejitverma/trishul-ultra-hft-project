@@ -1,24 +1,24 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    \tikzstyle{block} = [rectangle, draw, fill=yellow!10, text width=8em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    \tikzstyle{srv} = [rectangle, draw, fill=cyan!10, text width=6em, text centered, rounded corners, minimum height=3em]
+    \tikzstyle{net} = [cloud, draw, node distance=3cm, minimum height=2em]
 
-    \node [block] (strat) {Trading Strategy};
-    \node [block, below=of strat] (sor) {Smart Order Router};
-    \node [block, below=of sor] (risk) {Pre-Trade Risk Checks};
-    \node [block, below=of risk] (exchange) {Exchange};
+    % Strategy
+    \node [srv] (strat) {Strategy};
     
-    \node [block, right=of exchange] (log) {Execution Log};
-    \node [block, right=of log] (analytics) {Analytics Engine};
-
-    \path [line] (strat) -- (sor);
-    \path [line] (sor) -- (risk);
-    \path [line] (risk) -- (exchange);
-    
-    \path [line] (exchange) -- (log);
-    \path [line] (log) -- (analytics);
+    % Execution Stack
+    \node [srv, below=of strat] (sor) {Smart Order Router};
+    \node [srv, below=of sor] (tcp) {TCP/IP Stack};
+    \node [srv, right=of tcp] (gw) {Exchange Gateway (FIX)};
     
     % Feedback
-    \path [line, dashed] (analytics) |- (strat);
+    \node [srv, right=of strat] (oms) {OMS};
+
+    % Wiring
+    \path [draw, ->] (strat) -- (sor);
+    \path [draw, ->] (sor) -- (tcp);
+    \path [draw, ->] (tcp) -- (gw);
+    
+    \path [draw, dashed, ->] (gw) -- node[right, scale=0.7] {Exec Rpt} (oms);
+    \path [draw, dashed, ->] (oms) -- node[above, scale=0.7] {Update Inv} (strat);
 
 \end{tikzpicture}
-

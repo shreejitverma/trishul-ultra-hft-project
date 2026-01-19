@@ -1,6 +1,7 @@
 #include "ultra/market-data/book/order_book_l2.hpp"
 #include <iostream>
 #include <cstring> // for memmove
+#include <chrono>
 
 namespace ultra::md {
 
@@ -16,6 +17,13 @@ OrderBookL2::OrderBookL2(SymbolId symbol_id) : symbol_id_(symbol_id) {
 ULTRA_HOT void OrderBookL2::update(const itch::ITCHDecoder::DecodedMessage& msg) noexcept {
     if (ULTRA_UNLIKELY(!msg.valid)) return;
     if (msg.symbol_id != INVALID_SYMBOL && msg.symbol_id != symbol_id_) return;
+
+    // Capture BBO state before update
+    // We only care about the top level [0]
+    const auto prev_bid_price = bids_[0].price;
+    const auto prev_bid_qty = bids_[0].quantity;
+    const auto prev_ask_price = asks_[0].price;
+    const auto prev_ask_qty = asks_[0].quantity;
 
     switch(msg.event_type) {
         case MDEventType::ADD_ORDER:
@@ -41,7 +49,7 @@ ULTRA_HOT void OrderBookL2::update(const itch::ITCHDecoder::DecodedMessage& msg)
                         delete_order(msg.order_id);
                         // Add new
                         add_order(msg.new_order_id, side, msg.price, msg.quantity); // Note: msg.price is new price
-                        return;
+                        goto bbo_check; // Break out of loop and switch
                     }
                     curr = curr->next;
                 }
@@ -49,6 +57,27 @@ ULTRA_HOT void OrderBookL2::update(const itch::ITCHDecoder::DecodedMessage& msg)
             break;
         default:
             break;
+    }
+
+bbo_check:
+    // Check for BBO changes
+    if (ULTRA_LIKELY(listener_)) {
+        if (bids_[0].price != prev_bid_price || bids_[0].quantity != prev_bid_qty ||
+            asks_[0].price != prev_ask_price || asks_[0].quantity != prev_ask_qty) {
+            
+            // Get current timestamp
+            auto now = std::chrono::steady_clock::now().time_since_epoch();
+            uint64_t ts = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+
+            listener_({
+                symbol_id_,
+                bids_[0].price,
+                bids_[0].quantity,
+                asks_[0].price,
+                asks_[0].quantity,
+                ts
+            });
+        }
     }
 }
 

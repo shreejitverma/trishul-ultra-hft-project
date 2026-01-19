@@ -106,7 +106,7 @@ set(ULTRA_EXEC_SOURCES
 
 # Telemetry
 set(ULTRA_TELEMETRY_SOURCES
-    # src/telemetry/latency_tracker.cpp # (Future step)
+    src/telemetry/metrics_collector.cpp
 )
 
 # ============================================================================
@@ -141,9 +141,9 @@ target_link_libraries(ultra_risk PUBLIC ultra_core)
 add_library(ultra_exec STATIC ${ULTRA_EXEC_SOURCES})
 target_link_libraries(ultra_exec PUBLIC ultra_core ultra_risk)
 
-# Telemetry library (FIX: Changed STATIC to INTERFACE and removed sources)
-add_library(ultra_telemetry INTERFACE)
-target_link_libraries(ultra_telemetry INTERFACE ultra_core)
+# Telemetry library
+add_library(ultra_telemetry STATIC ${ULTRA_TELEMETRY_SOURCES})
+target_link_libraries(ultra_telemetry PUBLIC ultra_core)
 
 # Combined library for applications (FIX: Changed STATIC to INTERFACE)
 add_library(ultra_hft INTERFACE)
@@ -216,6 +216,12 @@ add_executable(test_ai_strategy
 )
 target_link_libraries(test_ai_strategy ultra_hft)
 add_test(NAME AIStrategyTest COMMAND test_ai_strategy)
+
+add_executable(test_order_book_diff
+    tests/unit/test_order_book_diff.cpp
+)
+target_link_libraries(test_order_book_diff ultra_hft)
+add_test(NAME OrderBookDiffTest COMMAND test_order_book_diff)
 
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp

@@ -1,21 +1,40 @@
-\begin{tikzpicture}[node distance=1.5cm, auto]
-    \tikzstyle{block} = [rectangle, draw, fill=white, text width=6em, text centered, rounded corners, minimum height=3em]
-    \tikzstyle{line} = [draw, -latex', thick]
+\begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
+    % Styles
+    \tikzstyle{domain_style} = [rectangle, draw, dashed, fill=white, minimum width=12cm, minimum height=3cm]
+    \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=5em, text centered, rounded corners]
+    \tikzstyle{mem} = [rectangle, draw, fill=yellow!10, text width=4em, text centered]
     
-    % Unified Flow
-    \node [block] (market) {Market Data};
-    \node [block, right=of market] (fpga) {FPGA (RL)};
-    \node [block, below=of fpga] (cpu) {CPU (Strategy)};
-    \node [block, right=of fpga] (risk) {Risk Gate};
-    \node [block, right=of risk] (exchange) {Exchange};
-    \node [block, below=of exchange] (monitor) {Monitoring};
-
-    \path [line] (market) -- (fpga);
-    \path [line] (market) |- (cpu);
-    \path [line] (fpga) -- (risk);
-    \path [line] (cpu) -| (risk);
-    \path [line] (risk) -- (exchange);
-    \path [line] (exchange) -- (monitor);
+    % Hardware Domain
+    \node [domain_style, label=left:Hardware (FPGA)] (hw) {};
+    \node [block, right=of hw.west, xshift=0.5cm] (rx) {RX};
+    \node [block, right=of rx] (book) {Book};
+    \node [block, right=of book] (rl) {RL Core};
+    \node [block, right=of rl] (risk) {Risk};
+    \node [block, right=of risk] (tx) {TX};
+    
+    % Software Domain
+    \node [domain_style, below=of hw, label=left:Software (CPU), yshift=-0.5cm] (sw) {};
+    \node [block, right=of sw.west, xshift=0.5cm] (train) {RL Training};
+    \node [mem, right=of train] (shm) {Shared Mem};
+    \node [block, right=of shm] (sim) {Market Sim};
+    \node [block, right=of sim] (log) {Logging};
+    
+    % Interconnect
+    \node [rectangle, fill=gray!20, minimum width=10cm, minimum height=0.5cm, below=of hw, yshift=0.25cm] (pcie) {PCIe / DMA Interconnect};
+    
+    % Flows - Critical Path
+    \path [draw, ->, line width=1.5pt] (rx) -- (book);
+    \path [draw, ->, line width=1.5pt] (book) -- (rl);
+    \path [draw, ->, line width=1.5pt] (rl) -- (risk);
+    \path [draw, ->, line width=1.5pt] (risk) -- (tx);
+    
+    % Flows - Control/Feedback
+    \path [draw, <->, dashed] (rl) -- (pcie);
+    \path [draw, <->, dashed] (train) -- (pcie);
+    
+    % Software Loop
+    \path [draw, ->] (sim) -- (train);
+    \path [draw, ->] (train) -- (shm);
+    \path [draw, ->] (shm) -- (log);
 
 \end{tikzpicture}
-
