@@ -253,6 +253,12 @@ add_executable(test_matching_engine
 target_link_libraries(test_matching_engine ultra_hft)
 add_test(NAME MatchingEngineTest COMMAND test_matching_engine)
 
+add_executable(test_ouch_codec
+    tests/unit/test_ouch_codec.cpp
+)
+target_link_libraries(test_ouch_codec ultra_hft)
+add_test(NAME OUCHCodecTest COMMAND test_ouch_codec)
+
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp
 #     tests/unit/test_order_book.cpp
