@@ -6,56 +6,51 @@ A level-1 auxiliary file: chapter2.aux
 A level-1 auxiliary file: chapter3.aux
 A level-1 auxiliary file: chapter4.aux
 A level-1 auxiliary file: chapter5.aux
+A level-1 auxiliary file: chapter6.aux
+A level-1 auxiliary file: chapter7.aux
 A level-1 auxiliary file: Appendix.aux
-The style file: apalike.bst
+The style file: plainnat.bst
 Database file #1: SV_References.bib
-Warning--I didn't find a database entry for "LitzND"
-Warning--I didn't find a database entry for "NapatechND"
-Warning--I didn't find a database entry for "Markets2025"
-Warning--I didn't find a database entry for "Briere2025"
-Warning--I didn't find a database entry for "Zhang2024"
-Warning--I didn't find a database entry for "Schneider2023"
-Warning--empty year in MDPI_SpecialIssue
 Warning--empty journal in Spooner2020
-You've used 22 entries,
-            1935 wiz_defined-function locations,
-            608 strings with 6901 characters,
-and the built_in function-call counts, 6791 in all, are:
-= -- 675
-> -- 253
-< -- 22
-+ -- 88
-- -- 78
-* -- 480
-:= -- 1257
-add.period$ -- 57
-call.type$ -- 22
-change.case$ -- 137
-chr.to.int$ -- 22
-cite$ -- 24
-duplicate$ -- 280
-empty$ -- 458
-format.name$ -- 114
-if$ -- 1312
-int.to.chr$ -- 1
-int.to.str$ -- 0
+You've used 28 entries,
+            2773 wiz_defined-function locations,
+            772 strings with 10310 characters,
+and the built_in function-call counts, 10128 in all, are:
+= -- 920
+> -- 469
+< -- 28
++ -- 170
+- -- 141
+* -- 615
+:= -- 1586
+add.period$ -- 101
+call.type$ -- 28
+change.case$ -- 117
+chr.to.int$ -- 27
+cite$ -- 57
+duplicate$ -- 489
+empty$ -- 938
+format.name$ -- 185
+if$ -- 2172
+int.to.chr$ -- 2
+int.to.str$ -- 1
 missing$ -- 11
-newline$ -- 104
-num.names$ -- 66
-pop$ -- 108
+newline$ -- 165
+num.names$ -- 112
+pop$ -- 293
 preamble$ -- 1
-purify$ -- 137
+purify$ -- 89
 quote$ -- 0
-skip$ -- 243
+skip$ -- 423
 stack$ -- 0
-substring$ -- 382
-swap$ -- 21
+substring$ -- 164
+swap$ -- 41
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 132
-warning$ -- 2
-while$ -- 50
+type$ -- 308
+warning$ -- 1
+while$ -- 90
 width$ -- 0
-write$ -- 253
-(There were 8 warnings)
+write$ -- 383
+(There was 1 warning)

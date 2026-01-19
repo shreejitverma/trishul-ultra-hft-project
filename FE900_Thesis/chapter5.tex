@@ -14,10 +14,10 @@ The software architecture is designed to minimize non-deterministic behavior int
         \tikzstyle{class} = [rectangle, draw, fill=yellow!10, text width=10em, text centered, rounded corners, minimum height=3em]
         \tikzstyle{line} = [draw, -latex', thick]
         
-        \node [class] (oms) {\textbf{OrderManagementSystem} \\ +send_order() \\ +on_exec_report()};
+        \node [class] (oms) {\textbf{OrderManagementSystem} \\ +send\_order() \\ +on\_exec\_report()};
         \node [class, right=of oms] (sor) {\textbf{SmartOrderRouter} \\ +route()};
-        \node [class, below=of oms] (strat) {\textbf{MarketMaker} \\ +on_market_data() \\ +get_order()};
-        \node [class, left=of strat] (book) {\textbf{OrderBookL2} \\ +update() \\ +best_bid()};
+        \node [class, below=of oms] (strat) {\textbf{MarketMaker} \\ +on\_market\_data() \\ +get\_order()};
+        \node [class, left=of strat] (book) {\textbf{OrderBookL2} \\ +update() \\ +best\_bid()};
 
         \path [line] (strat) -- node [right, scale=0.7] {Quote} (oms);
         \path [line] (oms) -- node [above, scale=0.7] {Route} (sor);

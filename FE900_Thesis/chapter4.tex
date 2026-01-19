@@ -7,7 +7,7 @@ This chapter delineates the methodological approach taken to realize the propose
 The data path is architected as a "pure-in-gates" pipeline, ensuring that every operation on the critical path—from the arrival of a packet to the dispatch of an order—occurs deterministically within the FPGA fabric.
 
 \subsection{Network Ingress: Deterministic Parsing}
-The ingress pipeline minimizes latency by processing network headers in parallel with data arrival. The \texttt{rx_parser} module implements a hierarchical Finite State Machine (FSM) that decouples protocol layers.
+The ingress pipeline minimizes latency by processing network headers in parallel with data arrival. The \texttt{rx\_parser} module implements a hierarchical Finite State Machine (FSM) that decouples protocol layers.
 \begin{itemize}
     \item \textbf{Cycle 0 (Ethernet):} The FSM identifies the Start of Frame (SOF) and consumes the 14-byte Ethernet header.
     \item \textbf{Cycle 1 (IPv4):} Source and Destination IP addresses are extracted. The module validates the IP checksum in real-time.
@@ -16,11 +16,11 @@ The ingress pipeline minimizes latency by processing network headers in parallel
 \end{itemize}
 
 \subsection{Feed Handling: Semantic Extraction}
-The \texttt{itch_decoder} transforms the raw byte stream into semantic market events. It employs a 512-bit shift register to accumulate incoming words. Pattern matching logic scans this buffer for specific message type identifiers (e.g., 'A' for Add Order). Upon detection, combinatorial logic extracts the Price and Quantity fields using fixed bit-offsets, normalizing them into a standardized internal format. This removes the variability of the wire protocol from the core logic.
+The \texttt{itch\_decoder} transforms the raw byte stream into semantic market events. It employs a 512-bit shift register to accumulate incoming words. Pattern matching logic scans this buffer for specific message type identifiers (e.g., 'A' for Add Order). Upon detection, combinatorial logic extracts the Price and Quantity fields using fixed bit-offsets, normalizing them into a standardized internal format. This removes the variability of the wire protocol from the core logic.
 
 \section{Core Innovation: The RL-Inference Module}
 
-The pivotal contribution of this work is the replacement of static decision logic with the \texttt{strat_decide.v} module. This hardware core embeds a trained Reinforcement Learning policy directly into the datapath. To meet the stringent timing requirements of a 300 MHz clock domain, the inference engine is structured as a 4-stage pipeline:
+The pivotal contribution of this work is the replacement of static decision logic with the \texttt{strat\_decide.v} module. This hardware core embeds a trained Reinforcement Learning policy directly into the datapath. To meet the stringent timing requirements of a 300 MHz clock domain, the inference engine is structured as a 4-stage pipeline:
 
 \begin{enumerate}
     \item \textbf{Stage 1: Feature Extraction.} The module computes derived market features in real-time. These include the Bid-Ask Spread, the Order Book Imbalance (OBI), and the Inventory Skew. These calculations utilize dedicated adders and subtractors to produce a feature vector.
@@ -32,7 +32,7 @@ The pivotal contribution of this work is the replacement of static decision logi
 This pipelined architecture achieves a total inference latency of approximately 13.3 nanoseconds, effectively rendering the AI decision-making cost negligible in the context of the total system latency.
 
 \subsection{Safety Systems: Hardware Risk Gating}
-To mitigate the operational risks associated with probabilistic AI models, the outputs of the RL core are gated by a deterministic safety module, \texttt{risk_gate}. This module enforces hard constraints on:
+To mitigate the operational risks associated with probabilistic AI models, the outputs of the RL core are gated by a deterministic safety module, \texttt{risk\_gate}. This module enforces hard constraints on:
 \begin{itemize}
     \item \textbf{Max Notional Value:} Preventing orders that exceed a predefined dollar amount.
     \item \textbf{Message Rate:} Limiting the frequency of orders to prevent runaway loops (e.g., "quote stuffing").
