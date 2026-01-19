@@ -1,0 +1,1118 @@
+\appendix
+\chapter{Appendix}
+
+\section{Setup Guide: Verilog on Apple Silicon}
+
+\begin{enumerate}
+    \item \textbf{Install Apple's Command Line Utilities}
+    
+    The first step is to install Apple's command line developer tools. This will provide you with essential tools like \texttt{git} and a compiler. Open your terminal and run the following command: 
+    
+    \begin{verbatim}
+xcode-select --install
+    \end{verbatim}
+    
+    \item \textbf{Install Homebrew}
+    
+    Homebrew is a package manager for macOS that simplifies the installation of software. To install Homebrew, execute the following command in your terminal:
+    
+    \begin{verbatim}
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    \end{verbatim}
+    
+    \item \textbf{Install Verilator and SystemC}
+    
+    Next, you will install Verilator, a Verilog simulator, and SystemC, a C++ library for system-level modeling. Use Homebrew to install them with this command:
+    
+    \begin{verbatim}
+brew install verilator systemc
+    \end{verbatim}
+    
+    \item \textbf{Install GTKWave}
+    
+    GTKWave is a waveform viewer that you will use to analyze the simulation results. Install it using Homebrew:
+    
+    \begin{verbatim}
+brew install gtkwave
+    \end{verbatim}
+    
+    \item \textbf{Configure Your Environment}
+    
+    After installing all the necessary tools, you need to configure your environment. This involves setting up the required environment variables. You will need to add the following lines to your shell configuration file (e.g., \texttt{\textasciitilde/.zshrc} or \texttt{\textasciitilde/.bash\_profile}):
+    
+    \begin{verbatim}
+export SYSTEMC_HOME=/opt/homebrew/opt/systemc
+export VERILATOR_ROOT=/opt/homebrew/opt/verilator
+export PATH=$VERILATOR_ROOT/bin:$PATH
+    \end{verbatim}
+    
+    After adding these lines, restart your terminal or source the configuration file for the changes to take effect (e.g., \texttt{source \textasciitilde/.zshrc}).
+
+\end{enumerate}
+
+\section{FPGA Code Explanation and Module Overview}
+\label{sec:codeexplain}
+
+This section provides an overview of the Verilog and VHDL code implementations that form the backbone of the proposed Tick-to-Trade (T2T) pipeline. The full code listings are provided in Appendix A.
+
+\subsection{Network Ingress Modules}
+\textbf{Parser (Listing \ref{lst:parser}):} Extracts Ethernet/IP/UDP headers and market data payloads, forming the entry point of the T2T pipeline.  
+\textbf{Multicast Gate (Listing \ref{lst:gate}):} Filters packets based on destination IP and port to ensure only relevant market feeds are processed.
+
+\subsection{Feed Handler Modules}
+\textbf{Frame Extractor (Listing \ref{lst:frame}):} Detects message boundaries and aggregates fixed-width data records.  
+\textbf{Order Book Update (Listing \ref{lst:book}):} Maintains Level-1 order book data (best bid/ask), continuously updating state with each new message.
+
+\subsection{Strategy and Decision Logic}
+\textbf{Strategy Decision Block (Listing \ref{lst:strategy}):} Implements a baseline threshold-based logic for buy/sell signals. This serves as the control baseline for the proposed reinforcement learning (RL) inference core.  
+\textbf{Risk Gate (Listing \ref{lst:risk}):} Applies strict hardware-level checks for notional exposure and message rate limits, ensuring compliance and preventing over-trading.
+
+\subsection{Order Transmission Modules}
+\textbf{Order Encoder (Listing \ref{lst:encoder}):} Converts validated trade signals into exchange-compatible order messages (FIX/OUCH).  
+\textbf{TX Bridge (Listing \ref{lst:tx}):} Manages transmission of encoded orders to the network MAC layer, completing the tick-to-trade path.
+
+\subsection{Control Plane and Integration}
+\textbf{AXI-Lite Register Interface (Listing \ref{lst:axi}):} Provides a software-accessible control plane for updating parameters and reading telemetry metrics via PCIe/DMA.  
+\textbf{Top-Level Integration (Listing \ref{lst:top}):} Connects all modules into a unified low-latency hardware pipeline, ensuring deterministic data flow from ingress to egress.
+
+Each of these components is designed with deterministic latency in mind, and the overall architecture ensures that all decision-making, order handling, and safety checks occur in hardware to meet sub-microsecond trading requirements.
+
+\section{Appendix: Complete Verilog and VHDL Code Listings}
+\label{appendix:code}
+
+This appendix contains the full hardware implementation code for all modules described in Section~\ref{sec:codeexplain}. Each listing corresponds to a functional block within the Tick-to-Trade FPGA pipeline.
+
+%-----------------------------------
+\subsection{1. Network Ingress: Parser}
+This module parses Ethernet/IP/UDP headers to extract the market data payload.
+
+\begin{lstlisting}[language=Verilog, caption={Minimal RX L2/L3/L4 parser for UDP market data}, label={lst:parser}]
+module rx_121314_min #(
+    parameter DATA_W = 64
+) (
+    input wire clk,
+    input wire rst,
+    input wire [DATA_W-1:0] s_axis_tdata,
+    input wire s_axis_tvalid,
+    input wire s_axis_tlast,
+    output wire s_axis_tready,
+    output reg [DATA_W-1:0] m_axis_tdata,
+    output reg m_axis_tvalid,
+    output reg m_axis_tlast,
+    input wire m_axis_tready,
+    output reg [31:0] ip_src,
+    output reg [31:0] ip_dst,
+    output reg [15:0] udp_sport,
+    output reg [15:0] udp_dport
+);
+assign s_axis_tready = m_axis_tready;
+localparam ST_ETH=0, ST_IP=1, ST_UDP=2, ST_PAY=3;
+reg [1:0] state;
+always @(posedge clk) begin
+    if (rst) begin
+        state <= ST_ETH; m_axis_tvalid <= 1'b0; m_axis_tlast <= 1'b0;
+    end else begin
+        m_axis_tvalid <= 1'b0; m_axis_tlast <= 1'b0;
+        if (s_axis_tvalid && s_axis_tready) begin
+            case(state)
+                ST_ETH: state <= ST_IP;
+                ST_IP: begin
+                    ip_src <= s_axis_tdata[31:0];
+                    ip_dst <= s_axis_tdata[63:32];
+                    state <= ST_UDP;
+                end
+                ST_UDP: begin
+                    udp_sport <= s_axis_tdata[15:0];
+                    udp_dport <= s_axis_tdata[31:16];
+                    state <= ST_PAY;
+                end
+                ST_PAY: begin
+                    m_axis_tdata <= s_axis_tdata;
+                    m_axis_tvalid <= 1'b1;
+                    m_axis_tlast <= s_axis_tlast;
+                    if (s_axis_tlast) state <= ST_ETH;
+                end
+            endcase
+        end
+    end
+end
+endmodule
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{2. Network Ingress: Multicast Gate}
+Filters traffic by destination IP and UDP port.
+
+\begin{lstlisting}[language=VHDL, caption={VHDL multicast port/IP gating (simple allowlist)}, label={lst:gate}]
+library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
+entity mcast_gate is
+port(clk:in std_logic; rst:in std_logic; ip_dst:in std_logic_vector(31 downto 0);
+     udp_dport:in std_logic_vector(15 downto 0); in_valid:in std_logic; out_accept:out std_logic);
+end entity;
+
+architecture rtl of mcast_gate is
+constant ALLOW_IP  : std_logic_vector(31 downto 0) := x"E0010101"; -- 224.1.1.1
+constant ALLOW_UDP : std_logic_vector(15 downto 0) := x"1F90";     -- 8080
+begin
+process(clk)
+begin
+    if rising_edge(clk) then
+        if rst='1' then
+            out_accept <= '0';
+        else
+            if in_valid='1' then
+                if ip_dst = ALLOW_IP and udp_dport = ALLOW_UDP then
+                    out_accept <= '1';
+                else
+                    out_accept <= '0';
+                end if;
+            end if;
+        end if;
+    end if;
+end process;
+end architecture;
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{3. Feed Handler: Frame Extractor}
+Detects message boundaries from the UDP payload.
+
+\begin{lstlisting}[language=Verilog, caption={Frame extractor for fixed-width records}, label={lst:frame}]
+module frame_extract #(
+    parameter DATA_W=64, parameter REC_W=256
+) (
+    input wire clk, input wire rst,
+    input wire [DATA_W-1:0] s_tdata, input wire s_tvalid, input wire s_tlast,
+    output wire s_tready, output reg [REC_W-1:0] m_record, output reg m_valid,
+    input wire m_ready
+);
+assign s_tready = m_ready;
+reg [REC_W-1:0] shreg; reg [8:0] byte_cnt; reg in_msg;
+always @(posedge clk) begin
+    if (rst) begin
+        m_valid <= 1'b0; in_msg <= 1'b0; byte_cnt <= 9'd0;
+    end else begin
+        m_valid <= 1'b0;
+        if (s_tvalid && s_tready) begin
+            if (!in_msg) begin
+                in_msg <= 1'b1; byte_cnt <= 9'd0;
+                shreg <= {shreg[REC_W-DATA_W-1:0], s_tdata};
+            end else begin
+                shreg <= {shreg[REC_W-DATA_W-1:0], s_tdata};
+                byte_cnt <= byte_cnt + (DATA_W/8);
+            end
+            if (s_tlast) begin
+                m_record <= shreg; m_valid <= 1'b1; in_msg <= 1'b0;
+            end
+        end
+    end
+end
+endmodule
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{4. Feed Handler: Order Book Update}
+Updates Level-1 (BBO) order book state.
+
+\begin{lstlisting}[language=VHDL, caption={Two-level book update}, label={lst:book}]
+library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
+entity book2 is
+port(clk:in std_logic; rst:in std_logic; rec_in:in std_logic_vector(255 downto 0);
+     valid:in std_logic; bid_px0:out unsigned(31 downto 0);
+     bid_sz0:out unsigned(31 downto 0); ask_px0:out unsigned(31 downto 0);
+     ask_sz0:out unsigned(31 downto 0));
+end entity;
+architecture rtl of book2 is
+signal bpx0, bsz0, apx0, asz0: unsigned(31 downto 0);
+begin
+process(clk)
+begin
+    if rising_edge(clk) then
+        if rst='1' then bpx0 <= (others=>'0'); bsz0 <= (others=>'0');
+            apx0 <= (others=>'0'); asz0 <= (others=>'0');
+        else
+            if valid='1' then
+                bpx0 <= unsigned(rec_in(31 downto 0));
+                bsz0 <= unsigned(rec_in(63 downto 32));
+                apx0 <= unsigned(rec_in(95 downto 64));
+                asz0 <= unsigned(rec_in(127 downto 96));
+            end if;
+        end if;
+    end if;
+end process;
+bid_px0 <= bpx0; bid_sz0 <= bsz0; ask_px0 <= apx0; ask_sz0 <= asz0;
+end architecture;
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{5. Strategy Logic: Decision Block}
+Static threshold-based strategy.
+
+\begin{lstlisting}[language=Verilog, caption={Threshold-based strategy decision block}, label={lst:strategy}]
+module strat_decide #(
+    parameter W=32
+) (
+    input wire clk, input wire rst,
+    input wire [W-1:0] bid_px0, input wire [W-1:0] ask_px0,
+    input wire [W-1:0] fair_px,
+    input wire [W-1:0] thresh_buy, input wire [W-1:0] thresh_sell,
+    input wire in_valid,
+    output reg buy, output reg sell, output reg out_valid
+);
+wire buy_cond = (ask_px0 + thresh_buy < fair_px);
+wire sell_cond = (bid_px0 - thresh_sell > fair_px);
+always @(posedge clk) begin
+    if (rst) begin buy <= 1'b0; sell <= 1'b0; out_valid <= 1'b0; end
+    else begin
+        out_valid <= 1'b0;
+        if (in_valid) begin
+            buy <= buy_cond; sell <= sell_cond; out_valid <= 1'b1;
+        end
+    end
+end
+endmodule
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{6. Hardware Pre-Trade Risk Gate}
+Applies notional and message-rate limits.
+
+\begin{lstlisting}[language=Verilog, caption={Risk gate with notional and message-rate limits}, label={lst:risk}]
+module risk_gate #(
+    parameter W=32
+) (
+    input wire clk, input wire rst, input wire enable,
+    input wire [63:0] notional_limit, input wire [31:0] msg_rate_limit,
+    input wire in_valid, input wire in_side, input wire [W-1:0] in_px, input wire [W-1:0] in_qty,
+    output reg pass, output reg out_valid
+);
+reg [63:0] notional_accum;
+reg [31:0] msg_count;
+wire [63:0] notional_in = in_px * in_qty;
+always @(posedge clk) begin
+    if (rst) begin
+        notional_accum <= 64'd0; msg_count <= 32'd0;
+        pass <= 1'b0; out_valid <= 1'b0;
+    end else begin
+        out_valid <= 1'b0;
+        if (in_valid) begin
+            pass <= enable && (notional_accum+notional_in <= notional_limit) && (msg_count+1 <= msg_rate_limit);
+            if (enable) begin
+                notional_accum <= notional_accum + notional_in;
+                msg_count <= msg_count + 1;
+            end
+            out_valid <= 1'b1;
+        end
+    end
+end
+endmodule
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{7. Order Encoder}
+Formats a "pass" signal into FIX/OUCH messages.
+
+\begin{lstlisting}[language=Verilog, caption={Minimal order encoder}, label={lst:encoder}]
+module order_encode #(
+    parameter DW=64
+) (
+    input wire clk, input wire rst, input wire in_valid, input wire in_buy,
+    input wire [31:0] in_px, input wire [31:0] in_qty,
+    output reg [DW-1:0] m_tdata, output reg m_tvalid, output reg m_tlast,
+    input wire m_tready
+);
+localparam ST_IDLE=0, ST_SEND=1; reg state;
+always @(posedge clk) begin
+    if (rst) begin state<=ST_IDLE; m_tvalid<=1'b0; m_tlast<=1'b0; end
+    else begin
+        m_tvalid<=1'b0; m_tlast<=1'b0;
+        case(state)
+            ST_IDLE: begin
+                if (in_valid && m_tready) begin
+                    m_tdata <= {in_buy,31'd0,in_px,in_qty};
+                    m_tvalid <= 1'b1; m_tlast <= 1'b1;
+                    state <= ST_IDLE;
+                end
+            end
+            default: state <= ST_IDLE;
+        endcase
+    end
+end
+endmodule
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{8. Order Egress: TX Bridge}
+Connects order encoder output to MAC TX.
+
+\begin{lstlisting}[language=VHDL, caption={VHDL bridge to MAC TX stream}, label={lst:tx}]
+library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
+entity tx_bridge is
+port(clk:in std_logic; rst:in std_logic;
+     enc_data:in std_logic_vector(63 downto 0);
+     enc_valid:in std_logic; enc_last:in std_logic;
+     mac_tready:in std_logic;
+     mac_tdata:out std_logic_vector(63 downto 0);
+     mac_tvalid:out std_logic; mac_tlast:out std_logic);
+end entity;
+
+architecture rtl of tx_bridge is
+begin
+process(clk)
+begin
+    if rising_edge(clk) then
+        if rst='1' then
+            mac_tdata<=(others=>'0'); mac_tvalid<='0'; mac_tlast<='0';
+        else
+            mac_tvalid<='0'; mac_tlast<='0';
+            if enc_valid='1' and mac_tready='1' then
+                mac_tdata <= enc_data; mac_tvalid <= '1'; mac_tlast <= enc_last;
+            end if;
+        end if;
+    end if;
+end process;
+end architecture;
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{9. Control Plane: AXI-Lite Registers}
+Non-critical path for CPU-based updates.
+
+\begin{lstlisting}[language=Verilog, caption={AXI-Lite register file for controls/telemetry}, label={lst:axi}]
+module axil_regs #(
+    parameter AW=8
+) (
+    input wire clk, input wire rst,
+    input wire [AW-1:0] s_awaddr, input wire s_awvalid, output wire s_awready,
+    input wire [31:0] s_wdata, input wire [3:0] s_wstrb, input wire s_wvalid, output wire s_wready,
+    output reg [1:0] s_bresp, output reg s_bvalid, input wire s_bready,
+    input wire [AW-1:0] s_araddr, input wire s_arvalid, output wire s_arready,
+    output reg [31:0] s_rdata, output reg [1:0] s_rresp, output reg s_rvalid,
+    input wire s_rready,
+    output reg enable, output reg [63:0] notional_limit
+);
+assign s_awready=1'b1; assign s_wready=1'b1; assign s_arready=1'b1;
+always @(posedge clk) begin
+    if (rst) begin
+        enable <= 1'b0; notional_limit <= 64'd0; s_bvalid<=1'b0; s_rvalid<=1'b0;
+    end else begin
+        if (s_awvalid && s_wvalid) begin
+            case(s_awaddr[7:0])
+                8'h00: enable <= s_wdata[0];
+                8'h08: notional_limit[31:0] <= s_wdata;
+                8'h0C: notional_limit[63:32] <= s_wdata;
+            endcase
+            s_bresp <= 2'b00; s_bvalid <= 1'b1;
+        end else if (s_bvalid && s_bready) s_bvalid <= 1'b0;
+        
+        if (s_arvalid) begin
+            case(s_araddr[7:0])
+                8'h00: s_rdata <= {31'd0,enable};
+                8'h08: s_rdata <= notional_limit[31:0];
+                8'h0C: s_rdata <= notional_limit[63:32];
+                default: s_rdata <= 32'hDEAD_BEEF;
+            endcase
+            s_rresp <= 2'b00; s_rvalid <= 1'b1;
+        end else if (s_rvalid && s_rready) s_rvalid <= 1'b0;
+    end
+end
+endmodule
+\end{lstlisting}
+
+%-----------------------------------
+\subsection{10. Top-Level Integration}
+Instantiates and connects all modules into the full T2T pipeline.
+
+\begin{lstlisting}[language=Verilog, caption={Top-level glue for T2T pipeline}, label={lst:top}]
+module t2t_top (
+    input wire clk_rx, clk_core, clk_tx, rst,
+    input wire [63:0] rx_tdata, input wire rx_tvalid, input wire rx_tlast, 
+    output wire rx_tready,
+    output wire [63:0] tx_tdata, output wire tx_tvalid, output wire tx_tlast, 
+    input wire tx_tready
+);
+// RX parsing
+wire [63:0] udp_data; wire udp_valid, udp_last; wire udp_ready;
+wire [31:0] ip_src, ip_dst; wire [15:0] sport, dport;
+rx_121314_min RX(.clk(clk_rx), .rst(rst),
+    .s_axis_tdata(rx_tdata), .s_axis_tvalid(rx_tvalid),
+    .s_axis_tlast(rx_tlast), .s_axis_tready(rx_tready),
+    .m_axis_tdata(udp_data), .m_axis_tvalid(udp_valid),
+    .m_axis_tlast(udp_last), .m_axis_tready(udp_ready),
+    .ip_src(ip_src), .ip_dst(ip_dst),
+    .udp_sport(sport), .udp_dport(dport)
+);
+// Feed framing
+wire [255:0] rec; wire rec_valid; wire rec_ready=1'b1;
+frame_extract FE(.clk(clk_core), .rst(rst),
+    .s_tdata(udp_data), .s_tvalid(udp_valid), .s_tlast(udp_last),
+    .s_tready(udp_ready),
+    .m_record(rec), .m_valid(rec_valid), .m_ready(rec_ready));
+// Book build
+wire [31:0] bid_px0, bid_sz0, ask_px0, ask_sz0;
+book2 BK(.clk(clk_core), .rst(rst), .rec_in(rec), .valid(rec_valid),
+    .bid_px0(bid_px0), .bid_sz0(bid_sz0), .ask_px0(ask_px0), .ask_sz0(ask_sz0));
+// Strategy
+wire buy, sell, dec_valid;
+strat_decide SD(.clk(clk_core), .rst(rst),
+    .bid_px0(bid_px0), .ask_px0(ask_px0),
+    .fair_px(32'd100000), .thresh_buy(32'd50), .thresh_sell(32'd50),
+    .in_valid(rec_valid), .buy(buy), .sell(sell), .out_valid(dec_valid));
+// Risk
+wire pass, risk_valid;
+risk_gate RG(.clk(clk_core), .rst(rst), .enable(1'b1),
+    .notional_limit(64'd1000000), .msg_rate_limit(32'd100000),
+    .in_valid(dec_valid), .in_side(buy),
+    .in_px(ask_px0), .in_qty(32'd100), .pass(pass), .out_valid(risk_valid));
+// Encoder
+wire [63:0] enc_data; wire enc_valid, enc_last; wire enc_ready;
+order_encode OE(.clk(clk_core), .rst(rst),
+    .in_valid(risk_valid && pass), .in_buy(buy),
+    .in_px(buy ? ask_px0 : bid_px0), .in_qty(32'd100),
+    .m_tdata(enc_data), .m_tvalid(enc_valid), .m_tlast(enc_last),
+    .m_tready(enc_ready));
+// TX bridge
+tx_bridge TX(.clk(clk_tx), .rst(rst),
+    .enc_data(enc_data), .enc_valid(enc_valid), .enc_last(enc_last),
+    .mac_tready(tx_tready), .mac_tdata(tx_tdata),
+    .mac_tvalid(tx_tvalid), .mac_tlast(tx_tlast));
+endmodule
+\end{lstlisting}
+
+% -----------------------------------------------------
+%APPENDIX B: C++ ULL SOFTWARE CODE LISTINGS
+% -----------------------------------------------------
+
+\section{Appendix: C++ ULL Software Baseline Code Listings}
+\label{appendix:code_cpp}
+This appendix contains the C++ implementation code for the ultra-low-latency software baseline system described in Section 5.
+
+\begin{lstlisting}[style=cppstyle, caption={RDTSC High-Precision Clock (`rdtsc\_clock.cpp`)}, label={lst:rdtsc}]
+#include "ultra/core/time/rdtsc_clock.hpp"
+#include <thread>
+#include <chrono>
+#include <algorithm> // For std::sort
+#include <atomic>
+
+namespace ultra {
+
+// Define aux for __rdtscp
+thread_local uint32_t aux;
+
+std::atomic<double> RDTSCClock::tsc_to_ns_factor_(0.0);
+std::atomic<uint64_t> RDTSCClock::tsc_offset_(0);
+std::atomic<Timestamp> RDTSCClock::ns_offset_(0);
+
+void RDTSCClock::calibrate() noexcept {
+    // Calibrate TSC to nanoseconds over 100ms
+    constexpr int SAMPLES = 10;
+    double factors[SAMPLES];
+    
+    for (int i = 0; i < SAMPLES; ++i) {
+        auto sys_start = std::chrono::high_resolution_clock::now();
+        uint64_t tsc_start = __rdtscp(&aux);
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        
+        auto sys_end = std::chrono::high_resolution_clock::now();
+        uint64_t tsc_end = __rdtscp(&aux);
+        
+        auto elapsed_ns = std::chrono::duration_cast< 
+            std::chrono::nanoseconds>(sys_end - sys_start).count();
+        
+        factors[i] = static_cast<double>(elapsed_ns) / (tsc_end - tsc_start);
+    }
+    
+    // Use median to avoid outliers
+    std::sort(factors, factors + SAMPLES);
+    double median_factor = factors[SAMPLES / 2];
+    
+    tsc_to_ns_factor_.store(median_factor, std::memory_order_release);
+    
+    // Calibrate offset
+    uint64_t tsc_now = __rdtscp(&aux);
+    auto sys_now = std::chrono::system_clock::now();
+    auto sys_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        sys_now.time_since_epoch()).count();
+    
+    tsc_offset_.store(tsc_now, std::memory_order_release);
+    ns_offset_.store(sys_ns, std::memory_order_release);
+}
+
+Timestamp RDTSCClock::system_now() noexcept {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+        now.time_since_epoch()).count();
+}
+
+} // namespace ultra
+\end{lstlisting}
+
+
+\begin{lstlisting}[style=cppstyle, caption={Huge Page Allocator Implementation}, label={lst:hugepage}]
+#include <sys/mman.h>
+#include <stdexcept>
+#include <cstddef>
+
+// Define missing constants for non-Linux or older headers
+#ifndef MAP_HUGETLB
+#define MAP_HUGETLB 0x40000
+#endif
+#ifndef HUGE_PAGE_SIZE
+#define HUGE_PAGE_SIZE (2 * 1024 * 1024) // 2MB
+#endif
+
+template<typename T>
+class HugePageAllocator {
+public:
+    using value_type = T;
+    using size_type = std::size_t;
+
+    T* allocate(size_type n) {
+        const size_t bytes = n * sizeof(T);
+        const size_t aligned = (bytes + HUGE_PAGE_SIZE - 1) &
+                               ~(HUGE_PAGE_SIZE - 1);
+        
+        void* ptr = mmap(nullptr, aligned,
+                         PROT_READ | PROT_WRITE,
+                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, 
+                         -1, 0);
+        
+        if (ptr == MAP_FAILED) {
+            // Fallback to standard mmap if huge pages fail
+            ptr = mmap(nullptr, aligned,
+                       PROT_READ | PROT_WRITE,
+                       MAP_PRIVATE | MAP_ANONYMOUS,
+                       -1, 0);
+            if (ptr == MAP_FAILED) {
+                throw std::bad_alloc();
+            }
+        }
+        
+        // Lock pages in memory
+        mlock(ptr, aligned);
+        
+        return static_cast<T*>(ptr);
+    }
+    
+    void deallocate(T* ptr, size_type n) noexcept {
+        const size_t bytes = n * sizeof(T);
+        const size_t aligned = (bytes + HUGE_PAGE_SIZE - 1) &
+                               ~(HUGE_PAGE_SIZE - 1);
+        munlock(ptr, aligned);
+        munmap(ptr, aligned);
+    }
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Zero-Copy Ethernet/IP/UDP Parser}, label={lst:cpp_parser}]
+#include <cstdint>
+#include <cstddef>
+
+// Define fast, inline byte swap functions (compiler-specific)
+#define ntohs_fast(x) __builtin_bswap16(x)
+#define ntohl_fast(x) __builtin_bswap32(x)
+#define ULTRA_UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+// Headers assumed to be defined elsewhere (EthernetHeader, etc.)
+
+namespace ultra {
+namespace net {
+
+class EthernetParser {
+public:
+    struct ParsedPacket {
+        Timestamp timestamp_ns;
+        const uint8_t* payload;
+        size_t payload_len;
+        uint32_t src_ip, dst_ip;
+        uint16_t src_port, dst_port;
+        bool valid;
+    };
+
+    ParsedPacket parse(
+        const uint8_t* packet, 
+        size_t packet_len,
+        Timestamp timestamp_ns
+    ) noexcept {
+        ParsedPacket result{};
+        result.timestamp_ns = timestamp_ns;
+        result.valid = false;
+        
+        // Minimum packet size check (Eth + IP + UDP)
+        if (ULTRA_UNLIKELY(packet_len < 42)) {
+            return result;
+        }
+        
+        // Parse Ethernet header (14 bytes)
+        const auto* eth = reinterpret_cast<const EthernetHeader*>(packet);
+        const uint16_t ethertype = ntohs_fast(eth->ethertype);
+        
+        // Only process IPv4 (0x0800)
+        if (ULTRA_UNLIKELY(ethertype != 0x0800)) {
+            return result;
+        }
+        
+        // Parse IP header (20+ bytes)
+        const auto* ip = reinterpret_cast<const IPv4Header*>(packet + 14);
+        const uint8_t ip_hdr_len = (ip->version_ihl & 0x0F) * 4;
+        
+        // Only process UDP (protocol 17)
+        if (ULTRA_UNLIKELY(ip->protocol != 17)) {
+            return result;
+        }
+        
+        result.src_ip = ntohl_fast(ip->src_ip);
+        result.dst_ip = ntohl_fast(ip->dst_ip);
+        
+        // Parse UDP header (8 bytes)
+        const auto* udp = reinterpret_cast<const UDPHeader*>(
+            packet + 14 + ip_hdr_len);
+        
+        result.src_port = ntohs_fast(udp->src_port);
+        result.dst_port = ntohs_fast(udp->dst_port);
+        
+        // Extract payload
+        const size_t header_len = 14 + ip_hdr_len + 8;
+        result.payload = packet + header_len;
+        result.payload_len = packet_len - header_len;
+        result.valid = true;
+        
+        return result;
+    }
+};
+} // namespace net
+} // namespace ultra
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Optimized ITCH 5.0 Decoder Snippet}, label={lst:itch}]
+#include <unordered_map>
+#include <string>
+
+// Header definitions for ITCH messages (AddOrder, etc.)
+// ...
+
+class ITCHDecoder {
+private:
+    std::unordered_map<std::string, uint32_t> symbol_map_;
+    uint32_t SYMBOL_HASH_SIZE = 4096; // Must be power of 2
+    uint32_t INVALID_SYMBOL = 0xFFFFFFFF;
+
+    uint32_t lookup_symbol(const char* stock) {
+        // Implementation uses pre-computed hash
+        return 0; // Placeholder
+    }
+    
+    Price decode_price(uint32_t price) { return price; } // Placeholder
+
+public:
+    enum class MDEventType { ADD_ORDER, TRADE, ... };
+    struct DecodedMessage {
+        bool valid;
+        MDEventType event_type;
+        uint64_t timestamp;
+        uint64_t order_id;
+        Side side;
+        Quantity quantity;
+        Price price;
+        uint32_t symbol_id;
+    };
+
+    DecodedMessage decode(const uint8_t* data, size_t len) noexcept {
+        DecodedMessage msg{};
+        msg.valid = false;
+        
+        if (ULTRA_UNLIKELY(len < 3)) return msg;
+        
+        const auto* hdr = reinterpret_cast<const MessageHeader*>(data);
+        const MessageType type = static_cast<MessageType>(hdr->type);
+        
+        switch (type) {
+        case MessageType::ADD_ORDER: {
+            const auto* add = reinterpret_cast<const AddOrder*>(data);
+            
+            msg.event_type = MDEventType::ADD_ORDER;
+            msg.timestamp = __builtin_bswap64(add->timestamp);
+            msg.order_id = __builtin_bswap64(add->order_ref_number);
+            msg.side = (add->buy_sell_indicator == 'B') ? Side::BUY : Side::SELL;
+            msg.quantity = __builtin_bswap32(add->shares);
+            msg.price = decode_price(__builtin_bswap32(add->price));
+            msg.symbol_id = lookup_symbol(add->stock);
+            msg.valid = (msg.symbol_id != INVALID_SYMBOL);
+            break;
+        }
+        
+        case MessageType::ORDER_EXECUTED: {
+            const auto* exec = reinterpret_cast<const OrderExecuted*>(data);
+            
+            msg.event_type = MDEventType::TRADE;
+            msg.timestamp = __builtin_bswap64(exec->timestamp);
+            msg.order_id = __builtin_bswap64(exec->order_ref_number);
+            msg.quantity = __builtin_bswap32(exec->executed_shares);
+            msg.valid = true;
+            break;
+        }
+        // ... other message types
+        default:
+            break;
+        }
+        return msg;
+    }
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Array-Based L2 Order Book Snippet}, label={lst:l2book}]
+#include <array>
+#include <cstddef>
+
+constexpr size_t MAX_LEVELS = 10; // L2 depth
+
+struct PriceLevel {
+    Price price;
+    Quantity quantity;
+    uint32_t order_count;
+};
+
+class OrderBookL2 {
+private:
+    std::array<PriceLevel, MAX_LEVELS> bids_{};
+    std::array<PriceLevel, MAX_LEVELS> asks_{};
+    size_t bid_depth_ = 0;
+    size_t ask_depth_ = 0;
+    Timestamp last_update_ = 0;
+    uint64_t update_count_ = 0;
+    
+public:
+    void add_order(Side side, Price price, Quantity qty) noexcept {
+        auto& levels = (side == Side::BUY) ? bids_ : asks_;
+        auto& depth = (side == Side::BUY) ? bid_depth_ : ask_depth_;
+        
+        // Find insertion point (binary search)
+        size_t pos = 0;
+        if (side == Side::BUY) {
+            // Bids: descending order
+            while (pos < depth && levels[pos].price > price) ++pos;
+        } else {
+            // Asks: ascending order
+            while (pos < depth && levels[pos].price < price) ++pos;
+        }
+        
+        // Price level exists?
+        if (pos < depth && levels[pos].price == price) {
+            // Update existing level
+            levels[pos].quantity += qty;
+            levels[pos].order_count++;
+        } else {
+            // Insert new level
+            if (depth < MAX_LEVELS) {
+                // Shift levels down
+                for (size_t i = depth; i > pos; --i) {
+                    levels[i] = levels[i-1];
+                }
+                // Insert
+                levels[pos] = {price, qty, 1};
+                depth++;
+            }
+        }
+        // last_update_ = RDTSCClock::now(); // Assumes RDTSCClock
+        update_count_++;
+    }
+    // ... other book management functions (remove_order, etc.)
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Neural Network Inference (SIMD/AVX2)}, label={lst:nn}]
+#include <immintrin.h> // For AVX2
+#include <cmath>
+#include <algorithm> // For std::clamp
+
+constexpr size_t INPUT_SIZE = 10;
+constexpr size_t HIDDEN1_SIZE = 64;
+constexpr size_t HIDDEN2_SIZE = 32;
+constexpr size_t OUTPUT_SIZE = 3;
+
+class NeuralNetInference {
+private:
+    // Aligned memory for weights and intermediate results
+    // ... struct Weights weights_;
+    float hidden1_[HIDDEN1_SIZE];
+    float hidden2_[HIDDEN2_SIZE];
+
+    void matmul(
+        const float* matrix, 
+        const float* vec, 
+        const float* bias,
+        float* output, 
+        size_t rows, 
+        size_t cols
+    ) noexcept {
+        for (size_t i = 0; i < rows; ++i) {
+            __m256 sum = _mm256_setzero_ps();
+            size_t j = 0;
+            // AVX2 for 8-wide SIMD
+            for (; j + 8 <= cols; j += 8) {
+                __m256 m = _mm256_loadu_ps(&matrix[i * cols + j]);
+                __m256 v = _mm256_loadu_ps(&vec[j]);
+                sum = _mm256_fmadd_ps(m, v, sum); // Fused Multiply-Add
+            }
+            
+            // Horizontal sum
+            __m128 sum_high = _mm256_extractf128_ps(sum, 1);
+            __m128 sum_low = _mm256_castps256_ps128(sum);
+            sum_low = _mm_add_ps(sum_low, sum_high);
+            sum_low = _mm_hadd_ps(sum_low, sum_low);
+            sum_low = _mm_hadd_ps(sum_low, sum_low);
+            float result = _mm_cvtss_f32(sum_low);
+            
+            // Scalar remainder
+            for (; j < cols; ++j) {
+                result += matrix[i * cols + j] * vec[j];
+            }
+            output[i] = result + bias[i];
+        }
+    }
+    
+    void relu(float* vec, size_t size) {
+        // Can also be SIMD optimized
+        for(size_t i=0; i<size; ++i) vec[i] = std::max(0.0f, vec[i]);
+    }
+
+public:
+    struct InferenceOutput {
+        float bid_adjustment;
+        float ask_adjustment;
+        float size_multiplier;
+    };
+
+    InferenceOutput infer(const float* input) noexcept {
+        // Layer 1: Input -> Hidden1
+        // matmul(weights_.w1[0], input, weights_.b1, hidden1_, 
+        //        HIDDEN1_SIZE, INPUT_SIZE);
+        // relu(hidden1_, HIDDEN1_SIZE);
+        
+        // Layer 2: Hidden1 -> Hidden2
+        // matmul(weights_.w2[0], hidden1_, weights_.b2, hidden2_, 
+        //        HIDDEN2_SIZE, HIDDEN1_SIZE);
+        // relu(hidden2_, HIDDEN2_SIZE);
+        
+        // Layer 3: Hidden2 -> Output
+        float output[OUTPUT_SIZE];
+        // matmul(weights_.w3[0], hidden2_, weights_.b3, output, 
+        //        OUTPUT_SIZE, HIDDEN2_SIZE);
+        
+        // Dummy output for structure
+        output[0] = 0.01; output[1] = 0.01; output[2] = 1.0;
+
+        return InferenceOutput{
+            .bid_adjustment = output[0],
+            .ask_adjustment = output[1],
+            .size_multiplier = std::clamp(output[2], 0.5f, 2.0f)
+        };
+    }
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Feature Extractor Snippet}, label={lst:features}]
+#include <array>
+
+// Assumes OrderBookL2 class exists
+class FeatureExtractor {
+public:
+    static constexpr size_t FEATURE_COUNT = 10;
+    using Features = std::array<float, FEATURE_COUNT>;
+    
+    enum FeatureIndices {
+        BID_PRICE_0, BID_SIZE_0, ASK_PRICE_0, ASK_SIZE_0,
+        MID_PRICE, SPREAD, IMBALANCE, VOLATILITY,
+        INVENTORY, PNL
+    };
+    
+    float normalize_price(Price p) { return static_cast<float>(p) / 100000.0f; }
+    float normalize_quantity(Quantity q) { return static_cast<float>(q) / 1000.0f; }
+    float calculate_volatility() { return 0.1f; } // Placeholder
+
+    Features extract(
+        const OrderBookL2& book,
+        Quantity current_inventory,
+        Price current_pnl
+    ) noexcept {
+        Features features;
+        
+        // const auto& bid = book.best_bid(); // Assumes methods
+        // const auto& ask = book.best_ask();
+        
+        // features.data[BID_PRICE_0] = normalize_price(bid.price);
+        // ... 
+        
+        // Placeholder data
+        features[IMBALANCE] = 0.5f; 
+        features[VOLATILITY] = calculate_volatility();
+        features[INVENTORY] = static_cast<float>(current_inventory) / 10000.0f;
+        features[PNL] = static_cast<float>(current_pnl) / 1000000.0f;
+        
+        return features;
+    }
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Branchless Pre-Trade Risk Checker}, label={lst:risk_cpp}]
+#include <cmath>
+#include <atomic>
+
+struct OrderRequest {
+    Price price;
+    Quantity quantity;
+};
+
+struct RiskLimits {
+    Quantity max_order_size;
+    Quantity max_position;
+    double max_notional;
+};
+
+enum class RiskResult : uint8_t {
+    PASS = 0,
+    FAIL_MAX_SIZE = 1 << 0,
+    FAIL_MAX_POS = 1 << 1,
+    FAIL_NOTIONAL = 1 << 2,
+    FAIL_RATE_LIMIT = 1 << 3,
+    FAIL_KILL_SWITCH = 1 << 4
+};
+
+class PreTradeChecker {
+private:
+    RiskLimits limits_;
+    std::atomic<bool> kill_switch_{false};
+    
+    bool check_rate_limit() { return true; } // Placeholder
+
+public:
+    PreTradeChecker(const RiskLimits& limits) : limits_(limits) {}
+    
+    RiskResult check(
+        const OrderRequest& order, 
+        Quantity current_position
+    ) noexcept {
+        // All checks must be branchless or highly predictable
+        uint8_t result = 0;
+        
+        result |= (order.quantity > limits_.max_order_size) << 0;
+        result |= (std::abs(current_position + order.quantity) > 
+                   limits_.max_position) << 1;
+        result |= ((order.price * order.quantity) > 
+                   limits_.max_notional) << 2;
+        result |= (!check_rate_limit()) << 3;
+        result |= (kill_switch_.load(std::memory_order_acquire)) << 4;
+        
+        return static_cast<RiskResult>(result);
+    }
+    
+    void trigger_kill_switch() { kill_switch_.store(true); }
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Tick-to-Trade Latency Benchmark Example}, label={lst:benchmark}]
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+
+// Assume all classes from above are included
+// ...
+
+// Placeholder for LatencyTracker
+class LatencyTracker {
+public:
+    void record(double ns) { latencies_.push_back(ns); }
+    struct Stats { double min_ns, avg_ns, p50_ns, p95_ns, p99_ns, max_ns; };
+    Stats get_statistics() {
+        std::sort(latencies_.begin(), latencies_.end());
+        Stats s;
+        s.min_ns = latencies_.front();
+        s.max_ns = latencies_.back();
+        s.avg_ns = std::accumulate(latencies_.begin(), latencies_.end(), 0.0) / 
+                   latencies_.size();
+        s.p50_ns = latencies_[latencies_.size() * 0.50];
+        s.p95_ns = latencies_[latencies_.size() * 0.95];
+        s.p99_ns = latencies_[latencies_.size() * 0.99];
+        return s;
+    }
+private:
+    std::vector<double> latencies_;
+};
+
+
+void benchmark_tick_to_trade() {
+    // Setup
+    auto decoder = std::make_unique<ITCHDecoder>();
+    auto book = std::make_unique<OrderBookL2>();
+    auto extractor = std::make_unique<FeatureExtractor>();
+    auto rl_model = std::make_unique<NeuralNetInference>();
+    RiskLimits limits{100, 1000, 5000000.0};
+    auto risk = std::make_unique<PreTradeChecker>(limits);
+    
+    LatencyTracker tracker;
+    
+    // Dummy packet data
+    uint8_t packet[256];
+    size_t len = 128;
+    
+    // Warm up
+    for (int i = 0; i < 1000; ++i) {
+         auto msg = decoder->decode(packet, len);
+    }
+    
+    // Measure
+    constexpr int ITERATIONS = 1000000;
+    for (int i = 0; i < ITERATIONS; ++i) {
+        // uint64_t start = RDTSCClock::rdtsc();
+        
+        // Full pipeline
+        auto msg = decoder->decode(packet, len);
+        // book->on_event(msg); // Assumes on_event exists
+        auto features = extractor->extract(*book, 0, 0);
+        auto decision = rl_model->infer(features.data());
+        OrderRequest order{10000, 100};
+        auto risk_result = risk->check(order, 0);
+        
+        // uint64_t end = RDTSCClock::rdtsc();
+        // tracker.record(RDTSCClock::rdtsc_to_ns(end - start));
+    }
+    
+    // auto stats = tracker.get_statistics();
+    // std::cout << "Tick-to-Trade Latency:\n";
+    // std::cout << "  P99: " << stats.p99_ns << " ns\n";
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=bashstyle, caption={System Performance Tuning (Linux)}, label={lst:tuning}]
+# 1. CPU Isolation (example: isolate cores 2,3,4,5)
+# Edit /etc/default/grub
+# GRUB_CMDLINE_LINUX_DEFAULT="isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5"
+# sudo update-grub
+# sudo reboot
+
+# 2. Network Tuning (example: eth0)
+# Increase ring buffer
+sudo ethtool -G eth0 rx 4096 tx 4096
+
+# Enable hardware timestamping
+sudo ethtool -T eth0
+
+# Disable interrupt coalescing (critical for low latency)
+sudo ethtool -C eth0 rx-usecs 0 tx-usecs 0
+
+# Set RSS queues
+sudo ethtool -X eth0 equal 4
+
+# 3. Memory Configuration
+# Enable 1024 huge pages (2MB each = 2GB)
+echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+
+# Disable NUMA balancing
+echo 0 | sudo tee /proc/sys/kernel/numa_balancing
+
+# Allow locking memory
+# Add to /etc/security/limits.conf
+# * - memlock unlimited
+\end{lstlisting}

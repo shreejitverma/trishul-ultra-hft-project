@@ -1,0 +1,202 @@
+% 
+%       All the information in the fields below should be changed for the thesis/dissertation 
+%       The fields here are used with fake information only as a guide.  You may add or delete
+%       fields as needed.  The Advisory Committee varies in size, so add members as needed. 
+%
+%       updated copyright page - May 2010 
+%
+\newcommand{\thesistitle}{AI-Integrated FPGA for Market Making in Volatile Environments}
+\newcommand{\thesisyear}{2026}
+\newcommand{\thesisname}{Shreejit Verma}
+\newcommand{\thesischairadvisor}{Dragos Bozdog}    % this name prints on the title page as chairman and the abstract page as advisor
+\newcommand{\committeenameA}{Ionut Florescu}  % 
+%\newcommand{\committeenameB}{Emmanuel Hatzakis}      %add or delete names as necessary.
+%\newcommand{\committeenameC}{Bob Johnston}
+%\newcommand{\committeenameD}{Suzanne Smitty}
+\newcommand{\thesisdepartment}{Financial Engineering}
+\newcommand{\thesisdate}{November 2025}
+\newcommand{\thesistype}{thesis}
+\newcommand{\thesisdegree}{MASTER OF SCIENCE - FINANCIAL ENGINEERING}
+\newcommand{\thesissigline}[1]{%
+  \leftline{\hbox to 2.5in{}\hrulefill}
+  \endgraf
+  \vspace*{-18pt}
+  \leftline{\hbox to 2.5in{}{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%     Thesis / Dissertation title page
+%
+%     This template is set up initially for dissertations.  The title page will have
+%     some modifications to it for a master thesis.  Please read the comments 
+%     below
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\thesistitlepage}{
+    \thispagestyle{empty}
+    \begin{center}
+    \begin{spacing}{2}
+      \MakeUppercase {\thesistitle} \\
+       by \\
+       \thesisname \\
+       A \MakeUppercase {\thesistype} \\[3mm]
+     \end{spacing}
+     \begin{spacing}{1}
+       Submitted to the Faculty of the Stevens Institute of Technology \\ 
+      in partial fulfillment of the requirements for the degree of \\[3mm]
+      \end{spacing}
+      \begin{spacing}{2}
+    \MakeUppercase {\thesisdegree}   %% removed \\       
+    \vspace{20mm}
+     \end{spacing}
+%       \strut \vfill
+  \mbox{ }  \hfill \begin{minipage}{80mm}
+                       \begin{spacing}{1}
+                   
+
+\noindent \rule{3.1in}{0.1mm}
+\thesisname, Candidate\\[3mm]
+\underline{ADVISORY COMMITTEE}\\[3mm]
+\noindent \rule{3.1in}{0.1mm}\\[-1.3mm]
+% for master thesis, change Chairman to Advisor
+{\thesischairadvisor}, Chairperson  \hfill{Date}\\[2mm]
+{\noindent \rule{3.1in}{0.1mm}}\\[-1.3mm]
+% for master thesis, add Reader after committeenameA
+%
+{\committeenameA}, Reader        \hfill{Date}\\[2mm]
+%
+%  for master thesis, remove / comment out the following six lines
+%{\noindent \rule{3.1in}{0.1mm}}\\[-1.3mm]
+%{\committeenameB}, Reader  \hfill{Date}\\[2mm]
+%{\noindent \rule{3.1in}{0.1mm}}\\[-1.3mm]
+%{\committeenameC}  \hfill{Date}\\[2mm]
+%{\noindent \rule{3.1in}{0.1mm}}\\[-1.3mm]
+%{\committeenameD}  \hfill{Date}     % removed \\
+                 	\end{spacing}
+				   \end{minipage}
+%     \vfill \strut				6/2009 -   changed to the following two lines
+    \vspace{35mm}
+	\strut
+  \begin{spacing}{1}
+   \MakeUppercase {Stevens Institute of Technology}\\
+   Castle Point on Hudson \\
+  Hoboken, NJ 07030 \\
+   \thesisyear
+  \end{spacing}
+    \end{center}
+%   \vfill \strut
+    \newpage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%     Copyright Page 
+%
+%     The copyright page is optional
+%  
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\thesiscopyrightpage}{
+     \thispagestyle{empty}      %no page number on the copyright page
+    \strut \vfill
+    \vspace*{7.2in}
+   \begin{center}
+        \textcopyright  \thesisyear, \thesisname . All rights reserved.
+    \end{center}
+    \vfill \strut
+    \newpage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%     Abstract
+%
+%     The abstract must be 350 words or less
+%  
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\newcommand{\thesisabstract}{
+\begin{center}
+\MakeUppercase{\thesistitle}
+ 
+\vspace{12pt}
+ABSTRACT
+\vspace{12pt}
+\end{center}
+This Master's thesis investigates the integration of artificial intelligence (AI) with field-programmable gate arrays (FPGAs) to develop adaptive market-making strategies tailored for volatile financial environments in a high-frequency trading (HFT) environment. Traditional market-making models often struggle with latency and adaptability during periods of high volatility, leading to increased inventory risk and suboptimal performance. We propose a hybrid system that embeds reinforcement learning (RL) algorithms for dynamic bid-ask spread optimization directly onto FPGA hardware, enabling sub-microsecond inference times while responding to real-time market signals such as order flow imbalances and volatility clusters. Using historical tick-level data from major exchanges and simulated volatile scenarios, the framework is evaluated through metrics including Sharpe ratio, adverse selection mitigation, and latency benchmarks. The expectation is to achieve significant improvements in profitability and risk management compared to software-based RL or standalone FPGA implementations. This work will contribute to a scalable AI-FPGA architecture, highlighting practical deployment challenges, and offering insights for future quant engineering in dynamic markets, with potential applications in NYC's competitive HFT landscape.
+
+\vspace{1em}
+\textbf{Keywords:} High-Frequency Trading, FPGA Acceleration, Reinforcement Learning, Market Making, Low Latency
+
+\vspace{12pt}
+
+
+
+%\begin{flushright}
+%Barbara Arnett
+%\end{flushright}
+
+%\\[6mm]
+% make the author name flush left
+\begin{flushleft}
+Author: \thesisname \\
+Advisor: \thesischairadvisor \\
+Date: \thesisdate \\
+Program: \thesisdepartment \\
+Degree: \thesisdegree \\
+\end{flushleft}
+    \newpage}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%     Dedication Page
+%
+%     This section is optional
+%  
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\thesisdedicationpage}{
+
+    \strut \vspace{2in}
+   \begin{center}
+       To be completed
+    \end{center}
+    \vfill \strut
+    \newpage}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%     Acknowledgments
+%
+%     This section is optional
+%  
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\thesisacknowledgments}{
+
+\noindent \textbf{Acknowledgments} \\[6mm]
+To be completed
+
+    \vfill \strut
+    \newpage}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%     Vita
+%
+%     This section is for dissertations only.  Not required for masters thesis
+%  
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+

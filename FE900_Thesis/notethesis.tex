@@ -1,0 +1,46 @@
+\chapter{Note and some points}
+
+Here are some notes and materials to change in the main chapters.
+
+Change the structure of Ch. 2: especially the racking score part: 
+1. The Construction and Evaluation of Analyst Scoring Models for Ranking: 
+*This step covers:
+How to derive the Reliability Index Ci from forecast variance.
+Standardization of Ci to allow fair comparison across time.
+Aggregation of scores into a Composite Score.
+Then, experimentation with enhanced versions of scoring:
+Composite score per company
+Global average score across companies
+Rewarded score that factors in timeliness (interval days)
+Weighted score that combines accuracy, timing, and reliability.*
+Title: 
+\noindent Evaluation of Analyst Scoring Methods  or Performance Evaluation of Reliability-Based and Weighted Scoring Models
+ *** This part used data for 5 companies: (The data for this research is sourced from the IBES database, with focus on the analyst earnings estimates for EPS (Earnings Per Share) for AMZN, AAPL, MSFT, IBM, and ORCL, and the Bloomberg database for actual EPS of the companies. The dataset includes analyst codes, forecast dates, actual earnings, and forecasted earnings across each year’s four quarters, spanning the years from 2000 to 2023. We merge the IBES and Bloomberg databases for each company and then we proceed with the analysis of the combined data.)
+ 2. 
+
+\begin{itemize}
+    \item 
+    \item 
+    \item
+\end{itemize}
+
+ For Later: However, to manage computational complexity and improve model calibration, we adopted a strategic subset selection approach. Initially, we selected a subset of 30 companies—primarily consisting of major U.S. firms from the technology, banking, and other key sectors—to perform preliminary testing and refinement of our methodology. This allowed us to develop and validate the foundational components of our ranking model on a manageable and representative sample. In the next phase, we expanded the subset to 100 companies, this time using more systematic selection criteria based on industry representation, market capitalization diversity, and volatility levels. This intermediate subset enabled deeper testing and optimization of model parameters across a broader range of market conditions.
+
+  \item 
+  \\Missing data for certain years is handled by filling in missing values with zeros. This step ensures that analysts who did not have predictions for certain years are not penalized, and the standardization process can proceed without errors.
+  \item Pivot the Data 
+  \\ The data is pivoted so that each row represents an individual analyst, and each column represents a year. The values in the matrix are the standardized Ci values. This structure makes it easier to calculate the composite score over time.
+
+   \begin{equation}
+   \label{eq:def_CS}
+    Composite Score = \frac{\sum_{i=1}^{n} Z{i} }{n}
+   \end{equation}
+
+   \subsection {}
+
+  
+
+   These EPS estimation results are based on forecasts made 90 days prior to the actual earnings release. While the performance is reasonably strong, there remains room for improvement in accuracy and stability. As illustrated in the following plots for selected tickers, the estimation quality varies across firms and time periods.
+
+
+   

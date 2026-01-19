@@ -1,0 +1,423 @@
+%% stevensThesis.tex
+%% Copyright 2008 B. E. Arnett
+%
+% ----->  Latex is not required for writing your dissertation or thesis.  Most theses are done in Word or WYSIWYG editors
+%------>  Latex is frequently used in math, physics and computer science for ease in producing formulas.  
+%------>  This template is provided for Latex users to help in the formatting of the thesis or dissertation.  
+%
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Barbara Arnett.
+%
+% This work consists of the files stevensthesis_num.tex 
+% and the derived file pgnumchapter_nums.sty.
+
+%
+% This is the template for dissertation / thesis submission for the
+% Stevens Institute of Technology.  
+%
+% There are fields in titlepg.sty that must be updated with your
+% own information.  The file pgnumchapter.sty must be included but  
+% does not need to be updated, unless you want to change the 
+% layout of your pages and chapters.  
+%
+% Both dissertations and master thesis can created from this program.  
+% These fields should be changed:
+%    {thesistype} should be either "dissertation" or "thesis" 
+%    {thesisdegree} should be either "doctor of philosophy" for dissertation or
+%            "Master of Engineering - Electrical Engineering" 
+%            "Master of Science - Computer Science"   or the correct degree designation.
+%
+%
+% Please see the formatting instructions on the library website at
+%        http://www.stevens.edu/library/services/thesis.html
+%
+% copyright 2007, Barbara Arnett, web services librarian, stevens institute of technology
+% any comments or corrections can be sent to barnett@stevens.edu
+%
+% update January 2009 - updated font size to 12p and added subsections to show up in the 
+% table of contents 
+%
+% update April 2009 - added optional dedication page, code courtesy of James Weatherall
+%
+% update May 2009 - added code to include the abstract, acknowledgment, dedication and vita
+% 						to the table of contents.  As per Doris Oliver, everything except the title page,
+% 						copyright page, and table of contents should appear in the table of contents.
+%
+% update July 2009 - added code to pgnumchapter_nums.sty to have top of table of contents, figures & symbols
+% start 1.5 inches from the top.
+%
+% update February 2010 - added \bibliography and BibTex file 
+%
+% update May 2010 - added line to ensure Table of Contents prints in normalsize font when run in Linux
+%                            also changed copyright text to say C YYYY, name. All rights reserved.
+% update February 2011 - removed line \renewcommand{\thesubsection}{\thesection\arabic{subsection}}
+%            to allow toc subsections to print normally (see bea02152011)
+
+\documentclass[12pt]{report}
+\usepackage{fancyhdr}
+\usepackage{lmodern, pgfplotstable, booktabs}
+\usepackage{graphicx, amssymb, changepage}
+\usepackage{float}
+\usepackage{rotating}
+\usepackage{setspace}
+\usepackage{pgnumchapter_nums}
+\usepackage{titlepg}
+\usepackage{appendix}
+\usepackage{tikz}
+
+\usetikzlibrary{matrix,shapes,arrows,positioning,chains,shadows,arrows.meta,backgrounds,fit,scopes}
+%\usetikzlibrary{shadows,arrows.meta,backgrounds,fit,scopes}
+
+% Define block styles
+\tikzset{
+decision/.style={
+    diamond,
+    draw,
+    text width=4em,
+    text badly centered,
+    inner sep=0pt
+},
+block/.style={
+    rectangle,
+    draw,
+    text width=15em,
+    text centered,
+    rounded corners
+},
+cloud/.style={
+    draw,
+    ellipse,
+    minimum height=2em
+},
+descr/.style={
+    fill=white,
+    inner sep=2.5pt
+},
+connector/.style={
+    -latex,
+    font=\scriptsize
+},
+rectangle connector/.style={
+    connector,
+    to path={(\tikztostart) -- ++(#1,0pt) \tikztonodes |- (\tikztotarget) },
+    pos=0.5
+},
+rectangle connector/.default=-2cm,
+straight connector/.style={
+    connector,
+    to path=--(\tikztotarget) \tikztonodes
+},
+back group1/.style={
+    fill=brown!20,rounded corners, draw=black!50, dashed, inner xsep=15pt, inner ysep=10pt
+},
+back group2/.style={
+    fill=yellow!20,rounded corners, draw=black!50, dashed, inner xsep=15pt, inner ysep=10pt
+},
+  materia/.style={draw, fill=blue!20, text width=6.0em, text centered, minimum height=1.5em,drop shadow},
+  etape/.style={materia, text width=15em, minimum width=10em, minimum height=3em, rounded corners, drop shadow},
+  linepart/.style={draw, thick, color=black!50, -LaTeX, dashed},
+  line/.style={draw, thick, color=black!50, -LaTeX},
+  ur/.style={draw, text centered, minimum height=0.01em}
+}
+\newcommand{\transreceptor}[3]{%
+  \path [linepart] (#1.east) -- node [above] {\scriptsize #2} (#3);}
+
+\usepackage{tocloft} % the tocloft package lets you redefine the Table of Contents (ToC)
+	\renewcommand\cftchappresnum{Chapter } % prefix "Chapter " to chapter number in ToC
+	\renewcommand{\cftdot}{}
+    \cftsetindents{chapter}{0em}{6em}      % set amount of indenting
+    \cftsetindents{section}{2em}{6em}
+    \cftsetindents{subsection}{2em}{6em}
+    \cftsetindents{subsubsection}{4em}{6em}
+
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage[linesnumbered,boxed, algochapter]{algorithm2e}
+\usepackage{mathtools}
+\usepackage{csvsimple}
+\usepackage{adjustbox}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% --- LISTINGS (CODE) SETUP ---
+\definecolor{codeblue}{rgb}{0,0,1}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{0.9,0.5,0}
+\definecolor{codered}{rgb}{0.8,0.1,0.1} 
+\definecolor{codegreen}{rgb}{0,0.6,0} 
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    frame=single,
+    keywordstyle=\color{codeblue},
+    commentstyle=\color{codegray},
+    stringstyle=\color{codeorange},
+    tabsize=2,
+    showstringspaces=false,
+    alsoletter={_} 
+}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{white},    
+    commentstyle=\color{codegray}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{codered},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,          
+    breaklines=true,                  
+    captionpos=b,                     
+    keepspaces=true,                  
+    numbers=left,                     
+    numbersep=5pt,                    
+    numberstyle=\tiny\color{codegray},
+    showspaces=false,                 
+    showstringspaces=false,
+    showtabs=false,                   
+    tabsize=2,
+    frame=tb,
+    morekeywords={self, True, False, None}
+}
+
+\lstdefinestyle{cppstyle}{
+    language=C++,
+    backgroundcolor=\color{white},    
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{codered},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,          
+    breaklines=true,                  
+    captionpos=b,                     
+    keepspaces=true,                  
+    numbers=left,                     
+    numbersep=5pt,                    
+    numberstyle=\tiny\color{codegray},
+    showspaces=false,                 
+    showstringspaces=false,
+    showtabs=false,                   
+    tabsize=2,
+    frame=tb,
+    morekeywords={self, True, False, None, noexcept, uint64_t, uint32_t, uint16_t, uint8_t, size_t, constexpr, atomic, namespace, std, mmap, PROT_READ, PROT_WRITE, MAP_PRIVATE, MAP_ANONYMOUS, MAP_HUGETLB, MAP_FAILED, mlock, __rdtscp, __m256, _mm256_setzero_ps, _mm256_loadu_ps, _mm256_fmadd_ps, _mm256_extractf128_ps, _mm256_castps256_ps128, _mm_add_ps, _mm_hadd_ps, _mm_cvtss_f32, ULTRA_UNLIKELY, ntohs_fast, ntohl_fast, __builtin_bswap64, __builtin_bswap32}
+}
+
+\lstdefinestyle{bashstyle}{
+    language=Bash,
+    backgroundcolor=\color{white},    
+    commentstyle=\color{codegray}\itshape,
+    keywordstyle=\color{codeblue},
+    stringstyle=\color{codered},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    numberstyle=\tiny\color{codegray},
+    frame=tb
+}
+
+\newcommand{\highlight}[1]{%
+  \colorbox{green!10}{$\displaystyle#1$}}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+
+% Override plain settings for ToC page
+\fancypagestyle{plain}{
+	\fancyhf{} % clear all header and footer fields
+	\fancyhead[R]{\thepage} % Page number in top right
+	\renewcommand{\headrulewidth}{0pt}
+	\renewcommand{\footrulewidth}{0pt}
+}
+
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the 
+% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+%
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+% Add horizontal lines on csvsimple \csvautotabular function
+\makeatletter
+% \csvset{
+%   my hack/.style={
+%     late after line=\\\hline,
+%     late after last line=\csv@tablefoot\end{tabular}\csv@posttable,
+%     after head=\csv@pretable\begin{tabular}{|*{\csv@columncount}{c|}}\csv@tablehead,
+%     late after last line=\csv@tablefoot\end{tabular}\csv@posttable},
+% }
+\makeatother
+
+% Folder with images
+\graphicspath{ {Images/} }
+
+
+% Low res x High res
+ \DeclareGraphicsExtensions{.pdf, .png}
+%              this is for the list of symbols page, if desired
+\def\listofsymbols{\input{symbols} \clearpage}
+\def\addsymbol #1: #2#3{$#1$\> \parbox{5in}{#2 \dotfill  \pageref{#3}}\\}
+\def\newnot#1{\label{#1}}
+%
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyhead[R]{\thepage} % Page number in top right
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\voffset}{0em}
+\setlength{\headheight}{15pt}
+
+\doublespacing
+
+\renewcommand{\contentsname}{\normalsize{Table of Contents}}
+\renewcommand{\listfigurename}{\normalsize{List of Figures}}
+\renewcommand{\listtablename}{\normalsize{List of Tables}}
+\renewcommand{\bibname}{\normalsize{Bibliography}}
+\renewcommand{\indexname}{\normalsize{Index}}
+
+
+% bea02152011 - commented out the following line.  This line reformats the table of contents subsection appearance,
+% to look like n.nn (chapterNumber dot sectionNumber subsectionNumber)instead of
+% n.n.n  (chapterNumber dot sectionNumber dot subsectionNumber ) 
+%   \renewcommand{\thesubsection}{\thesection\arabic{subsection}}
+
+
+% you may need to change the pdfpagewidth to pagewidth
+% and pdfpageheight to pageheigh if you're not using MikTek
+
+% if not using pdflatex to produce output, you may need to change to pagewidth and pageheight variables.
+%\pagewidth 8.5in
+%\pageheight 11in 
+\pdfpagewidth 8.5in
+\pdfpageheight 11in 
+%
+\usepackage[left=1.5in,right=1in,top=1.5in,bottom=1in]{geometry}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you only want to create output that includes only certain chapters
+%
+%\includeonly{chapter2}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%  This begins the frontmatter of the document, everything preceding the body 
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\pagenumbering{roman}
+
+\thesistitlepage
+
+\thesiscopyrightpage              
+	
+\addcontentsline{toc}{chapter}{Abstract}          		 				% added May2009
+\thesisabstract
+
+\addcontentsline{toc}{chapter}{Acknowledgments}   				% added May2009
+\thesisacknowledgments
+
+\makeatletter \renewcommand{\@dotsep}{10000} \makeatother
+
+%\changepage{textheight}{textwidth}%									 added May2009 to raise up the TOC on page and fix margin
+%  {evensidemargin}{oddsidemargin}%
+%  {columnsep}{topmargin}%
+%  {headheight}{headsep}%
+%  {footskip}
+
+
+\renewcommand{\contentsname}{\normalsize{Table of Contents}}      % added this line May2010 to fix issue with 
+\tableofcontents                                                 %toc appearing in too large a font size when used in Linux
+                     
+\newpage		% added June 2009
+
+\addcontentsline{toc}{chapter}{List of Tables}     					% added May2009
+\listoftables
+
+\newpage     % added June2009
+\addcontentsline{toc}{chapter}{List of Figures}						% added May2009
+\listoffigures
+
+%%%
+%    This produces the list of symbols.  the dots have been left in to show how it would look with dots.
+%    The formatting of the table of contents, list of symbols and list of figures is up to the author, 
+%    but they should all match and be similar in format.    The list of symbols is optional, it can be un-commented
+%    out if desired.
+%
+%   \newpage
+%   \chapter*\normalsize\textbf{List of Symbols\hfill}   %/hfill
+%   \addcontentsline{toc}{chapter}{List of Symbols}
+%   \listofsymbols
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%  This begins the body of the document
+%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newpage
+\pagenumbering{arabic}
+
+% chapters can be included in separate files, or in this main program.  To create a chapter in a separate file,
+% put the text in a .tex file, including the \chapter title.  See the examples for chapter1 and chapter2 below
+\include{SV_Introduction}
+\include{chapter2}
+\include{chapter3}
+\include{chapter4}
+\include{chapter5}
+
+\include{Appendix}
+% The bibliography is below.  The formatting for the bibliography is not provided here.  Formatting for references can be in 
+% the writing style set by the advisor.  Common styles are APA, MLA and Chicago style. 
+%
+%    if you prefer not to use BibTex, include a line with   \chapter{References} for your bibliography and do not use
+%  \bibliography{myrefs} below
+%
+% 
+%
+% added this to use bibTex for the bibliography.  If doing bibliography manually, delete
+
+%\newpage
+%\addcontentsline{toc}{chapter}{Appendix A \hspace{0.17in} This is the title for this appendix}
+%\noindent \textbf{Appendix A : This is the title for this appendix}    %% removed \\
+%\vspace{12pt}
+
+
+\bibliographystyle{plainnat}
+%\bibliographystyle{plain}
+\newpage
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{SV_References}
+
+\end{document}

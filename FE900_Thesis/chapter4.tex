@@ -1,0 +1,49 @@
+\chapter{FPGA System Architecture and Methodology}
+
+To validate the hypothesis that an AI-integrated FPGA can outperform traditional market-making strategies, we propose a hybrid system architecture. This architecture is founded upon a deterministic, pure FPGA tick-to-trade (T2T) pipeline by replacing its static decision logic with a hardware-accelerated reinforcement learning (RL) inference core.
+
+This design is composed of two primary components, both specified in the underlying technical architecture:
+\begin{itemize}
+    \item \textbf{The Ultra-Low-Latency (ULL) Data Path:} A "pure-in-gates" FPGA pipeline responsible for all operations on the critical path, from network ingress to order egress.
+    \item \textbf{The Hybrid Control Plane:} A software-based system (running on a host CPU) responsible for training the RL model and updating its parameters on the FPGA via a non-critical control path.
+\end{itemize}
+
+\section{The Ultra-Low-Latency T2T Data Path (FPGA)}
+
+Our data path foundation is a deterministic, end-to-end T2T pipeline architecture. This design ensures our system operates with deterministic, sub-microsecond latency, eliminating OS jitter and software overheads.
+
+The pipeline stages, implemented in Verilog and VHDL (see Appendix A), are as follows:
+
+\begin{enumerate}
+    \item \textbf{Network Ingress \& Parsing:} The system ingests 10/25GbE market data feeds directly from the PHY. A minimal L2/L3/L4 parser (Listing 1) strips the Ethernet/IP/UDP headers. A multicast gate (Listing 2) filters for relevant data streams.
+    \item \textbf{Feed Handling \& Book Building:} A feed-specific extractor (Listing 3) parses ITCH/FIX messages. These messages drive a "normalized book builder" (Listing 4) that maintains the state of the order book (BBO, etc.) in on-chip memory.
+    \item \textbf{Strategy \& Risk (The Core Integration):} This is the heart of our thesis, detailed in Section 4.2.
+    \item \textbf{Order Encoding \& Egress:} Valid trade decisions are passed to a FIX/OUCH encoder (Listing 7) which packetizes the order. The packet is sent to the MAC TX path (Listing 8) for wire egress.
+\end{enumerate}
+
+This baseline hardware architecture provides a total wire-to-wire latency budget of approximately \textbf{360–790 nanoseconds}, creating the deterministic, high-performance foundation required for our AI integration.
+
+\section{Core Integration: The RL-Inference Module}
+
+The key innovation of this thesis is the replacement of the static \texttt{strat\_decide} module (Listing 5). The baseline implementation uses a simple, threshold-based logic (e.g., \texttt{(ask\_px0 + thresh\_buy < fair\_px)}). This is precisely the static model our literature review identifies as suboptimal in volatile markets.
+
+We will replace this module with a custom-designed \textbf{RL-Inference Core}.
+
+\begin{itemize}
+    \item \textbf{Inputs:} This new module will receive the same high-speed signals from the book builder (e.g., \texttt{bid\_px0}, \texttt{ask\_px0}) but will also be fed additional real-time state features, such as order flow imbalances, volatility metrics (calculated in hardware), and the current inventory state (held in registers).
+    \item \textbf{Logic:} The core itself will be a pipelined neural network (or other RL-based model) implemented directly in Verilog/VHDL. It will be architected to meet the aggressive latency budget of the module it replaces (approx. 30–100 ns).
+    \item \textbf{Outputs:} The module will output a \texttt{buy} or \texttt{sell} decision and the dynamically calculated \texttt{in\_px} and \texttt{in\_qty}. These outputs feed directly into the \textit{existing} \texttt{risk\_gate} module (Listing 6).
+\end{itemize}
+
+This design retains the safety of the original pipeline. The AI's decisions are still subject to deterministic, hardware-based pre-trade risk checks (e.g., \texttt{notional\_limit}, \texttt{msg\_rate\_limit}). The AI can \textit{propose} a trade, but the hard-wired risk module provides the final "pass" or "kill" signal, mitigating adverse selection from a misbehaving model.
+
+\section{The Hybrid Control Plane for Model Management}
+
+A key challenge in AI-FPGA integration is model training and updating. The FPGA is for \textit{inference}, not \textit{training}. We will leverage the optional PCIe/DMA control plane for this purpose. This "slower" sideband channel is critical and will be used for:
+
+\begin{enumerate}
+    \item \textbf{Model Deployment:} The CPU-based software stack will be responsible for training/retraining the RL model. After training, the optimized model weights (parameters) will be written into the FPGA's registers (e.g., BRAMs, LUTs) via the AXI-Lite register file (Listing 9). This allows for dynamic model updates without recompiling the FPGA.
+    \item \textbf{Telemetry and Monitoring:} We will use this same PCIe path to export high-resolution timestamps, counters, and latency histograms, which is essential for our evaluation.
+\end{enumerate}
+
+This hybrid approach ensures the critical trading path remains purely in hardware and is \textit{never} back-pressured by the software/control plane. The implementation of this high-performance software plane is detailed in Section 5.
