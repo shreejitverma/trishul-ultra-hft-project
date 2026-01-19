@@ -17,8 +17,8 @@ An FPGA-based matching engine is not a monolithic entity but rather a system of 
         \node [block, below=of mac_rx] (parser) {RX Parser (L2/L3/L4)};
         \node [block, below=of parser] (decoder) {ITCH Decoder};
         \node [block, right=of decoder] (book) {Order Book (L1/BBO)};
-        \node [block, right=of book] (strategy) {Strategy Engine};
-        \node [block, above=of strategy] (encoder) {Order Encoder};
+        \node [block, right=of book] (strategy) {RL Core};
+        \node [block, above=of strategy] (encoder) {OUCH Encoder};
         \node [block, above=of encoder] (bridge) {TX Bridge};
         \node [block, left=of bridge] (mac_tx) {MAC TX (AXI-S)};
 
@@ -28,11 +28,8 @@ An FPGA-based matching engine is not a monolithic entity but rather a system of 
         \path [line] (decoder) -- node[midway, below, scale=0.7] {Tick (Price/Qty)} (book);
         \path [line] (book) -- node[midway, below, scale=0.7] {BBO State} (strategy);
         \path [line] (strategy) -- node[midway, right, scale=0.7] {Buy/Sell Signal} (encoder);
-        \path [line] (encoder) -- node[midway, left, scale=0.7] {Binary Order} (bridge);
+        \path [line] (encoder) -- node[midway, left, scale=0.7] {OUCH Packet} (bridge);
         \path [line] (bridge) -- (mac_tx);
-        
-        % Feedback loop (conceptual)
-        %\path [line, dashed] (mac_tx) -- (mac_rx);
     \end{tikzpicture}
 \end{figure}
 
@@ -51,16 +48,23 @@ The system is composed of several core modules, each designed to perform a speci
 
     \item[Order Book (\texttt{book2})]
     \textit{Responsibility:} Maintains the "Best Bid and Offer" (BBO) state in hardware registers. \\
-    \textit{Implementation:} Optimized for single-cycle updates. It compares incoming ticks against the current BBO registers (`bid\_px0`, `ask\_px0`) and updates them immediately if the new price is more competitive.
+    \textit{Implementation:} Optimized for single-cycle updates. It compares incoming ticks against the current BBO registers and updates them immediately if the new price is more competitive.
 
-    \item[Strategy Engine (\texttt{strat\_decide})]
-    \textit{Responsibility:} The decision-making core. It compares the current market BBO against pre-calculated "fair value" thresholds. \\
-    \textit{Logic:} Combinatorial logic checks conditions like `(Ask < FairPrice - Threshold)` to trigger a BUY signal instantly when the market moves favorably.
+    \item[RL Strategy Core (\texttt{strat\_decide})]
+    \textit{Responsibility:} The decision-making brain. It replaces static threshold logic with a neural network inference engine. \\
+    \textit{Logic:} It computes features (Spread, Imbalance) and uses DSP slices to evaluate a policy function, outputting a trading signal based on learned weights.
 
-    \item[Order Encoder (\texttt{order\_encode})]
-    \textit{Responsibility:} Formats the internal BUY/SELL signal into a valid exchange-compliant binary message (e.g., OUCH). \\
-    \textit{Logic:} A simple state machine that constructs a multi-word packet with the required headers, Price, and Quantity fields, ready for transmission.
+    \item[OUCH Encoder (\texttt{order\_encode})]
+    \textit{Responsibility:} Formats the internal BUY/SELL signal into a valid NASDAQ OUCH 5.0 binary message. \\
+    \textit{Logic:} A state machine constructs a multi-word packet with the required headers, Client Order ID, Price, and Quantity fields, strictly adhering to the Little Endian protocol specification.
 
     \item[TX Bridge (\texttt{tx\_bridge})]
     \textit{Responsibility:} Adapts the encoder's output to the MAC layer's timing requirements, ensuring valid AXI-Stream handshaking before the packet is placed on the wire.
 \end{description}
+
+\section{Software Support Architecture}
+While the critical path is in FPGA, the system relies on a robust C++ software architecture for simulation and control (detailed in Chapter 5).
+\begin{itemize}
+    \item \textbf{Async Logger:} A non-blocking logging infrastructure ensures that debugging and compliance logs do not back-pressure the trading threads.
+    \item \textbf{Matching Engine Simulator:} A software-based exchange simulator allows for the verification of the OUCH encoder and strategy logic before hardware deployment.
+\end{itemize}
