@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <cstdint>
+#include "../strategy/strategy.hpp" // For StrategyOrder
 
 namespace ultra::fpga {
 
@@ -31,6 +32,12 @@ public:
         // Status (Read-Only from FPGA)
         int64_t  fpga_inventory;    // 0x30: Current inventory on FPGA
         uint64_t execution_count;   // 0x38: Total fills
+        
+        // Order Injection (CPU -> FPGA)
+        uint64_t order_inject_trigger; // Write 1 to trigger
+        uint64_t order_inject_px;
+        uint64_t order_inject_qty;
+        uint64_t order_inject_side;
     };
 
     FPGADriver();
@@ -41,6 +48,9 @@ public:
     // Write Strategy Parameters to FPGA
     void update_strategy_params(double skew, double risk_aversion, Quantity max_pos);
     
+    // Direct Execution (CPU routes order to FPGA for low-latency dispatch)
+    void send_order(const strategy::StrategyOrder& order);
+
     // Read Status from FPGA
     int64_t get_fpga_inventory() const;
     uint64_t get_execution_count() const;

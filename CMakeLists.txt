@@ -259,6 +259,12 @@ add_executable(test_symbol_universe
 target_link_libraries(test_symbol_universe ultra_hft)
 add_test(NAME SymbolUniverseTest COMMAND test_symbol_universe)
 
+add_executable(test_hybrid_routing
+    tests/unit/test_hybrid_routing.cpp
+)
+target_link_libraries(test_hybrid_routing ultra_hft)
+add_test(NAME HybridRoutingTest COMMAND test_hybrid_routing)
+
 add_executable(test_matching_engine
     tests/unit/test_matching_engine.cpp
 )

@@ -16,7 +16,16 @@ Engine::Engine() {
     // --- 2. Initialize Components ---
     decoder_ = std::make_unique<md::itch::ITCHDecoder>();
     
+    // Configure Symbol Universe (Hybrid Routing)
     const SymbolId AAPL_ID = 1;
+    const SymbolId MSFT_ID = 2;
+    auto& universe = SymbolUniverse::instance();
+    
+    // AAPL: High Frequency, FPGA Execution
+    universe.add_symbol({AAPL_ID, "AAPL", 100, 1, -0.0002, 0.0003, true}); 
+    // MSFT: Standard, CPU Execution
+    universe.add_symbol({MSFT_ID, "MSFT", 100, 1, -0.0002, 0.0003, false});
+
     decoder_->register_symbol("AAPL    ", AAPL_ID);
     
     strategy_ = std::make_unique<strategy::RLPolicyStrategy>(AAPL_ID);
@@ -31,6 +40,9 @@ Engine::Engine() {
     if (!fpga_driver_->init()) {
         std::cerr << "Warning: FPGA Driver Init Failed (Simulation Mode?)" << std::endl;
     }
+    
+    // Initialize Smart Order Router (Hybrid)
+    router_ = std::make_unique<execution::SmartOrderRouter>(fpga_driver_.get(), gateway_.get());
 
     // Config for Live Network (Example)
     // In production, load from toml
@@ -221,7 +233,8 @@ void Engine::exec_thread_loop() {
         
         if (strategy_to_risk_queue_->pop(order_to_check)) {
             if (ULTRA_LIKELY(risk_checker_->check_order(order_to_check))) {
-                gateway_->send_order(order_to_check);
+                // Route via Smart Order Router (FPGA vs CPU decision)
+                router_->route(order_to_check);
             }
             work_done = true;
         }

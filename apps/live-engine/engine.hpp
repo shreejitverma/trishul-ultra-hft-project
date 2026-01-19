@@ -4,6 +4,7 @@
 #include <ultra/strategy/rl-inference/rl_policy.hpp>
 #include <ultra/risk/pretrade_checker.hpp>
 #include <ultra/execution/gateway_sim.hpp>
+#include <ultra/execution/router/sor.hpp>
 #include <ultra/network/multicast_receiver.hpp>
 #include <ultra/fpga/fpga_driver.hpp>
 #include <memory>
@@ -34,6 +35,7 @@ private:
     std::unique_ptr<strategy::RLPolicyStrategy> strategy_;
     std::unique_ptr<risk::PretradeChecker> risk_checker_;
     std::unique_ptr<exec::GatewaySim> gateway_;
+    std::unique_ptr<execution::SmartOrderRouter> router_;
     
     // New Components (Thesis Integration)
     std::unique_ptr<network::MulticastReceiver> udp_receiver_;

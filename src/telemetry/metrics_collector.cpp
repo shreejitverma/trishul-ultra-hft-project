@@ -30,6 +30,22 @@ void MetricsCollector::update_t2t_latency(uint64_t ns) {
     if (ns > t2t_stats_.max) t2t_stats_.max = ns;
 }
 
+void MetricsCollector::update_cpu_latency(uint64_t ns) {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    cpu_stats_.count++;
+    cpu_stats_.sum += ns;
+    if (ns < cpu_stats_.min) cpu_stats_.min = ns;
+    if (ns > cpu_stats_.max) cpu_stats_.max = ns;
+}
+
+void MetricsCollector::update_fpga_latency(uint64_t ns) {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    fpga_stats_.count++;
+    fpga_stats_.sum += ns;
+    if (ns < fpga_stats_.min) fpga_stats_.min = ns;
+    if (ns > fpga_stats_.max) fpga_stats_.max = ns;
+}
+
 void MetricsCollector::update_cpu_usage(double percent) {
     // CPU usage is usually sampled, just store last
     std::lock_guard<std::mutex> lock(data_mutex_);
@@ -50,22 +66,30 @@ void MetricsCollector::run_loop() {
 
 void MetricsCollector::flush_to_influx() {
     LatencyStats stats_copy;
-    double cpu_copy;
+    LatencyStats cpu_copy;
+    LatencyStats fpga_copy;
+    double cpu_load;
     double pnl_copy;
 
     {
         std::lock_guard<std::mutex> lock(data_mutex_);
         stats_copy = t2t_stats_;
-        cpu_copy = last_cpu_;
+        cpu_copy = cpu_stats_;
+        fpga_copy = fpga_stats_;
+        cpu_load = last_cpu_;
         pnl_copy = current_pnl_;
         
         // Reset per-second stats
         t2t_stats_ = LatencyStats(); 
+        cpu_stats_ = LatencyStats();
+        fpga_stats_ = LatencyStats();
     }
 
-    if (stats_copy.count == 0) return; // No activity
+    if (stats_copy.count == 0 && cpu_copy.count == 0 && fpga_copy.count == 0) return; // No activity
 
-    double avg_latency = static_cast<double>(stats_copy.sum) / stats_copy.count;
+    double avg_latency = (stats_copy.count > 0) ? static_cast<double>(stats_copy.sum) / stats_copy.count : 0.0;
+    double avg_cpu_lat = (cpu_copy.count > 0) ? static_cast<double>(cpu_copy.sum) / cpu_copy.count : 0.0;
+    double avg_fpga_lat = (fpga_copy.count > 0) ? static_cast<double>(fpga_copy.sum) / fpga_copy.count : 0.0;
 
     // InfluxDB Line Protocol:
     // measurement,tag_set field_set timestamp
@@ -75,8 +99,9 @@ void MetricsCollector::flush_to_influx() {
     std::cout << "[InfluxDB] system_metrics,host=ultra_fpga "
               << "t2t_avg=" << avg_latency << ","
               << "t2t_min=" << stats_copy.min << ","
-              << "t2t_max=" << stats_copy.max << ","
-              << "cpu_load=" << cpu_copy << ","
+              << "cpu_exec_avg=" << avg_cpu_lat << ","
+              << "fpga_exec_avg=" << avg_fpga_lat << ","
+              << "cpu_load=" << cpu_load << ","
               << "pnl=" << pnl_copy << " "
               << std::chrono::duration_cast<std::chrono::nanoseconds>(
                   std::chrono::system_clock::now().time_since_epoch()).count()

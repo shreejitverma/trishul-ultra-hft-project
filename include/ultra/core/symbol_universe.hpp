@@ -13,6 +13,7 @@ struct SymbolInfo {
     Price tick_size;
     double maker_fee;
     double taker_fee;
+    bool use_fpga_execution{false}; // New: Routing Flag
 };
 
 /**

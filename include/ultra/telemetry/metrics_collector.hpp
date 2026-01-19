@@ -25,6 +25,8 @@ public:
 
     // High-frequency updates (lock-free or minimal lock preferred, using spinlock here for simplicity)
     void update_t2t_latency(uint64_t ns);
+    void update_cpu_latency(uint64_t ns);
+    void update_fpga_latency(uint64_t ns);
     void update_cpu_usage(double percent);
     void update_pnl(double pnl);
 
@@ -48,6 +50,8 @@ private:
     
     std::mutex data_mutex_;
     LatencyStats t2t_stats_;
+    LatencyStats cpu_stats_;
+    LatencyStats fpga_stats_;
     double last_cpu_{0.0};
     double current_pnl_{0.0};
 };

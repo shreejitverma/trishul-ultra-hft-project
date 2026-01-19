@@ -37,6 +37,23 @@ void FPGADriver::update_strategy_params(double skew, double risk_aversion, Quant
     // std::cout << "[FPGA] Updated Params: Skew=" << skew << " Gamma=" << risk_aversion << std::endl;
 }
 
+void FPGADriver::send_order(const strategy::StrategyOrder& order) {
+    // Write Order to FPGA Registers (MMIO)
+    regs_->order_inject_px = order.price;
+    regs_->order_inject_qty = order.quantity;
+    regs_->order_inject_side = (order.side == Side::BUY ? 1 : 0);
+    
+    // Trigger Execution (Write 1 to trigger register)
+    // The FPGA logic would see this bit, read the params, and dispatch OUCH packet immediately.
+    regs_->order_inject_trigger = 1; 
+    
+    // Simulation: Increment execution count
+    regs_->execution_count++;
+    
+    // std::cout << "[FPGA] EXECUTION DISPATCHED: " << (order.side == Side::BUY ? "BUY" : "SELL") 
+    //           << " " << order.quantity << "@" << order.price << std::endl;
+}
+
 int64_t FPGADriver::get_fpga_inventory() const {
     // In simulation, we just read what we wrote or a simulated value
     // Real hardware would write to this address via DMA/MMIO
