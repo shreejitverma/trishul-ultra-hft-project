@@ -8,9 +8,15 @@
 using namespace ultra;
 
 struct RawMessage {
-    std::vector<uint8_t> data;
+    std::vector<uint8_t> data; ///< int variable representing data.
 };
 
+    /**
+     * @brief Auto-generated description for main.
+     * @param argc Parameter description.
+     * @param argv Parameter description.
+     * @return int value.
+     */
 int main(int argc, char** argv) {
     std::string filename = "market_data.bin";
     if (argc > 1) filename = argv[1];

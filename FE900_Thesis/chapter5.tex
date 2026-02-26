@@ -28,9 +28,9 @@ The software architecture is designed to minimize non-deterministic behavior int
 
 The event processing pipeline is segmented into six distinct stages:
 \begin{enumerate}
-    \item \textbf{Ingestion:} A `MulticastReceiver` interfaces with the network stack. To approximate the performance of hardware-based kernel bypass (e.g., DPDK), a `DMARingBuffer` simulation was implemented, allowing the system to process data with zero-copy semantics.
+    \item \textbf{Ingestion:} A `MulticastReceiver` interfaces with the network stack. To approximate the performance of hardware-based kernel bypass (e.g., DPDK), a `DMARingBuffer` simulation was implemented, allowing the system to process data with \textbf{zero-copy semantics}---a data transfer method that eliminates the need for the CPU to copy data from one memory location to another, significantly reducing latency.
     \item \textbf{Market Data Normalization:} The `ITCHDecoder` parses raw binary messages into semantic events. These events update the `OrderBookL2`, which triggers a `DiffGenerator`. This generator optimizes downstream processing by notifying the strategy only when the Best Bid or Offer (BBO) changes.
-    \item \textbf{Strategy Execution:} The `MarketMaker` strategy receives BBO updates. It calculates an Order Book Imbalance (OBI) signal and applies a skew to the mid-price to generate optimal quotes.
+\item \textbf{Strategy Execution:} The `MarketMaker` strategy receives BBO updates. It calculates an Order Book Imbalance (OBI) signal and applies a skew to the \textbf{mid-price}---the arithmetic mean of the current best bid and ask prices---to generate optimal quotes.
     \item \textbf{Risk Validation:} A `PretradeChecker` enforces a safety layer, validating every generated order against Position and Notional limits before it is permitted to leave the strategy thread.
     \item \textbf{Order Execution:} Validated orders are encoded into the binary NASDAQ OUCH 5.0 format by the `OUCHCodec` and dispatched to the simulated exchange.
     \item \textbf{Observability:} An `AsyncLogger` captures diagnostic data. By utilizing a lock-free ring buffer, logging operations are offloaded to a background thread, ensuring zero latency penalty on the critical trading path.
@@ -47,10 +47,10 @@ To maximize system efficiency, we implemented a `SmartOrderRouter` (SOR) that dy
 This hybrid approach allows the system to scale to thousands of symbols while ensuring microsecond latency for the top-tier assets.
 
 \subsection{Exchange Simulation (Matching Engine)}
-A robust evaluation of any market-making strategy requires a realistic counterparty. We implemented a fully functional `MatchingEngine` to simulate the exchange. Unlike simplistic backtesters that assume fills based on historical mid-prices, this engine maintains a separate Limit Order Book and executes orders according to strict \textbf{Price-Time Priority}. This ensures that the strategy is tested against realistic constraints, including queue position and partial fills.
+A robust evaluation requires a realistic counterparty. We implemented a fully functional `MatchingEngine` to simulate the exchange. \textit{The matching engine acts like a "referee" that follows strict rules to pair up buyers and sellers fairly based on who arrived first and who has the best price.} This ensures that the strategy is tested against realistic constraints, including queue position and partial fills.
 
 \subsection{Vectorized Signal Engine}
-To support the computational demands of the RL strategy, a `SignalEngine` was developed using \textbf{AVX2 SIMD} intrinsics. This engine vectorizes the calculation of technical indicators such as the Relative Strength Index (RSI) and Standard Deviation. By processing batches of price data in parallel 256-bit registers, the software control plane can recalculate model parameters over millions of historical ticks in under 200 milliseconds.
+To support the computational demands of the RL strategy, a `SignalEngine` was developed using \textbf{AVX2 SIMD} intrinsics. \textit{SIMD stands for "Single Instruction, Multiple Data," which is like being able to perform the same calculation on a whole row of numbers at once, instead of doing them one by one.} By processing batches of price data in parallel, the software control plane can recalculate model parameters over millions of historical ticks in under 200 milliseconds.
 
 \subsection{Direct Market Access Protocol (OUCH 5.0)}
 To ensure the system's readiness for deployment, the text-based order entry protocols often used in academic simulations were replaced with a native `OUCHCodec`. This component strictly adheres to the NASDAQ OUCH 5.0 specification, packing order fields into compact, Little-Endian binary structures. This verifies that the system can interface correctly with production-grade exchange gateways.

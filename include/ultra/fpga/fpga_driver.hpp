@@ -35,14 +35,24 @@ public:
         
         // Order Injection (CPU -> FPGA)
         uint64_t order_inject_trigger; // Write 1 to trigger
-        uint64_t order_inject_px;
-        uint64_t order_inject_qty;
-        uint64_t order_inject_side;
+        uint64_t order_inject_px; ///< int variable representing order_inject_px.
+        uint64_t order_inject_qty; ///< int variable representing order_inject_qty.
+        uint64_t order_inject_side; ///< int variable representing order_inject_side.
     };
 
+    /**
+     * @brief Auto-generated description for FPGADriver.
+     */
     FPGADriver();
+    /**
+     * @brief Auto-generated description for ~FPGADriver.
+     */
     ~FPGADriver();
 
+         /**
+          * @brief Auto-generated description for init.
+          * @return bool value.
+          */
     bool init();
     
     // Write Strategy Parameters to FPGA
@@ -62,8 +72,8 @@ public:
 private:
     // Simulated Shared Memory / MMIO Region
     // In production, this would be mmap("/dev/uio0")
-    ControlRegisters* regs_{nullptr}; 
-    std::vector<uint8_t> simulated_memory_; 
+    ControlRegisters* regs_{nullptr};  ///< ControlRegisters * variable representing regs_.
+    std::vector<uint8_t> simulated_memory_;  ///< int variable representing simulated_memory_.
 };
 
 } // namespace ultra::fpga

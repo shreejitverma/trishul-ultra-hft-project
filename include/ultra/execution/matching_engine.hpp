@@ -14,12 +14,12 @@ namespace ultra::exec {
 class MatchingEngine {
 public:
     struct BookOrder {
-        strategy::StrategyOrder order;
+        strategy::StrategyOrder order; ///< strategy::StrategyOrder variable representing order.
         uint64_t timestamp; // For Time priority
     };
 
     // Output queue for execution reports
-    std::deque<ExecutionReport> fills_;
+    std::deque<ExecutionReport> fills_; ///< int variable representing fills_.
 
     void process_order(const strategy::StrategyOrder& order) {
         // 1. Validate
@@ -40,8 +40,17 @@ public:
         }
     }
 
+         /**
+          * @brief Auto-generated description for has_fills.
+          * @return bool value.
+          */
     bool has_fills() const { return !fills_.empty(); }
     
+         /**
+          * @brief Auto-generated description for pop_fill.
+          * @param fill Parameter description.
+          * @return bool value.
+          */
     bool pop_fill(ExecutionReport& fill) {
         if (fills_.empty()) return false;
         fill = fills_.front();
@@ -52,8 +61,13 @@ public:
 private:
     std::vector<BookOrder> bids_; // Sorted Descending Price, then Time
     std::vector<BookOrder> asks_; // Sorted Ascending Price, then Time
-    uint64_t sequence_{0};
+    uint64_t sequence_{0}; ///< int variable representing sequence_.
 
+         /**
+          * @brief Auto-generated description for match_buy.
+          * @param incoming Parameter description.
+          * @param remaining Parameter description.
+          */
     void match_buy(const strategy::StrategyOrder& incoming, Quantity& remaining) {
         while (remaining > 0 && !asks_.empty()) {
             BookOrder& best_ask = asks_.front();
@@ -76,6 +90,11 @@ private:
         }
     }
 
+         /**
+          * @brief Auto-generated description for match_sell.
+          * @param incoming Parameter description.
+          * @param remaining Parameter description.
+          */
     void match_sell(const strategy::StrategyOrder& incoming, Quantity& remaining) {
         while (remaining > 0 && !bids_.empty()) {
             BookOrder& best_bid = bids_.front();
@@ -98,6 +117,11 @@ private:
         }
     }
 
+         /**
+          * @brief Auto-generated description for add_to_book.
+          * @param order Parameter description.
+          * @param qty Parameter description.
+          */
     void add_to_book(const strategy::StrategyOrder& order, Quantity qty) {
         BookOrder book_order{order, ++sequence_};
         book_order.order.quantity = qty;
@@ -119,6 +143,13 @@ private:
         }
     }
 
+         /**
+          * @brief Auto-generated description for generate_fill.
+          * @param aggressive Parameter description.
+          * @param passive Parameter description.
+          * @param qty Parameter description.
+          * @param price Parameter description.
+          */
     void generate_fill(const strategy::StrategyOrder& aggressive, 
                        const strategy::StrategyOrder& passive, 
                        Quantity qty, Price price) {

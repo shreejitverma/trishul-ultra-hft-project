@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.22)
 project(UltraHFT VERSION 1.0.0 LANGUAGES CXX C)
 
+# ============================================================================
+# COVERAGE SUPPORT
+# ============================================================================
+option(USE_COVERAGE "Enable code coverage instrumentation" OFF)
+if(USE_COVERAGE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -46,6 +56,16 @@ endif()
 # Threading
 find_package(Threads REQUIRED)
 
+# GoogleTest
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/refs/heads/main.zip
+)
+# For Windows: prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
 # Optional: DPDK for kernel bypass
 option(USE_DPDK "Use DPDK for kernel bypass networking" OFF)
 if(USE_DPDK)
@@ -58,6 +78,7 @@ endif()
 # ============================================================================
 
 include_directories(
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/third_party
 )
@@ -250,7 +271,7 @@ add_test(NAME MarketMakerTest COMMAND test_market_maker)
 add_executable(test_async_logger
     tests/unit/test_async_logger.cpp
 )
-target_link_libraries(test_async_logger ultra_hft)
+target_link_libraries(test_async_logger ultra_hft GTest::gtest_main)
 add_test(NAME AsyncLoggerTest COMMAND test_async_logger)
 
 add_executable(test_symbol_universe
@@ -276,6 +297,14 @@ add_executable(test_ouch_codec
 )
 target_link_libraries(test_ouch_codec ultra_hft)
 add_test(NAME OUCHCodecTest COMMAND test_ouch_codec)
+
+# Integration Test
+add_executable(test_engine_integration
+    tests/integration/test_engine_integration.cpp
+    apps/live-engine/engine.cpp
+)
+target_link_libraries(test_engine_integration ultra_hft GTest::gtest_main)
+add_test(NAME EngineIntegrationTest COMMAND test_engine_integration)
 
 # add_executable(unit_tests
 #     tests/unit/test_rdtsc_clock.cpp

@@ -18,13 +18,16 @@ class DMARingBuffer {
 public:
     static constexpr size_t SLOT_SIZE = 2048; // Standard MTU + padding
     static constexpr size_t RING_SIZE = 1024; // Power of 2
-    static constexpr size_t BUFFER_SIZE = SLOT_SIZE * RING_SIZE;
+    static constexpr size_t BUFFER_SIZE = SLOT_SIZE * RING_SIZE; ///< const int variable representing BUFFER_SIZE.
 
     struct ControlBlock {
         alignas(64) std::atomic<uint32_t> head{0}; // Written by NIC (Producer)
         alignas(64) std::atomic<uint32_t> tail{0}; // Written by SW (Consumer)
     };
 
+    /**
+     * @brief Auto-generated description for DMARingBuffer.
+     */
     DMARingBuffer() {
         // Allocate simulated DMA memory
         // In real code: mmap /dev/vfio/...
@@ -40,6 +43,9 @@ public:
         buffer_base_ = reinterpret_cast<uint8_t*>(ptr) + sizeof(ControlBlock);
     }
 
+    /**
+     * @brief Auto-generated description for ~DMARingBuffer.
+     */
     ~DMARingBuffer() {
         // munmap ...
     }
@@ -80,8 +86,8 @@ public:
     }
 
 private:
-    ControlBlock* control_;
-    uint8_t* buffer_base_;
+    ControlBlock* control_; ///< ControlBlock * variable representing control_.
+    uint8_t* buffer_base_; ///< int * variable representing buffer_base_.
 };
 
 } // namespace ultra::network

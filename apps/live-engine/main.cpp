@@ -1,9 +1,17 @@
 #include "engine.hpp"
 #include "ultra/core/time/rdtsc_clock.hpp"
+#include "ultra/core/async_logger.hpp"
 #include <iostream>
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     std::cout << "Starting Ultra-Low Latency Trading Engine..." << std::endl;
+
+    // --- 0. Initialize Logger ---
+    ultra::AsyncLogger::instance().start("/Users/shreejitverma/Documents/GitHub/ultra-hft-project/logs/engine.json", true);
 
     // --- 1. Calibrate Clock ---
     // This is critical. Do it once at startup.
@@ -22,6 +30,9 @@ int main() {
     try {
         ultra::Engine engine;
         engine.run();
+        std::cout << "Engine running. Press [Enter] to stop." << std::endl;
+        std::cin.get();
+        engine.stop();
     } catch (const std::exception& e) {
         std::cerr << "FATAL ERROR: " << e.what() << std::endl;
         return 1;

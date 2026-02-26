@@ -6,13 +6,24 @@
 
 namespace ultra::strategy {
 
+                  /**
+                   * @brief Auto-generated description for RLPolicyStrategy.
+                   * @param symbol_id Parameter description.
+                   */
 RLPolicyStrategy::RLPolicyStrategy(SymbolId symbol_id)
     : symbol_id_(symbol_id), order_book_(symbol_id) {
     std::cout << "RLPolicyStrategy (AI-Integrated) initialized for symbol " << symbol_id_ << std::endl;
 }
 
+                  /**
+                   * @brief Auto-generated description for ~RLPolicyStrategy.
+                   */
 RLPolicyStrategy::~RLPolicyStrategy() = default;
 
+                       /**
+                        * @brief Auto-generated description for on_market_data.
+                        * @param msg Parameter description.
+                        */
 void RLPolicyStrategy::on_market_data(const md::itch::ITCHDecoder::DecodedMessage& msg) {
     // 1. Update our internal view of the L2 order book
     order_book_.update(msg);
@@ -23,6 +34,10 @@ void RLPolicyStrategy::on_market_data(const md::itch::ITCHDecoder::DecodedMessag
     run_inference();
 }
 
+                       /**
+                        * @brief Auto-generated description for on_execution.
+                        * @param report Parameter description.
+                        */
 void RLPolicyStrategy::on_execution(const exec::ExecutionReport& report) {
     // Update inventory
     if (report.status == OrderStatus::FILLED || report.status == OrderStatus::PARTIAL) {
@@ -40,10 +55,18 @@ void RLPolicyStrategy::on_execution(const exec::ExecutionReport& report) {
     }
 }
 
+                       /**
+                        * @brief Auto-generated description for get_order.
+                        * @param order Parameter description.
+                        * @return bool value.
+                        */
 bool RLPolicyStrategy::get_order(StrategyOrder& order) {
     return order_queue_.pop(order);
 }
 
+                       /**
+                        * @brief Auto-generated description for run_inference.
+                        */
 void RLPolicyStrategy::run_inference() noexcept {
     // --- AI / Quantitative Model Inference ---
     
@@ -123,6 +146,11 @@ void RLPolicyStrategy::run_inference() noexcept {
     if (optimal_ask > optimal_bid) order_queue_.push(sell_order);
 }
 
+                                                /**
+                                                 * @brief Auto-generated description for inference_stub.
+                                                 * @param features Parameter description.
+                                                 * @return RLPolicyStrategy::ModelOutput value.
+                                                 */
 RLPolicyStrategy::ModelOutput RLPolicyStrategy::inference_stub(const ModelFeatures& features) noexcept {
     // Deprecated in favor of inline logic above, but kept for interface compat
     (void)features;

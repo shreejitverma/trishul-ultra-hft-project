@@ -9,12 +9,22 @@ namespace ultra {
 
 // Fixed-point price representation (4 decimal places)
 using Price = int64_t;
-constexpr int64_t PRICE_SCALE = 10000;
+constexpr int64_t PRICE_SCALE = 10000; ///< const int variable representing PRICE_SCALE.
 
+                          /**
+                           * @brief Auto-generated description for to_price.
+                           * @param p Parameter description.
+                           * @return int value.
+                           */
 ULTRA_ALWAYS_INLINE Price to_price(double p) noexcept {
     return static_cast<Price>(p * PRICE_SCALE);
 }
 
+                           /**
+                            * @brief Auto-generated description for from_price.
+                            * @param p Parameter description.
+                            * @return double value.
+                            */
 ULTRA_ALWAYS_INLINE double from_price(Price p) noexcept {
     return static_cast<double>(p) / PRICE_SCALE;
 }
@@ -32,6 +42,12 @@ enum class Side : uint8_t {
     SELL = 1
 };
 
+                     /**
+                      * @brief Auto-generated description for operator<<.
+                      * @param os Parameter description.
+                      * @param side Parameter description.
+                      * @return int & value.
+                      */
 inline std::ostream& operator<<(std::ostream& os, Side side) {
     os << (side == Side::BUY ? "BUY" : "SELL");
     return os;
@@ -66,10 +82,10 @@ enum class MDEventType : uint8_t {
 };
 
 // Constants
-constexpr SymbolId INVALID_SYMBOL = 0;
-constexpr OrderId INVALID_ORDER_ID = 0;
-constexpr Price INVALID_PRICE = std::numeric_limits<Price>::max();
-constexpr Quantity INVALID_QUANTITY = -1;
+constexpr SymbolId INVALID_SYMBOL = 0; ///< const int variable representing INVALID_SYMBOL.
+constexpr OrderId INVALID_ORDER_ID = 0; ///< const int variable representing INVALID_ORDER_ID.
+constexpr Price INVALID_PRICE = std::numeric_limits<Price>::max(); ///< const int variable representing INVALID_PRICE.
+constexpr Quantity INVALID_QUANTITY = -1; ///< const int variable representing INVALID_QUANTITY.
 
 // Base event structure
 struct Event {

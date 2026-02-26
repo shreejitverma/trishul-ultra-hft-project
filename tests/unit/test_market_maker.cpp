@@ -6,6 +6,10 @@ using namespace ultra;
 using namespace ultra::strategy;
 using namespace ultra::md::itch;
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     std::cout << "[Test] Starting MarketMaker Strategy Test...\n";
 

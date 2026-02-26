@@ -5,6 +5,10 @@
 
 namespace ultra::telemetry {
 
+                       /**
+                        * @brief Auto-generated description for record.
+                        * @param latency_ns Parameter description.
+                        */
 void LatencyHistogram::record(uint64_t latency_ns) {
     // 1. Determine Bucket
     // Simple linear bucketing for prototype: 0-100ns, 100-200ns...
@@ -23,6 +27,9 @@ void LatencyHistogram::record(uint64_t latency_ns) {
     sum_ns_.fetch_add(latency_ns, std::memory_order_relaxed);
 }
 
+                       /**
+                        * @brief Auto-generated description for print_stats.
+                        */
 void LatencyHistogram::print_stats() const {
     uint64_t total = count_.load();
     if (total == 0) return;

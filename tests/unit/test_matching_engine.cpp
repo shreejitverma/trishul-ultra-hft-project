@@ -5,6 +5,10 @@
 using namespace ultra;
 using namespace ultra::exec;
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     std::cout << "[Test] Starting MatchingEngine Test...\n";
     MatchingEngine engine;

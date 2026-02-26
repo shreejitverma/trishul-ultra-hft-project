@@ -5,6 +5,10 @@
 
 namespace ultra::exec {
 
+                 /**
+                  * @brief Auto-generated description for send_order.
+                  * @param order Parameter description.
+                  */
 void GatewaySim::send_order(const strategy::StrategyOrder& order) {
     auto new_order = order;
     new_order.order_id = next_order_id_++;
@@ -20,10 +24,19 @@ void GatewaySim::send_order(const strategy::StrategyOrder& order) {
     try_match(new_order);
 }
 
+                 /**
+                  * @brief Auto-generated description for get_execution_report.
+                  * @param report Parameter description.
+                  * @return bool value.
+                  */
 bool GatewaySim::get_execution_report(ExecutionReport& report) {
     return exec_reports_queue_.pop(report);
 }
 
+                 /**
+                  * @brief Auto-generated description for update_market.
+                  * @param msg Parameter description.
+                  */
 void GatewaySim::update_market(const md::itch::ITCHDecoder::DecodedMessage& msg) {
     (void)msg; // Silence unused parameter warning
     // A real sim would use market data to drive fills
@@ -67,6 +80,10 @@ void GatewaySim::try_match(strategy::StrategyOrder& order) {
     }
 }
 
+                 /**
+                  * @brief Auto-generated description for send_accept.
+                  * @param order Parameter description.
+                  */
 void GatewaySim::send_accept(const strategy::StrategyOrder& order) {
     exec_reports_queue_.push(ExecutionReport{
         .tsc = 0, // (Set timestamp)
@@ -77,6 +94,12 @@ void GatewaySim::send_accept(const strategy::StrategyOrder& order) {
     });
 }
 
+                 /**
+                  * @brief Auto-generated description for send_fill.
+                  * @param order Parameter description.
+                  * @param fill_price Parameter description.
+                  * @param fill_qty Parameter description.
+                  */
 void GatewaySim::send_fill(const strategy::StrategyOrder& order, Price fill_price, Quantity fill_qty) {
     std::cout << "GATEWAY: " << order.side << " Order " << order.order_id << " FILLED " 
               << fill_qty << " @ " << from_price(fill_price) << std::endl;

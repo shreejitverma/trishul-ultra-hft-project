@@ -3,6 +3,10 @@
 
 using namespace ultra;
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     std::cout << "[Test] Starting ThreadUtils Test...\n";
 

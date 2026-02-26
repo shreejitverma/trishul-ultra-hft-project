@@ -1,6 +1,7 @@
 This is BibTeX, Version 0.99d (TeX Live 2025)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: SV_stevensThesis.aux
+A level-1 auxiliary file: glossary.aux
 A level-1 auxiliary file: SV_Introduction.aux
 A level-1 auxiliary file: chapter2.aux
 A level-1 auxiliary file: chapter3.aux
@@ -14,7 +15,7 @@ Database file #1: SV_References.bib
 Warning--empty journal in Spooner2020
 You've used 28 entries,
             2773 wiz_defined-function locations,
-            772 strings with 10310 characters,
+            773 strings with 10322 characters,
 and the built_in function-call counts, 10128 in all, are:
 = -- 920
 > -- 469

@@ -3,6 +3,10 @@
 
 namespace ultra::execution {
 
+                            /**
+                             * @brief Auto-generated description for send_order.
+                             * @param order Parameter description.
+                             */
 void OrderManagementSystem::send_order(const StrategyOrder& order) {
     // 1. Assign ClOrdID (Client Order ID)
     auto cl_ord_id = next_cl_ord_id_++;

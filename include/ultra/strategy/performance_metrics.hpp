@@ -9,14 +9,17 @@
 namespace ultra::strategy {
 
 struct PerformanceReport {
-    double total_return;
-    double cagr;
-    double sharpe_ratio;
-    double sortino_ratio;
-    double max_drawdown;
-    double win_rate;
-    size_t total_trades;
+    double total_return; ///< double variable representing total_return.
+    double cagr; ///< double variable representing cagr.
+    double sharpe_ratio; ///< double variable representing sharpe_ratio.
+    double sortino_ratio; ///< double variable representing sortino_ratio.
+    double max_drawdown; ///< double variable representing max_drawdown.
+    double win_rate; ///< double variable representing win_rate.
+    size_t total_trades; ///< int variable representing total_trades.
     
+         /**
+          * @brief Auto-generated description for print.
+          */
     void print() const {
         std::cout << "\n=== PERFORMANCE REPORT ===" << std::endl;
         std::cout << "Total Return  : " << std::fixed << std::setprecision(2) << total_return * 100 << "%" << std::endl;
@@ -32,6 +35,12 @@ struct PerformanceReport {
 
 class PerformanceAnalyst {
 public:
+                             /**
+                              * @brief Auto-generated description for analyze.
+                              * @param equity_curve Parameter description.
+                              * @param risk_free_rate Parameter description.
+                              * @return PerformanceReport value.
+                              */
     static PerformanceReport analyze(const std::vector<double>& equity_curve, double risk_free_rate = 0.0) {
         PerformanceReport report{};
         size_t n = equity_curve.size();

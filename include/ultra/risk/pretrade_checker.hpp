@@ -11,12 +11,16 @@ namespace ultra::risk {
 class PretradeChecker {
 public:
     struct Config {
-        Quantity max_position_shares = 10000;
-        Price max_notional_usd = 10000000;
-        Quantity max_order_size = 1000;
-        uint32_t max_orders_per_second = 10000;
+        Quantity max_position_shares = 10000; ///< int variable representing max_position_shares.
+        Price max_notional_usd = 10000000; ///< int variable representing max_notional_usd.
+        Quantity max_order_size = 1000; ///< int variable representing max_order_size.
+        uint32_t max_orders_per_second = 10000; ///< int variable representing max_orders_per_second.
     };
 
+             /**
+              * @brief Auto-generated description for PretradeChecker.
+              * @param config Parameter description.
+              */
     explicit PretradeChecker(const Config& config);
 
     // Check a new order request
@@ -27,10 +31,10 @@ public:
     void on_execution(const exec::ExecutionReport& report) noexcept;
 
 private:
-    Config config_;
+    Config config_; ///< Config variable representing config_.
     
     // Current state
-    Quantity current_position_{0};
+    Quantity current_position_{0}; ///< int variable representing current_position_.
     // (Add tracking for order rate, etc.)
 };
 

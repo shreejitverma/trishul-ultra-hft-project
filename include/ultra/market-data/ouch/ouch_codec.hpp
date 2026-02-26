@@ -17,6 +17,15 @@ public:
         }
     }
 
+                /**
+                 * @brief Auto-generated description for encode_enter_order.
+                 * @param buffer Parameter description.
+                 * @param token Parameter description.
+                 * @param is_buy Parameter description.
+                 * @param qty Parameter description.
+                 * @param symbol Parameter description.
+                 * @param price_int Parameter description.
+                 */
     static void encode_enter_order(std::vector<uint8_t>& buffer, 
                                    uint64_t token, bool is_buy, uint32_t qty, 
                                    const std::string& symbol, uint32_t price_int) {
@@ -41,6 +50,11 @@ public:
         return __builtin_bswap32(val);
     }
     
+                    /**
+                     * @brief Auto-generated description for to_big_endian.
+                     * @param val Parameter description.
+                     * @return int value.
+                     */
     static uint64_t to_big_endian(uint64_t val) {
         return __builtin_bswap64(val);
     }

@@ -2,6 +2,13 @@
 
 namespace ultra::network {
 
+                                                                 /**
+                                                                  * @brief Auto-generated description for parse.
+                                                                  * @param packet Parameter description.
+                                                                  * @param packet_len Parameter description.
+                                                                  * @param timestamp_ns Parameter description.
+                                                                  * @return EthernetParser::ParsedPacket value.
+                                                                  */
 ULTRA_ALWAYS_INLINE EthernetParser::ParsedPacket EthernetParser::parse(
     const uint8_t* packet, 
     size_t packet_len,

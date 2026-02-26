@@ -4,16 +4,25 @@
 
 namespace ultra::telemetry {
 
+                  /**
+                   * @brief Auto-generated description for ~MetricsCollector.
+                   */
 MetricsCollector::~MetricsCollector() {
     stop();
 }
 
+                       /**
+                        * @brief Auto-generated description for start.
+                        */
 void MetricsCollector::start() {
     if (running_) return;
     running_ = true;
     flusher_thread_ = std::thread(&MetricsCollector::run_loop, this);
 }
 
+                       /**
+                        * @brief Auto-generated description for stop.
+                        */
 void MetricsCollector::stop() {
     if (!running_) return;
     running_ = false;
@@ -22,6 +31,10 @@ void MetricsCollector::stop() {
     }
 }
 
+                       /**
+                        * @brief Auto-generated description for update_t2t_latency.
+                        * @param ns Parameter description.
+                        */
 void MetricsCollector::update_t2t_latency(uint64_t ns) {
     std::lock_guard<std::mutex> lock(data_mutex_);
     t2t_stats_.count++;
@@ -30,6 +43,10 @@ void MetricsCollector::update_t2t_latency(uint64_t ns) {
     if (ns > t2t_stats_.max) t2t_stats_.max = ns;
 }
 
+                       /**
+                        * @brief Auto-generated description for update_cpu_latency.
+                        * @param ns Parameter description.
+                        */
 void MetricsCollector::update_cpu_latency(uint64_t ns) {
     std::lock_guard<std::mutex> lock(data_mutex_);
     cpu_stats_.count++;
@@ -38,6 +55,10 @@ void MetricsCollector::update_cpu_latency(uint64_t ns) {
     if (ns > cpu_stats_.max) cpu_stats_.max = ns;
 }
 
+                       /**
+                        * @brief Auto-generated description for update_fpga_latency.
+                        * @param ns Parameter description.
+                        */
 void MetricsCollector::update_fpga_latency(uint64_t ns) {
     std::lock_guard<std::mutex> lock(data_mutex_);
     fpga_stats_.count++;
@@ -46,17 +67,28 @@ void MetricsCollector::update_fpga_latency(uint64_t ns) {
     if (ns > fpga_stats_.max) fpga_stats_.max = ns;
 }
 
+                       /**
+                        * @brief Auto-generated description for update_cpu_usage.
+                        * @param percent Parameter description.
+                        */
 void MetricsCollector::update_cpu_usage(double percent) {
     // CPU usage is usually sampled, just store last
     std::lock_guard<std::mutex> lock(data_mutex_);
     last_cpu_ = percent;
 }
 
+                       /**
+                        * @brief Auto-generated description for update_pnl.
+                        * @param pnl Parameter description.
+                        */
 void MetricsCollector::update_pnl(double pnl) {
     std::lock_guard<std::mutex> lock(data_mutex_);
     current_pnl_ = pnl;
 }
 
+                       /**
+                        * @brief Auto-generated description for run_loop.
+                        */
 void MetricsCollector::run_loop() {
     while (running_) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -64,6 +96,9 @@ void MetricsCollector::run_loop() {
     }
 }
 
+                       /**
+                        * @brief Auto-generated description for flush_to_influx.
+                        */
 void MetricsCollector::flush_to_influx() {
     LatencyStats stats_copy;
     LatencyStats cpu_copy;

@@ -3,6 +3,10 @@
 
 namespace ultra::execution {
 
+                       /**
+                        * @brief Auto-generated description for route.
+                        * @param order Parameter description.
+                        */
 void SmartOrderRouter::route(const OrderState& order) {
     // 1. Venue Selection Logic (Stub)
     // In a real system, we'd check liquidity/latency map

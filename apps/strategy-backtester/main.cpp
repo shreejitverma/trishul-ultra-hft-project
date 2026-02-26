@@ -11,8 +11,8 @@ using namespace ultra;
 
 // Simple structure to hold loaded tick data
 struct TickData {
-    std::vector<double> prices;
-    std::vector<uint64_t> timestamps;
+    std::vector<double> prices; ///< int variable representing prices.
+    std::vector<uint64_t> timestamps; ///< int variable representing timestamps.
 };
 
 // Load Binary Data into Columnar format (Vectorized Friendly)
@@ -70,6 +70,12 @@ TickData load_data_vectorized(const std::string& filename, size_t max_limit = 0)
     return data;
 }
 
+    /**
+     * @brief Auto-generated description for main.
+     * @param argc Parameter description.
+     * @param argv Parameter description.
+     * @return int value.
+     */
 int main(int argc, char** argv) {
     std::string filename = "market_data_large.bin";
     if (argc > 1) filename = argv[1];

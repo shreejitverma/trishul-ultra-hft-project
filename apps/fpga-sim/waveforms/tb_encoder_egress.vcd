@@ -1,0 +1,205 @@
+$date
+	Wed Feb 25 20:07:30 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_encoder_egress $end
+$var wire 1 ! mac_tvalid $end
+$var wire 1 " mac_tlast $end
+$var wire 64 # mac_tdata [63:0] $end
+$var wire 1 $ enc_tvalid $end
+$var wire 1 % enc_tready $end
+$var wire 1 & enc_tlast $end
+$var wire 64 ' enc_tdata [63:0] $end
+$var reg 1 ( clk $end
+$var reg 1 ) in_buy $end
+$var reg 32 * in_px [31:0] $end
+$var reg 32 + in_qty [31:0] $end
+$var reg 1 , in_valid $end
+$var reg 1 - mac_tready $end
+$var reg 1 . rst $end
+$scope module bridge $end
+$var wire 1 ( clk $end
+$var wire 1 % enc_tready $end
+$var wire 64 / mac_tdata [63:0] $end
+$var wire 1 " mac_tlast $end
+$var wire 1 - mac_tready $end
+$var wire 1 ! mac_tvalid $end
+$var wire 1 . rst $end
+$var wire 1 $ enc_tvalid $end
+$var wire 1 & enc_tlast $end
+$var wire 64 0 enc_tdata [63:0] $end
+$upscope $end
+$scope module encoder $end
+$var wire 1 ( clk $end
+$var wire 1 ) in_buy $end
+$var wire 32 1 in_px [31:0] $end
+$var wire 32 2 in_qty [31:0] $end
+$var wire 1 , in_valid $end
+$var wire 1 % m_axis_tready $end
+$var wire 1 . rst $end
+$var parameter 32 3 DATA_W $end
+$var parameter 1 4 ST_IDLE $end
+$var parameter 1 5 ST_SEND $end
+$var reg 64 6 m_axis_tdata [63:0] $end
+$var reg 1 & m_axis_tlast $end
+$var reg 1 $ m_axis_tvalid $end
+$var reg 1 7 state $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+15
+04
+b1000000 3
+$end
+#0
+$dumpvars
+x7
+bx 6
+b0 2
+b0 1
+bx 0
+bx /
+1.
+1-
+0,
+b0 +
+b0 *
+0)
+0(
+bx '
+x&
+1%
+x$
+bx #
+x"
+x!
+$end
+#5000
+b0 #
+b0 /
+b0 '
+b0 0
+b0 6
+0"
+0&
+0!
+0$
+07
+1(
+#10000
+0(
+#15000
+1(
+#20000
+0(
+#25000
+1(
+#30000
+0(
+#35000
+1(
+#40000
+0(
+#45000
+1(
+#50000
+0(
+#55000
+1(
+#60000
+0(
+#65000
+1(
+#70000
+0(
+#75000
+1(
+#80000
+0(
+#85000
+1(
+#90000
+0(
+#95000
+1(
+#100000
+0(
+0.
+#105000
+1(
+#110000
+0(
+#115000
+1(
+#120000
+0(
+#125000
+17
+1!
+1$
+b100001000000000000000000000000111110100000000000000000000000000 #
+b100001000000000000000000000000111110100000000000000000000000000 /
+b100001000000000000000000000000111110100000000000000000000000000 '
+b100001000000000000000000000000111110100000000000000000000000000 0
+b100001000000000000000000000000111110100000000000000000000000000 6
+b111110100 +
+b111110100 2
+b10011101000010 *
+b10011101000010 1
+1)
+1,
+1(
+#130000
+0(
+#135000
+07
+1"
+1&
+b1001110100001011101110111011101110111011101110 #
+b1001110100001011101110111011101110111011101110 /
+b1001110100001011101110111011101110111011101110 '
+b1001110100001011101110111011101110111011101110 0
+b1001110100001011101110111011101110111011101110 6
+1!
+1$
+0,
+1(
+#140000
+0(
+#145000
+0"
+0&
+0!
+0$
+1(
+#150000
+0(
+#155000
+1(
+#160000
+0(
+#165000
+1(
+#170000
+0(
+#175000
+1(
+#180000
+0(
+#185000
+1(
+#190000
+0(
+#195000
+1(
+#200000
+0(
+#205000
+1(

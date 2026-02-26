@@ -4,12 +4,18 @@
 
 namespace ultra::fpga {
 
+            /**
+             * @brief Auto-generated description for FPGADriver.
+             */
 FPGADriver::FPGADriver() {
     // Allocate simulated MMIO region (4KB page aligned typically)
     simulated_memory_.resize(4096);
     regs_ = reinterpret_cast<ControlRegisters*>(simulated_memory_.data());
 }
 
+            /**
+             * @brief Auto-generated description for ~FPGADriver.
+             */
 FPGADriver::~FPGADriver() {
     // Unmap in real driver
 }
@@ -24,6 +30,12 @@ bool FPGADriver::init() {
     return true;
 }
 
+                 /**
+                  * @brief Auto-generated description for update_strategy_params.
+                  * @param skew Parameter description.
+                  * @param risk_aversion Parameter description.
+                  * @param max_pos Parameter description.
+                  */
 void FPGADriver::update_strategy_params(double skew, double risk_aversion, Quantity max_pos) {
     // Convert doubles to fixed-point for FPGA
     // Assuming 16.16 fixed point or similar scaling
@@ -60,10 +72,19 @@ int64_t FPGADriver::get_fpga_inventory() const {
     return regs_->fpga_inventory;
 }
 
+                     /**
+                      * @brief Auto-generated description for get_execution_count.
+                      * @return int value.
+                      */
 uint64_t FPGADriver::get_execution_count() const {
     return regs_->execution_count;
 }
 
+                 /**
+                  * @brief Auto-generated description for write_reg.
+                  * @param offset Parameter description.
+                  * @param value Parameter description.
+                  */
 void FPGADriver::write_reg(size_t offset, uint64_t value) {
     if (offset + 8 > simulated_memory_.size()) return;
     *reinterpret_cast<uint64_t*>(&simulated_memory_[offset]) = value;

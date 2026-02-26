@@ -5,7 +5,7 @@
 namespace ultra {
 
 // Initialize statics
-std::atomic<double> RDTSCClock::tsc_to_ns_factor_{0.0};
+std::atomic<double> RDTSCClock::tsc_to_ns_factor_{0.0}; ///< int variable representing tsc_to_ns_factor_.
 
 void RDTSCClock::calibrate() noexcept {
     std::cout << "Calibrating RDTSCClock..." << std::endl;
@@ -31,6 +31,10 @@ void RDTSCClock::calibrate() noexcept {
     std::cout << "Calibration complete." << std::endl;
 }
 
+                      /**
+                       * @brief Auto-generated description for system_now.
+                       * @return int value.
+                       */
 Timestamp RDTSCClock::system_now() noexcept {
     auto now = std::chrono::system_clock::now();
     return std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();

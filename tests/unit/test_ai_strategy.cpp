@@ -3,6 +3,9 @@
 #include "ultra/strategy/rl-inference/rl_policy.hpp"
 #include "ultra/market-data/itch/decoder.hpp"
 
+     /**
+      * @brief Auto-generated description for test_inventory_skew.
+      */
 void test_inventory_skew() {
     std::cout << "Running test_inventory_skew..." << std::endl;
     
@@ -50,6 +53,10 @@ void test_inventory_skew() {
     std::cout << "test_inventory_skew passed." << std::endl;
 }
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     test_inventory_skew();
     return 0;

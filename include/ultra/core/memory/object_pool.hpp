@@ -15,6 +15,9 @@ namespace ultra {
 template<typename T, size_t PoolSize>
 class ObjectPool {
 public:
+    /**
+     * @brief Auto-generated description for ObjectPool<T, PoolSize>.
+     */
     ObjectPool() {
         // Allocate contiguous block
         memory_block_ = allocator_.allocate(PoolSize);
@@ -26,6 +29,9 @@ public:
         free_count_ = PoolSize;
     }
     
+    /**
+     * @brief Auto-generated description for ~ObjectPool<T, PoolSize>.
+     */
     ~ObjectPool() {
         if (memory_block_) {
             allocator_.deallocate(memory_block_, PoolSize);
@@ -37,6 +43,10 @@ public:
     ObjectPool& operator=(const ObjectPool&) = delete;
     
     template<typename... Args>
+       /**
+        * @brief Auto-generated description for allocate.
+        * @return T * value.
+        */
     T* allocate(Args&&... args) noexcept {
         if (ULTRA_UNLIKELY(free_count_ == 0)) {
             return nullptr; // Pool exhausted
@@ -48,6 +58,10 @@ public:
         return ptr;
     }
     
+         /**
+          * @brief Auto-generated description for deallocate.
+          * @param ptr Parameter description.
+          */
     void deallocate(T* ptr) noexcept {
         // Calculate index from pointer
         size_t index = ptr - memory_block_;
@@ -57,18 +71,21 @@ public:
         free_indices_[free_count_++] = static_cast<uint32_t>(index);
     }
     
+         /**
+          * @brief Auto-generated description for clear.
+          */
     void clear() noexcept {
         free_count_ = PoolSize;
         // Optimization: Don't destruct everything if T is trivial
     }
 
 private:
-    HugePageAllocator<T> allocator_;
-    T* memory_block_{nullptr};
+    HugePageAllocator<T> allocator_; ///< HugePageAllocator<T> variable representing allocator_.
+    T* memory_block_{nullptr}; ///< T * variable representing memory_block_.
     
     // Stack-based free list
-    std::array<uint32_t, PoolSize> free_indices_;
-    size_t free_count_{0};
+    std::array<uint32_t, PoolSize> free_indices_; ///< int variable representing free_indices_.
+    size_t free_count_{0}; ///< int variable representing free_count_.
 };
 
 } // namespace ultra

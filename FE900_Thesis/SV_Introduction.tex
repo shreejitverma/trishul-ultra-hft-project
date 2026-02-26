@@ -1,17 +1,15 @@
 \chapter{Introduction and System Overview}
 
-Market making is central to modern financial markets, as liquidity providers continuously quote bid and ask prices to facilitate trading while managing inventory risk and seeking profit from the spread. The advent of high-frequency trading (HFT) has transformed this role, demanding ultra-low-latency decision-making under dynamic and volatile conditions. Traditional stochastic frameworks, such as the Avellaneda–Stoikov model, offer valuable theoretical foundations but often falter in environments characterized by sudden price swings, order book imbalances, and liquidity shortages. Their reliance on fixed assumptions limits adaptability in real-time, high-
-volatility settings \citep{Patel2022,Su2025}. This has prompted significant interest in more flexible approaches capable of balancing adverse selection, inventory control, and profitability at microsecond scales. 
+Market making is central to modern financial markets, as liquidity providers continuously quote \textbf{bid and ask prices}---the prices at which they are willing to buy and sell, respectively---to facilitate trading. By doing so, they manage \textbf{inventory risk}---the possibility of losses due to adverse price movements while holding a position---and seek profit from the \textbf{spread}, which is the difference between the bid and ask prices. The advent of \textbf{high-frequency trading (HFT)}, characterized by extremely high execution speeds and order-to-trade ratios, has transformed this role, demanding ultra-low-latency decision-making under dynamic and volatile conditions. Traditional stochastic frameworks, such as the Avellaneda–Stoikov model, offer valuable theoretical foundations but often falter in environments characterized by sudden price swings, \textbf{order book imbalances}---discrepancies between buy and sell interest at the top of the book---and liquidity shortages. 
+ Their reliance on fixed assumptions limits adaptability in real-time, high-
+ volatility settings \citep{Patel2022,Su2025}. This has prompted significant interest in more flexible approaches capable of balancing \textbf{adverse selection}---the risk of trading with a better-informed counterparty---\textbf{inventory control}, and profitability at microsecond scales. 
+ 
+ 
+ Recent advances in artificial intelligence (AI), particularly reinforcement learning (RL), have provided promising alternatives. RL agents learn adaptive quoting strategies through iterative interactions with either simulated markets or historical order book data, enabling dynamic policies that outperform rule-based methods \citep{Spooner2020,Kumar2023}. Deep RL models, including recurrent architectures, have demonstrated enhanced performance in inventory management and order placement, particularly in stressed environments \citep{Vakkilainen2023,Jiang2025}. Moreover, multi-objective RL frameworks have applied Pareto optimization to manage trade-offs between latency, volatility resilience, and \textbf{slippage reduction}---minimizing the difference between the expected price of a trade and the actual execution price \citep{Li2025}.
+  Despite these advances, most implementations remain software-based, and the computational overhead of deep learning methods introduces latency that undermines their applicability in production-grade HFT environments. 
 
 
-Recent advances in artificial intelligence (AI), particularly reinforcement learning (RL), have provided promising alternatives. RL agents learn adaptive quoting strategies through iterative interactions with either simulated markets or historical order book data, enabling dynamic policies that outperform rule-based methods \citep{Spooner2020,Kumar2023}. Deep RL models, including recurrent architectures, have demonstrated enhanced performance in inventory management and order placement, particularly in stressed environments \citep{Vakkilainen2023,Jiang2025}. Moreover, multi-objective RL frameworks have applied Pareto optimization to manage trade-offs between latency, volatility resilience, and slippage reduction \citep{Li2025}. Despite these advances, most implementations remain software-based, and the computational overhead of deep learning methods introduces latency that undermines their applicability in production-grade HFT environments. 
-
-
-Parallel to developments in AI, field-programmable gate arrays (FPGAs) have emerged as
-critical enablers of ultra-low-latency trading. Unlike CPUs and GPUs, FPGAs can process
-market data feeds, order matching, and risk checks at nanosecond scales, leveraging hardware-level parallelism \citep{Gupta2024,LitzND}. Studies highlight their advantages in power efficiency, deterministic execution, and real-time data handling, which are essential for HFT infrastructures \citep{Lockwood2012,Joshua2025}. Applications range from pre-built IP libraries for networking and protocol parsing \citep{Lockwood2012} to FPGA-based system-on-chip frameworks for algorithmic execution \citep{AlAhmed2024}.
-Furthermore, integration of FPGAs with technologies like RDMA has enabled near-zero-copy
-communication pipelines, further reducing latency across trading networks \citep{Joshua2025}. Nevertheless, traditional FPGA deployments have typically been limited to deterministic, pre-specified functions, lacking the adaptability required for volatile and evolving market conditions. 
+Parallel to developments in AI, \textbf{field-programmable gate arrays (FPGAs)} have emerged as critical enablers of ultra-low-latency trading. \textit{Think of an FPGA as a "chameleon" chip that can be physically rewired through software to become a specialized calculator for a specific task, making it much faster than a general-purpose computer processor.} These chips allow for near-instantaneous decision-making, minimizing \textbf{latency}---the tiny delay between a market event and a trader's response. To minimize this even further, trading firms use \textbf{co-location}, which simply means \textit{placing their computers in the same building as the stock exchange's computers to reduce the time it takes for data to travel through fiber-optic cables at the speed of light.}
 
 
 The convergence of AI and FPGA technology offers a promising path forward. Recent studies have explored FPGA-accelerated AI inference in trading contexts, enabling models such as XGBoost or neural networks to run at sub-microsecond scales \citep{NapatechND,Fidus2024}. Dynamic FPGA reconfiguration has been proposed as a means to accommodate evolving RL or deep learning models in real time \citep{Aouini2025}. Early prototypes of AI-augmented FPGA trading systems suggest significant reductions in end-to-end latencies for market-making strategies \citep{Lee2023,Kuzmanovic2023}. Yet, gaps remain: few studies systematically evaluate AI–FPGA integration under extreme volatility, flash-crash conditions, or across multi-asset contexts. Moreover, while industry reports emphasize the growing adoption of FPGA–AI platforms for finance \citep{Markets2025,Lattice2025}, rigorous academic investigations into resilience, scalability, and security trade-offs remain limited. 
@@ -63,9 +61,7 @@ This thesis aims to bridge these gaps by developing an integrated reinforcement 
 \end{figure}
 
 \noindent
-The first stage of the proposed system begins with the \textbf{ingestion of raw market data from stock exchanges such as NASDAQ and NYSE}. These exchanges publish continuous streams of tick-level information, including order book updates and trade events, using \textbf{multicast feeds}. To minimize latency, trading firms typically deploy their infrastructure within \textbf{co-location facilities} physically situated near the exchange servers, ensuring that market updates traverse the shortest possible physical distance before reaching the system.
-
-Within this co-located environment, incoming data is captured through an \textbf{ultra-low-latency network interface card (NIC)}. Unlike conventional NICs, these specialized devices are optimized for deterministic packet capture at microsecond and even nanosecond granularity. To further reduce overhead, the system employs \textbf{kernel-bypass mechanisms} such as DPDK or Solarflare Onload, allowing direct user-space access to packet streams and eliminating delays introduced by the operating system’s networking stack.
+The first stage of the proposed system begins with the \textbf{ingestion of raw market data from stock exchanges such as NASDAQ and NYSE}. These exchanges publish continuous streams of tick-level information, including order book updates and trade events, using \textbf{multicast feeds}---a method where \textit{the exchange broadcasts information once, and anyone tuned in can listen simultaneously, much like a radio station.} Within this co-located environment, data is captured through specialized hardware and processed using \textbf{kernel-bypass mechanisms}. \textit{Normally, data has to go through the computer's general Operating System (the "kernel"), which acts like a slow, bureaucratic middleman. Kernel bypass allows the data to skip this middleman and go straight to the trading program, saving precious microseconds.}
 
 The processed feed is then passed to the \textbf{market data feed handler}, which performs protocol decoding, normalization, and transformation into an internal format suitable for downstream components. This module acts as the critical bridge between raw exchange data and the trading logic of the system, ensuring that millions of messages per second can be ingested and translated without loss.
 
@@ -295,9 +291,9 @@ Figure ~\ref{fig:order_processing_analytics} illustrates the final stages of the
     \node [proc, below=of fpga] (sw) {Software};
     
     % Metrics
-    \node [metric, right=of fpga] (t2t) {Lat};
-    \node [metric, right=of sw] (cpu) {CPU};
-    \node [metric, below=of cpu] (pnl) {PnL};
+    \node [metric, right=of fpga] (t2t) {Lat ($ns$)};
+    \node [metric, right=of sw] (cpu) {CPU ($\%$)};
+    \node [metric, below=of cpu] (pnl) {PnL ($\$$)};
 
     % Collector
     \node [proc, right=of t2t, yshift=-1cm] (col) {Collector};
@@ -336,7 +332,7 @@ This robust monitoring framework ensures that every aspect of the trading system
     \centering
 \begin{tikzpicture}[node distance=1.5cm, auto, >=latex']
     % Styles
-    \tikzstyle{domain_style} = [rectangle, draw, dashed, fill=white, minimum width=12cm, minimum height=3cm]
+    \tikzstyle{domain_style} = [rectangle, draw, dashed, fill=white, minimum width=10.5cm, minimum height=3cm]
     \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=5em, text centered, rounded corners]
     \tikzstyle{mem} = [rectangle, draw, fill=yellow!10, text width=4em, text centered]
     
@@ -383,4 +379,4 @@ Figure ~\ref{fig:unified_architecture} presents the unified, end-to-end architec
     \item \textbf{Software-based Strategy Engines:} For more complex, less latency-sensitive logic, software-based engines also subscribe to the event stream. The diagram shows a \textbf{Market Making Engine} and a \textbf{Volatility Engine}, which can run statistical or machine learning models. 
     \item \textbf{Smart Order Router (SOR):} This component receives order commands from all strategy engines. Before execution, every order is passed through the \textbf{Pre-Trade Risk Checks} and compliance gateways. 
     \item \textbf{Monitoring \& Analytics:} A parallel \textbf{Latency Collection} system monitors the entire pipeline, feeding data to a real-time dashboard. The \textbf{Order Management System (OMS)} records all trade executions, providing data for post-trade analysis and continuous model refinement. 
-\end{itemize} This unified architecture demonstrates a hybrid approach, leveraging the raw speed of FPGAs for time-critical decisions while retaining the flexibility of software for complex analytics and risk management. The entire system is built upon a foundation of event-driven design and nanosecond-level time synchronization, creating a robust and highly performant framework for implementing advanced, AI-integrated trading strategies.
+\end{itemize} This unified architecture demonstrates a hybrid approach, leveraging the raw speed of FPGAs for time-critical decisions while retaining the flexibility of software for complex analytics and risk management. The entire system is built upon a foundation of event-driven design and nanosecond-level time synchronization, creating a robust and highly performant framework for implementing advanced, AI-integrated trading strategies.For detailed definitions of the financial and technical terms used throughout this thesis, the reader is referred to the Glossary.

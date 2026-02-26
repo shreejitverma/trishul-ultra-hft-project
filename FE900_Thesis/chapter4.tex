@@ -23,10 +23,10 @@ The \texttt{itch\_decoder} transforms the raw byte stream into semantic market e
 The pivotal contribution of this work is the replacement of static decision logic with the \texttt{strat\_decide.v} module. This hardware core embeds a trained Reinforcement Learning policy directly into the datapath. To meet the stringent timing requirements of a 300 MHz clock domain, the inference engine is structured as a 4-stage pipeline:
 
 \begin{enumerate}
-    \item \textbf{Stage 1: Feature Extraction.} The module computes derived market features in real-time. These include the Bid-Ask Spread, the Order Book Imbalance (OBI), and the Inventory Skew. These calculations utilize dedicated adders and subtractors to produce a feature vector.
-    \item \textbf{Stage 2: DSP-Accelerated MAC.} The feature vector is fed into a bank of Xilinx DSP48 slices. These specialized arithmetic units perform the Multiply-Accumulate (MAC) operations required for the neural network's dense layers, computing the dot-product of input features and learned weights stored in Block RAM (BRAM).
-    \item \textbf{Stage 3: Hardware Activation.} The output of the MAC stage passes through an activation function. To avoid the latency of calculating exponentials for Sigmoid or Tanh, the system implements a Rectified Linear Unit (ReLU), which is efficiently synthesized as a single multiplexer logic gate (\(\max(0, x)\)).
-    \item \textbf{Stage 4: Decision Thresholding.} The activated values are compared against learned thresholds to generate discrete \texttt{BUY} or \texttt{SELL} control signals.
+    \item \textbf{Stage 1: Feature Extraction.} The module computes derived market features in real-time. \textit{Features are essentially "summaries" of the market state, like whether the spread is wide or if there are more buyers than sellers.}
+    \item \textbf{Stage 2: DSP-Accelerated MAC.} The feature vector is fed into specialized arithmetic units. \textit{MAC stands for "Multiply-Accumulate," which is just a fancy way of saying the system performs thousands of weighted calculations simultaneously to find the best signal.}
+    \item \textbf{Stage 3: Hardware Activation.} The output passes through an activation function. \textit{This acts like a filter that ignores weak, unimportant signals and only passes through strong, useful information.}
+    \item \textbf{Stage 4: Decision Thresholding.} The activated values are compared against learned thresholds. \textit{This is the final "Go/No-Go" check. If the signal is strong enough, it triggers a discrete BUY or SELL order.}
 \end{enumerate}
 
 This pipelined architecture achieves a total inference latency of approximately 13.3 nanoseconds, effectively rendering the AI decision-making cost negligible in the context of the total system latency.
@@ -35,7 +35,7 @@ This pipelined architecture achieves a total inference latency of approximately 
 To mitigate the operational risks associated with probabilistic AI models, the outputs of the RL core are gated by a deterministic safety module, \texttt{risk\_gate}. This module enforces hard constraints on:
 \begin{itemize}
     \item \textbf{Max Notional Value:} Preventing orders that exceed a predefined dollar amount.
-    \item \textbf{Message Rate:} Limiting the frequency of orders to prevent runaway loops (e.g., "quote stuffing").
+    \item \textbf{Message Rate:} Limiting the frequency of orders to prevent runaway loops such as \textbf{quote stuffing}---a practice where a large number of orders are rapidly entered and then cancelled to create congestion or deceptive market signals.
 \end{itemize}
 This "Safety Envelope" ensures that even in the event of model hallucination or input anomalies, the system remains within safe operating parameters.
 

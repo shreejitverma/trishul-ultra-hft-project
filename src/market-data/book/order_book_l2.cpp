@@ -5,6 +5,10 @@
 
 namespace ultra::md {
 
+             /**
+              * @brief Auto-generated description for OrderBookL2.
+              * @param symbol_id Parameter description.
+              */
 OrderBookL2::OrderBookL2(SymbolId symbol_id) : symbol_id_(symbol_id) {
     // Clear hash map
     std::fill(order_map_.begin(), order_map_.end(), nullptr);
@@ -14,6 +18,10 @@ OrderBookL2::OrderBookL2(SymbolId symbol_id) : symbol_id_(symbol_id) {
     for (auto& level : asks_) { level.price = INVALID_PRICE; level.quantity = 0; level.order_count = 0; }
 }
 
+                            /**
+                             * @brief Auto-generated description for update.
+                             * @param msg Parameter description.
+                             */
 ULTRA_HOT void OrderBookL2::update(const itch::ITCHDecoder::DecodedMessage& msg) noexcept {
     if (ULTRA_UNLIKELY(!msg.valid)) return;
     if (msg.symbol_id != INVALID_SYMBOL && msg.symbol_id != symbol_id_) return;
@@ -81,6 +89,13 @@ bbo_check:
     }
 }
 
+                  /**
+                   * @brief Auto-generated description for add_order.
+                   * @param id Parameter description.
+                   * @param side Parameter description.
+                   * @param price Parameter description.
+                   * @param qty Parameter description.
+                   */
 void OrderBookL2::add_order(OrderId id, Side side, Price price, Quantity qty) noexcept {
     // 1. Allocate from pool
     OrderEntry* new_order = order_pool_.allocate();
@@ -104,6 +119,10 @@ void OrderBookL2::add_order(OrderId id, Side side, Price price, Quantity qty) no
     update_level(side, price, static_cast<int32_t>(qty));
 }
 
+                  /**
+                   * @brief Auto-generated description for delete_order.
+                   * @param id Parameter description.
+                   */
 void OrderBookL2::delete_order(OrderId id) noexcept {
     uint32_t h = hash(id);
     OrderEntry* curr = order_map_[h];

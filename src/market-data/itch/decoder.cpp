@@ -1,14 +1,20 @@
 #include "ultra/market-data/itch/decoder.hpp"
+#include "ultra/core/async_logger.hpp"
 #include <iostream>
 
 namespace ultra::md::itch {
 
+             /**
+              * @brief Auto-generated description for ITCHDecoder.
+              */
 ITCHDecoder::ITCHDecoder() {
+    ULTRA_TRACE_SIMPLE("ITCHDecoder::ITCHDecoder");
     // We could pre-populate the symbol table from a config file here
     // For now, it's manual via register_symbol
 }
 
 void ITCHDecoder::register_symbol(const char* symbol, SymbolId id) {
+    ULTRA_TRACE("ITCHDecoder::register_symbol", "Registering symbol for O(1) lookup", symbol);
     uint64_t symbol_int = char8_to_uint64(symbol);
     uint32_t index = hash_symbol(symbol_int);
     
@@ -22,26 +28,40 @@ void ITCHDecoder::register_symbol(const char* symbol, SymbolId id) {
         }
     }
     // Error: hash table full
-    std::cerr << "ITCHDecoder Error: Symbol hash table full." << std::endl;
+    ULTRA_LOG(ERROR, "ITCHDecoder Error: Symbol hash table full.");
 }
 
+                      /**
+                       * @brief Auto-generated description for lookup_symbol.
+                       * @param symbol Parameter description.
+                       * @return int value.
+                       */
 SymbolId ITCHDecoder::lookup_symbol(const char* symbol) const noexcept {
+    ULTRA_TRACE("ITCHDecoder::lookup_symbol", "O(1) Symbol ID retrieval", symbol);
     uint64_t symbol_int = char8_to_uint64(symbol);
     uint32_t index = hash_symbol(symbol_int);
     
     for(size_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
         uint32_t current_index = (index + i) & (SYMBOL_HASH_SIZE - 1);
         if (symbol_table_[current_index].symbol_int == symbol_int) {
-            return symbol_table_[current_index].id;
+            return ULTRA_TRACE_RET(symbol_table_[current_index].id);
         }
         if (symbol_table_[current_index].id == INVALID_SYMBOL) {
-            return INVALID_SYMBOL;
+            return ULTRA_TRACE_RET(INVALID_SYMBOL);
         }
     }
-    return INVALID_SYMBOL;
+    return ULTRA_TRACE_RET(INVALID_SYMBOL);
 }
 
+                                         /**
+                                          * @brief Auto-generated description for decode.
+                                          * @param data Parameter description.
+                                          * @param len Parameter description.
+                                          * @param rdtsc_ts Parameter description.
+                                          * @return ITCHDecoder::DecodedMessage value.
+                                          */
 ITCHDecoder::DecodedMessage ITCHDecoder::decode(const uint8_t* data, size_t len, Timestamp rdtsc_ts) noexcept {
+    ULTRA_TRACE("ITCHDecoder::decode", "Binary ITCH 5.0 parsing", "len=" + std::to_string(len));
     DecodedMessage msg{};
     msg.tsc = rdtsc_ts;
     msg.valid = false;

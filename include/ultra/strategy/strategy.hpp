@@ -14,13 +14,13 @@ struct StrategyOrder {
         NEW_ORDER,
         CANCEL_ORDER
     };
-    Action action;
-    OrderId order_id;
-    SymbolId symbol_id;
-    Side side;
-    Price price;
-    Quantity quantity;
-    OrderType type;
+    Action action; ///< Action variable representing action.
+    OrderId order_id; ///< int variable representing order_id.
+    SymbolId symbol_id; ///< int variable representing symbol_id.
+    Side side; ///< Side variable representing side.
+    Price price; ///< int variable representing price.
+    Quantity quantity; ///< int variable representing quantity.
+    OrderType type; ///< OrderType variable representing type.
 };
 
 // Base class for all strategies

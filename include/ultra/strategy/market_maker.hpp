@@ -15,8 +15,12 @@ namespace ultra::strategy {
  */
 class MarketMaker : public IStrategy {
 public:
-    static constexpr size_t ORDER_QUEUE_CAPACITY = 1024;
+    static constexpr size_t ORDER_QUEUE_CAPACITY = 1024; ///< const int variable representing ORDER_QUEUE_CAPACITY.
 
+    /**
+     * @brief Auto-generated description for MarketMaker.
+     * @param symbol_id Parameter description.
+     */
     MarketMaker(SymbolId symbol_id) 
         : symbol_id_(symbol_id), book_(symbol_id), 
           risk_checker_(risk::PretradeChecker::Config{}) { // Default risk limits
@@ -27,31 +31,48 @@ public:
         });
     }
 
+         /**
+          * @brief Auto-generated description for on_market_data.
+          * @param msg Parameter description.
+          */
     void on_market_data(const md::itch::ITCHDecoder::DecodedMessage& msg) override {
         // Feed the book, which triggers the listener
         book_.update(msg);
     }
 
+         /**
+          * @brief Auto-generated description for on_execution.
+          * @param report Parameter description.
+          */
     void on_execution(const exec::ExecutionReport& report) override {
         // Update Risk State
         risk_checker_.on_execution(report);
     }
 
+         /**
+          * @brief Auto-generated description for get_order.
+          * @param order Parameter description.
+          * @return bool value.
+          */
     bool get_order(StrategyOrder& order) override {
         return order_queue_.pop(order);
     }
 
 private:
-    SymbolId symbol_id_;
-    md::OrderBookL2 book_;
-    SPSCQueue<StrategyOrder, ORDER_QUEUE_CAPACITY> order_queue_;
-    risk::PretradeChecker risk_checker_;
+    SymbolId symbol_id_; ///< int variable representing symbol_id_.
+    md::OrderBookL2 book_; ///< md::OrderBookL2 variable representing book_.
+    SPSCQueue<StrategyOrder, ORDER_QUEUE_CAPACITY> order_queue_; ///< int variable representing order_queue_.
+    risk::PretradeChecker risk_checker_; ///< risk::PretradeChecker variable representing risk_checker_.
     
     // Strategy Parameters
     static constexpr Price SPREAD_CAPTURE = 500; // 5 cents
-    static constexpr Quantity QUOTE_QTY = 100;
+    static constexpr Quantity QUOTE_QTY = 100; ///< const int variable representing QUOTE_QTY.
     static constexpr double SKEW_FACTOR = 200.0; // 2 cents max skew
     
+         /**
+          * @brief Auto-generated description for on_bbo_update.
+          * @param bbo Parameter description.
+          */
     void on_bbo_update(const md::OrderBookL2::BBOUpdate& bbo) {
         // Simple logic: Quote around Mid Price
         if (bbo.bid_price == 0 || bbo.ask_price == INVALID_PRICE) return;

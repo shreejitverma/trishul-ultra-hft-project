@@ -56,7 +56,7 @@ public:
     static Timestamp system_now() noexcept;
     
 private:
-    static std::atomic<double> tsc_to_ns_factor_;
+    static std::atomic<double> tsc_to_ns_factor_; ///< int variable representing tsc_to_ns_factor_.
 };
 
 } // namespace ultra

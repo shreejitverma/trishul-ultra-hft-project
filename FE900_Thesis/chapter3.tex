@@ -48,9 +48,9 @@ The ingress stage is responsible for the line-rate consumption of Ethernet frame
 \subsection{State Management and Decision Logic}
 The core of the trading engine resides in its ability to maintain state and make decisions based on that state.
 \begin{description}
-    \item[Order Book Management (\texttt{book2}):] The normalized ticks feed into the hardware Order Book. Unlike software implementations that might store the full depth of the book (Level 2/3), this FPGA module is optimized to maintain the "Best Bid and Offer" (BBO) with single-cycle update latency. It compares incoming price levels against stored registers (\texttt{bid\_px0}, \texttt{ask\_px0}) and updates the top-of-book state instantaneously, providing the Strategy Engine with the most current market view.
+    \item[Order Book Management (\texttt{book2}):] The normalized ticks feed into the hardware Order Book. This module is optimized to maintain the \textbf{Best Bid and Offer (BBO)}---which represents the \textit{"Top of the Pile." It is simply the highest price anyone is currently willing to pay and the lowest price anyone is currently willing to accept.} By maintaining this state in hardware, the system can react to price changes instantaneously.
 
-    \item[Reinforcement Learning Strategy Core (\texttt{strat\_decide}):] This module represents the architectural innovation of this thesis. Replacing traditional static threshold logic, the RL Core executes a neural network inference pass for every BBO update. It synthesizes market features (such as spread and imbalance) and computes a trading decision using DSP-accelerated matrix operations. This allows the system to adapt its behavior dynamically to volatility, a capability previously limited to high-latency software systems.
+    \item[Reinforcement Learning Strategy Core (\texttt{strat\_decide}):] This module is the \textit{"Brain"} of the system. Instead of simple, rigid rules, it uses a \textit{trained AI model} to analyze the market and decide whether to buy or sell. By running this AI directly on the FPGA hardware, we get the best of both worlds: adaptive intelligence and lightning-fast speed.
 \end{description}
 
 \subsection{Egress and Execution}
@@ -66,5 +66,5 @@ Once a trading decision is reached, it must be translated into a valid network p
 While the critical path executes entirely within the FPGA fabric, a robust software ecosystem is essential for simulation, model training, and system monitoring.
 \begin{itemize}
     \item \textbf{Asynchronous Logging Infrastructure:} To maintain observability without compromising performance, the software layer utilizes a lock-free, ring-buffer-based logging mechanism. This ensures that diagnostic data and compliance logs are offloaded to background threads, preventing I/O blocking on the main control threads.
-    \item \textbf{Matching Engine Simulator:} To validate the efficacy of the RL Core and the correctness of the OUCH encoder prior to hardware deployment, a bit-accurate software simulator of the exchange matching logic is employed. This simulator enforces Price-Time Priority execution, allowing for realistic backtesting of the strategy against historical data.
+    \item \textbf{Matching Engine Simulator:} To validate the efficacy of the RL Core and the correctness of the OUCH encoder prior to hardware deployment, a bit-accurate software simulator of the exchange matching logic is employed. This simulator enforces \textbf{Price-Time Priority}---a rule used by exchanges where orders at the same price are filled in the order they were received---allowing for realistic backtesting of the strategy against historical data.
 \end{itemize}

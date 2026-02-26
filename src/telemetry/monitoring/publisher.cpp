@@ -6,6 +6,9 @@
 
 namespace ultra::telemetry {
 
+                       /**
+                        * @brief Auto-generated description for start.
+                        */
 void MetricsPublisher::start() {
     running_ = true;
     publisher_thread_ = std::thread([this]() {
@@ -16,6 +19,9 @@ void MetricsPublisher::start() {
     });
 }
 
+                       /**
+                        * @brief Auto-generated description for stop.
+                        */
 void MetricsPublisher::stop() {
     running_ = false;
     if (publisher_thread_.joinable()) {
@@ -23,6 +29,9 @@ void MetricsPublisher::stop() {
     }
 }
 
+                       /**
+                        * @brief Auto-generated description for publish_snapshot.
+                        */
 void MetricsPublisher::publish_snapshot() {
     // 1. Gather Metrics
     // In a real system, we'd read atomic counters from shared memory

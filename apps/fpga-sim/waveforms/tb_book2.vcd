@@ -1,0 +1,199 @@
+$date
+	Wed Feb 25 20:07:30 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_book2 $end
+$var wire 32 ! bid_sz0 [31:0] $end
+$var wire 32 " bid_px0 [31:0] $end
+$var wire 32 # ask_sz0 [31:0] $end
+$var wire 32 $ ask_px0 [31:0] $end
+$var reg 1 % clk $end
+$var reg 1 & rst $end
+$var reg 32 ' tick_price [31:0] $end
+$var reg 32 ( tick_qty [31:0] $end
+$var reg 1 ) tick_side $end
+$var reg 1 * tick_type $end
+$var reg 1 + tick_valid $end
+$scope module uut $end
+$var wire 1 % clk $end
+$var wire 1 & rst $end
+$var wire 32 , tick_price [31:0] $end
+$var wire 32 - tick_qty [31:0] $end
+$var wire 1 ) tick_side $end
+$var wire 1 * tick_type $end
+$var wire 1 + tick_valid $end
+$var parameter 32 . INVALID_PX_ASK $end
+$var parameter 32 / INVALID_PX_BID $end
+$var reg 32 0 ask_px0 [31:0] $end
+$var reg 32 1 ask_sz0 [31:0] $end
+$var reg 32 2 bid_px0 [31:0] $end
+$var reg 32 3 bid_sz0 [31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b0 /
+b11111111111111111111111111111111 .
+$end
+#0
+$dumpvars
+bx 3
+bx 2
+bx 1
+bx 0
+b0 -
+b0 ,
+0+
+0*
+0)
+b0 (
+b0 '
+1&
+0%
+bx $
+bx #
+bx "
+bx !
+$end
+#5000
+b0 #
+b0 1
+b11111111111111111111111111111111 $
+b11111111111111111111111111111111 0
+b0 !
+b0 3
+b0 "
+b0 2
+1%
+#10000
+0%
+#15000
+1%
+#20000
+0%
+#25000
+1%
+#30000
+0%
+#35000
+1%
+#40000
+0%
+#45000
+1%
+#50000
+0%
+#55000
+1%
+#60000
+0%
+#65000
+1%
+#70000
+0%
+#75000
+1%
+#80000
+0%
+#85000
+1%
+#90000
+0%
+#95000
+1%
+#100000
+0%
+0&
+#105000
+1%
+#110000
+0%
+#115000
+1%
+#120000
+0%
+#125000
+b1010 !
+b1010 3
+b10011100010000 "
+b10011100010000 2
+b10011100010000 '
+b10011100010000 ,
+b1010 (
+b1010 -
+1)
+1+
+1%
+#130000
+0%
+#135000
+b10100 !
+b10100 3
+0+
+1%
+#140000
+0%
+#145000
+b101 #
+b101 1
+b10011100011010 $
+b10011100011010 0
+b10011100011010 '
+b10011100011010 ,
+b101 (
+b101 -
+0)
+1+
+1%
+#150000
+0%
+#155000
+b1010 #
+b1010 1
+0+
+1%
+#160000
+0%
+#165000
+b10011100010101 "
+b10011100010101 2
+b10011100010101 '
+b10011100010101 ,
+b10100 (
+b10100 -
+1)
+1+
+1%
+#170000
+0%
+#175000
+b101000 !
+b101000 3
+0+
+1%
+#180000
+0%
+#185000
+1%
+#190000
+0%
+#195000
+1%
+#200000
+0%
+#205000
+1%
+#210000
+0%
+#215000
+1%
+#220000
+0%
+#225000
+1%

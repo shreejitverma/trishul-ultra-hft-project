@@ -1,12 +1,17 @@
 #include "engine.hpp"
 #include "ultra/core/time/rdtsc_clock.hpp"
 #include "ultra/core/thread_utils.hpp"
+#include "ultra/core/async_logger.hpp"
 #include <iostream>
 #include <vector>
 
 namespace ultra {
 
+        /**
+         * @brief Auto-generated description for Engine.
+         */
 Engine::Engine() {
+    ULTRA_TRACE("Engine::Engine", "Constructing HFT Engine", "None");
     // --- 1. Allocate Queues ---
     md_to_strategy_queue_ = std::make_unique<MDQueue>();
     strategy_to_risk_queue_ = std::make_unique<OrderQueue>();
@@ -64,26 +69,34 @@ Engine::Engine() {
     std::cout << "Engine components initialized. Mode: " << (use_live_network_ ? "LIVE" : "SIMULATION") << std::endl;
 }
 
+        /**
+         * @brief Auto-generated description for ~Engine.
+         */
 Engine::~Engine() {
+    ULTRA_TRACE_SIMPLE("Engine::~Engine");
     if (running_) {
         stop();
     }
 }
 
+             /**
+              * @brief Start all engine threads and enter running state.
+              */
 void Engine::run() {
+    ULTRA_TRACE_SIMPLE("Engine::run");
     running_ = true;
     
     // Start threads (in reverse order of data flow)
     exec_thread_ = std::thread(&Engine::exec_thread_loop, this);
     strategy_thread_ = std::thread(&Engine::strategy_thread_loop, this);
     md_thread_ = std::thread(&Engine::md_thread_loop, this);
-    
-    std::cout << "Engine running. Press [Enter] to stop." << std::endl;
-    std::cin.get();
-    stop();
 }
 
+             /**
+              * @brief Auto-generated description for stop.
+              */
 void Engine::stop() {
+    ULTRA_TRACE_SIMPLE("Engine::stop");
     running_ = false;
     
     if (udp_receiver_) udp_receiver_->stop();
@@ -92,12 +105,16 @@ void Engine::stop() {
     if (strategy_thread_.joinable()) strategy_thread_.join();
     if (exec_thread_.joinable()) exec_thread_.join();
     
-    std::cout << "Engine stopped." << std::endl;
+    ULTRA_LOG_FLOW(INFO, "Info", 0, "Engine stopped.");
 }
 
+             /**
+              * @brief Auto-generated description for md_thread_loop.
+              */
 void Engine::md_thread_loop() {
+    ULTRA_TRACE_SIMPLE("Engine::md_thread_loop");
     ThreadUtils::pin_thread(1); // Pin MD to Core 1
-    std::cout << "[MD Thread] running." << std::endl;
+    ULTRA_LOG_FLOW(INFO, "Info", 0, "[MD Thread] running.");
     
     // Buffer for network packets
     std::vector<uint8_t> rx_buffer(2048);
@@ -177,9 +194,13 @@ void Engine::md_thread_loop() {
     }
 }
 
+             /**
+              * @brief Auto-generated description for strategy_thread_loop.
+              */
 void Engine::strategy_thread_loop() {
+    ULTRA_TRACE_SIMPLE("Engine::strategy_thread_loop");
     ThreadUtils::pin_thread(2);
-    std::cout << "[Strategy Thread] running." << std::endl;
+    ULTRA_LOG_FLOW(INFO, "Info", 0, "[Strategy Thread] running.");
     
     md::itch::ITCHDecoder::DecodedMessage md_msg;
     exec::ExecutionReport exec_report;
@@ -221,9 +242,13 @@ void Engine::strategy_thread_loop() {
     }
 }
 
+             /**
+              * @brief Auto-generated description for exec_thread_loop.
+              */
 void Engine::exec_thread_loop() {
+    ULTRA_TRACE_SIMPLE("Engine::exec_thread_loop");
     ThreadUtils::pin_thread(3);
-    std::cout << "[Exec Thread] running." << std::endl;
+    ULTRA_LOG_FLOW(INFO, "Info", 0, "[Exec Thread] running.");
 
     strategy::StrategyOrder order_to_check;
     exec::ExecutionReport exec_report;

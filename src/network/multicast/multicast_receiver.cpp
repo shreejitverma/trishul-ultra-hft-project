@@ -9,12 +9,23 @@
 
 namespace ultra::network {
 
+                   /**
+                    * @brief Auto-generated description for MulticastReceiver.
+                    * @param config Parameter description.
+                    */
 MulticastReceiver::MulticastReceiver(const Config& config) : config_(config) {}
 
+                   /**
+                    * @brief Auto-generated description for ~MulticastReceiver.
+                    */
 MulticastReceiver::~MulticastReceiver() {
     stop();
 }
 
+                        /**
+                         * @brief Auto-generated description for start.
+                         * @return bool value.
+                         */
 bool MulticastReceiver::start() {
     sock_fd_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock_fd_ < 0) {
@@ -75,6 +86,9 @@ bool MulticastReceiver::start() {
     return true;
 }
 
+                        /**
+                         * @brief Auto-generated description for stop.
+                         */
 void MulticastReceiver::stop() {
     running_ = false;
     if (sock_fd_ >= 0) {
@@ -83,6 +97,12 @@ void MulticastReceiver::stop() {
     }
 }
 
+                                 /**
+                                  * @brief Auto-generated description for receive.
+                                  * @param buffer Parameter description.
+                                  * @param max_len Parameter description.
+                                  * @return int value.
+                                  */
 ULTRA_HOT int MulticastReceiver::receive(uint8_t* buffer, size_t max_len) {
     if (!running_) return -1;
 

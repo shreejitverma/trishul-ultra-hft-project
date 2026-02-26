@@ -12,6 +12,10 @@ namespace ultra {
 
 class ThreadUtils {
 public:
+                /**
+                 * @brief Auto-generated description for pin_thread.
+                 * @param core_id Parameter description.
+                 */
     static void pin_thread(int core_id) {
 #if defined(__linux__)
         cpu_set_t cpuset;
@@ -51,6 +55,11 @@ public:
 #endif
     }
 
+                /**
+                 * @brief Auto-generated description for isolate_thread.
+                 * @param core_id Parameter description.
+                 * @param priority Parameter description.
+                 */
     static void isolate_thread(int core_id, int priority = 99) {
         pin_thread(core_id);
         set_realtime_priority(priority);

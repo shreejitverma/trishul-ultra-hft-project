@@ -16,6 +16,12 @@ void write_msg(std::ofstream& out, const T& msg) {
     out.write(reinterpret_cast<const char*>(&msg), sizeof(T));
 }
 
+    /**
+     * @brief Auto-generated description for main.
+     * @param argc Parameter description.
+     * @param argv Parameter description.
+     * @return int value.
+     */
 int main(int argc, char** argv) {
     std::string filename = "market_data_large.bin";
     size_t num_messages = 10000000; // 10 Million

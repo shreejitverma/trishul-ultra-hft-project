@@ -20,11 +20,22 @@ public:
     
     constexpr static size_type HUGE_PAGE_SIZE = 2 * 1024 * 1024; // 2MB
     
+    /**
+     * @brief Auto-generated description for HugePageAllocator<T>.
+     */
     HugePageAllocator() noexcept = default;
     
     template<typename U>
+    /**
+     * @brief Auto-generated description for HugePageAllocator<T>.
+     */
     HugePageAllocator(const HugePageAllocator<U>&) noexcept {}
     
+       /**
+        * @brief Auto-generated description for allocate.
+        * @param n Parameter description.
+        * @return T * value.
+        */
     T* allocate(size_type n) {
         if (n > std::numeric_limits<size_type>::max() / sizeof(T)) {
             throw std::bad_alloc();
@@ -59,6 +70,11 @@ public:
         return static_cast<T*>(p);
     }
     
+         /**
+          * @brief Auto-generated description for deallocate.
+          * @param p Parameter description.
+          * @param n Parameter description.
+          */
     void deallocate(T* p, size_type n) noexcept {
         if (p == nullptr) return;
         

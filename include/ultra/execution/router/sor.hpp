@@ -10,9 +10,18 @@ namespace ultra::execution {
 
 class SmartOrderRouter {
 public:
+    /**
+     * @brief Auto-generated description for SmartOrderRouter.
+     * @param fpga Parameter description.
+     * @param gateway Parameter description.
+     */
     SmartOrderRouter(fpga::FPGADriver* fpga, exec::GatewaySim* gateway)
         : fpga_(fpga), gateway_(gateway) {}
 
+         /**
+          * @brief Auto-generated description for route.
+          * @param order Parameter description.
+          */
     void route(const strategy::StrategyOrder& order) {
         auto& universe = SymbolUniverse::instance();
         const SymbolInfo* info = universe.get_symbol(order.symbol_id);
@@ -42,8 +51,8 @@ public:
     }
 
 private:
-    fpga::FPGADriver* fpga_;
-    exec::GatewaySim* gateway_;
+    fpga::FPGADriver* fpga_; ///< fpga::FPGADriver * variable representing fpga_.
+    exec::GatewaySim* gateway_; ///< exec::GatewaySim * variable representing gateway_.
 };
 
 } // namespace ultra::execution

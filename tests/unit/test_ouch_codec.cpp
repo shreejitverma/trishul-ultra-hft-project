@@ -4,6 +4,10 @@
 
 using namespace ultra::ouch;
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     std::cout << "[Test] Starting OUCH Codec Test...\n";
 

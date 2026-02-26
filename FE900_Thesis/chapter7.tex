@@ -16,16 +16,16 @@ Empirical evaluation confirms that the system not only meets the stringent laten
 While this thesis establishes a solid foundation, several avenues for future research and development remain:
 
 \subsection{Multi-Asset Scalability}
-The current FPGA implementation is optimized for a single symbol pipeline. Future work will explore techniques for **Time-Division Multiplexing (TDM)** to allow a single inference core to service multiple order books simultaneously, significantly increasing the system's capital efficiency.
+The current FPGA implementation is optimized for a single symbol pipeline. Future work will explore techniques for \textbf{Time-Division Multiplexing (TDM)} to allow a single inference core to service multiple order books simultaneously, significantly increasing the system's \textbf{capital efficiency}---the effectiveness with which a firm uses its financial resources to support trading and generate returns.
 
 \subsection{Advanced Model Architectures}
-The current RL core implements a feed-forward neural network. Investigating the synthesis of **Recurrent Neural Networks (RNNs)**, such as LSTMs or GRUs, on FPGA could unlock the ability to capture temporal market dependencies, potentially improving predictive accuracy in trending markets.
+The current RL core implements a feed-forward neural network. Investigating the synthesis of \textbf{Recurrent Neural Networks (RNNs)}, such as LSTMs or GRUs, on FPGA could unlock the ability to capture \textbf{temporal market dependencies}. \textit{Unlike regular AI, RNNs have a "memory" that allows them to remember what happened a few seconds ago to predict what might happen next.} This could improve predictive accuracy in trending markets.
 
 \subsection{Real-World Exchange Connectivity}
-To transition from a research prototype to a commercial system, the simulated network stack must be replaced with a **Hardware TCP/IP Stack** (TOE). Integrating a commercial IP core for 10GbE/25GbE connectivity would further reduce the network ingress latency and allow for co-location deployment at major exchanges.
+To transition from a research prototype to a commercial system, the simulated network stack must be replaced with a **Hardware TCP/IP Stack** (TOE). Integrating a commercial IP core for 10GbE/25GbE connectivity would further reduce the network ingress latency and allow for co-location deployment at major exchanges by implementing a hardware-based \textbf{TCP Offload Engine (TOE)} to handle protocol processing.
 
 \subsection{On-Chip Learning}
-Currently, training occurs offline on the CPU. Exploring **On-Chip Learning** algorithms that can update weights directly on the FPGA in response to reward signals would represent the ultimate evolution of this architecture—a truly autonomous, self-adapting trading organism.
+Currently, training occurs offline on the CPU. Exploring **On-Chip Learning** algorithms would represent the ultimate evolution. \textit{This would allow the system to "learn on the fly" and update its own rules directly on the chip without needing a human or a separate computer to retrain it.}
 
 \section{Final Remarks}
 The convergence of AI and FPGA technology represents the next frontier in financial engineering. This thesis provides a blueprint for navigating this complex landscape, offering a verified architecture that delivers the speed of hardware with the intelligence of software.

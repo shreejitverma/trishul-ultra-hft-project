@@ -9,6 +9,10 @@
 using namespace ultra;
 
 template<typename Func>
+                      /**
+                       * @brief Auto-generated description for measure.
+                       * @return int value.
+                       */
 std::vector<uint64_t> measure(const std::string& name, int iterations, Func&& f) {
     (void)name;
     std::vector<uint64_t> samples;
@@ -29,6 +33,11 @@ std::vector<uint64_t> measure(const std::string& name, int iterations, Func&& f)
     return samples;
 }
 
+     /**
+      * @brief Auto-generated description for print_stats.
+      * @param name Parameter description.
+      * @param samples Parameter description.
+      */
 void print_stats(const std::string& name, std::vector<uint64_t>& samples) {
     std::sort(samples.begin(), samples.end());
     double sum = std::accumulate(samples.begin(), samples.end(), 0.0);
@@ -46,6 +55,10 @@ void print_stats(const std::string& name, std::vector<uint64_t>& samples) {
     std::cout << "  Max: " << max << std::endl;
 }
 
+    /**
+     * @brief Auto-generated description for main.
+     * @return int value.
+     */
 int main() {
     RDTSCClock::calibrate();
 
