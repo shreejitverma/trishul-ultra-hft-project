@@ -11,6 +11,20 @@ This platform bridges the gap between research and live trading, featuring a **M
 
 ---
 
+## Key Projects
+*   [**Ultra-Low Latency Engine**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/apps/live-engine): The core C++20 trading system featuring asynchronous logging and sub-microsecond tick-to-trade latency.
+*   [**FPGA Hardware RTL**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/fpga/rtl): Verilog implementations of the market data path, including ITCH decoders and single-cycle BBO order books.
+*   [**Reinforcement Learning Trainer**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/tools/rl_trainer): A Python-based training suite for developing volatility-aware market-making agents using PPO.
+*   [**FPGA Simulator**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/apps/fpga-sim): An automated toolchain for HDL parsing, logic synthesis, and waveform generation.
+
+## Research
+*   [**Master's Thesis (Full PDF)**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/FE900_Thesis/SV_stevensThesis.pdf): AI-Integrated FPGA for Market Making in Volatile Environments (Stevens Institute of Technology).
+*   [**Financial Glossary**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/FE900_Thesis/glossary.tex): Detailed definitions of 30+ HFT and market microstructure terms for laymen and experts.
+*   [**Matching Engine Logic**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/include/ultra/execution/matching_engine.hpp): Research implementation of Price-Time Priority and order matching algorithms.
+*   [**Architectural Diagrams**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/FE900_Thesis/diagrams): Visual flow of the hardware-software hybrid control plane.
+
+---
+
 ## Key Features
 
 ### Ultra-Low Latency Core
