@@ -6,17 +6,17 @@
 %       updated copyright page - May 2010 
 %
 \newcommand{\thesistitle}{AI-Integrated FPGA for Market Making in Volatile Environments}
-\newcommand{\thesisyear}{\the\year}
+\newcommand{\thesisyear}{2026}
 \newcommand{\thesisname}{Shreejit Verma}
 \newcommand{\thesischairadvisor}{Dragos Bozdog}    % this name prints on the title page as chairman and the abstract page as advisor
 \newcommand{\committeenameA}{Ionut Florescu}  % 
-%\newcommand{\committeenameB}{Emmanuel Hatzakis}      %add or delete names as necessary.
-%\newcommand{\committeenameC}{Bob Johnston}
-%\newcommand{\committeenameD}{Suzanne Smitty}
+\newcommand{\committeenameB}{Emmanuel Hatzakis}      %add or delete names as necessary.
+\newcommand{\committeenameC}{Bob Johnston}
+\newcommand{\committeenameD}{Suzanne Smitty}
 \newcommand{\thesisdepartment}{Financial Engineering}
-\newcommand{\thesisdate}{\today}
+\newcommand{\thesisdate}{March 18, 2026}
 \newcommand{\thesistype}{thesis}
-\newcommand{\thesisdegree}{MASTER OF SCIENCE - FINANCIAL ENGINEERING}
+\newcommand{\thesisdegree}{Master of Science - Financial Engineering}
 \newcommand{\thesissigline}[1]{%
   \leftline{\hbox to 2.5in{}\hrulefill}
   \endgraf
@@ -59,8 +59,8 @@
 \thesisname, Candidate\\[3mm]
 \underline{ADVISORY COMMITTEE}\\[3mm]
 \noindent \rule{3.1in}{0.1mm}\\[-1.3mm]
-% for master thesis, change Chairman to Advisor
-{\thesischairadvisor}, Chairperson  \hfill{Date}\\[2mm]
+% for master thesis, change Chair to Advisor
+{\thesischairadvisor}, Advisor  \hfill{Date}\\[2mm]
 {\noindent \rule{3.1in}{0.1mm}}\\[-1.3mm]
 % for master thesis, add Reader after committeenameA
 %
@@ -126,9 +126,6 @@ ABSTRACT
 \end{center}
 This Master's thesis investigates the integration of artificial intelligence (AI) with field-programmable gate arrays (FPGAs) to develop adaptive market-making strategies tailored for volatile financial environments in a high-frequency trading (HFT) environment. Traditional market-making models often struggle with latency and adaptability during periods of high volatility, leading to increased inventory risk and suboptimal performance. We propose a hybrid system that embeds reinforcement learning (RL) algorithms for dynamic bid-ask spread optimization directly onto FPGA hardware, enabling sub-microsecond inference times while responding to real-time market signals such as order flow imbalances and volatility clusters. Using historical tick-level data from major exchanges and simulated volatile scenarios, the framework is evaluated through metrics including Sharpe ratio, adverse selection mitigation, and latency benchmarks. The expectation is to achieve significant improvements in profitability and risk management compared to software-based RL or standalone FPGA implementations. This work will contribute to a scalable AI-FPGA architecture, highlighting practical deployment challenges, and offering insights for future quant engineering in dynamic markets, with potential applications in NYC's competitive HFT landscape.
 
-\vspace{1em}
-\textbf{Keywords:} High-Frequency Trading, FPGA Acceleration, Reinforcement Learning, Market Making, Low Latency
-
 \vspace{12pt}
 
 
@@ -143,7 +140,7 @@ This Master's thesis investigates the integration of artificial intelligence (AI
 Author: \thesisname \\
 Advisor: \thesischairadvisor \\
 Date: \thesisdate \\
-Program: \thesisdepartment \\
+Department: \thesisdepartment \\
 Degree: \thesisdegree \\
 \end{flushleft}
     \newpage}
@@ -162,7 +159,7 @@ Degree: \thesisdegree \\
 
     \strut \vspace{2in}
    \begin{center}
-       To be completed
+       This thesis is dedicated to my family and mentors for their unwavering support.
     \end{center}
     \vfill \strut
     \newpage}
@@ -180,7 +177,9 @@ Degree: \thesisdegree \\
 \newcommand{\thesisacknowledgments}{
 
 \noindent \textbf{Acknowledgments} \\[6mm]
-To be completed
+I would like to express my deepest gratitude to my advisor, \thesischairadvisor, for his guidance and expertise throughout this research. I also want to thank the members of my advisory committee, \committeenameA{} and \committeenameB, for their valuable feedback and insights.
+
+Finally, I am grateful to Stevens Institute of Technology for providing the resources and environment that made this work possible.
 
     \vfill \strut
     \newpage}
@@ -197,6 +196,27 @@ To be completed
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newcommand{\thesisvita}{
+\newpage
 
+\noindent \textbf{Vita} 
+\vspace{12pt}
+%  insert Vita information below
+%  the format of the vita is up to the individual.  Some people include photos or personal information
+%  such as marital status, birth place or include publications.
+%  There is no set format for the vita, so reformat this part as you wish.     
+%  
+\begin{center}
+\textbf{\thesisname}
+\end{center}
+\begin{spacing}{1}
+\begin{tabbing}
+\textbf{Address}  \hspace{20mm}  \= Castle Point on Hudson, Hoboken, NJ 07030\= \\[3mm]
+\textbf{Education}  \> Stevens Institute of Technology, Hoboken, NJ \\
+\> Master of Science in Financial Engineering \\
+\>  expected date of graduation, May 2026 \\[3mm]
+\end{tabbing}
+\end{spacing}
 
-
+    \vfill \strut
+    \newpage}

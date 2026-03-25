@@ -10,20 +10,7 @@ The software architecture is designed to minimize non-deterministic behavior int
     \centering
     \caption{UML Component Diagram of the Software Engine}
     \label{fig:sw_class_diagram}
-    \begin{tikzpicture}[node distance=1.5cm, auto]
-        \tikzstyle{class} = [rectangle, draw, fill=yellow!10, text width=10em, text centered, rounded corners, minimum height=3em]
-        \tikzstyle{line} = [draw, -latex', thick]
-        
-        \node [class] (oms) {\textbf{OrderManagementSystem} \\ +send\_order() \\ +on\_exec\_report()};
-        \node [class, right=of oms] (sor) {\textbf{SmartOrderRouter} \\ +route()};
-        \node [class, below=of oms] (strat) {\textbf{MarketMaker} \\ +on\_market\_data() \\ +get\_order()};
-        \node [class, left=of strat] (book) {\textbf{OrderBookL2} \\ +update() \\ +best\_bid()};
-
-        \path [line] (strat) -- node [right, scale=0.7] {Quote} (oms);
-        \path [line] (oms) -- node [above, scale=0.7] {Route} (sor);
-        \path [line] (strat) -- node [above, scale=0.7] {Query} (book);
-        \path [line, dashed] (sor) -- node [below, scale=0.7] {OUCH 5.0 Stream} +(2.5,0);
-    \end{tikzpicture}
+    \input{diagrams/fig10_sw_components.tex}
 \end{figure}
 
 The event processing pipeline is segmented into six distinct stages:
@@ -47,10 +34,10 @@ To maximize system efficiency, we implemented a `SmartOrderRouter` (SOR) that dy
 This hybrid approach allows the system to scale to thousands of symbols while ensuring microsecond latency for the top-tier assets.
 
 \subsection{Exchange Simulation (Matching Engine)}
-A robust evaluation requires a realistic counterparty. We implemented a fully functional `MatchingEngine` to simulate the exchange. \textit{The matching engine acts like a "referee" that follows strict rules to pair up buyers and sellers fairly based on who arrived first and who has the best price.} This ensures that the strategy is tested against realistic constraints, including queue position and partial fills.
+A robust evaluation requires a realistic counterparty. We implemented a fully functional `MatchingEngine` to simulate the exchange. This simulator enforces Price-Time Priority, allowing for realistic assessment of strategy performance. This ensures that the strategy is tested against realistic constraints, including queue position and partial fills.
 
 \subsection{Vectorized Signal Engine}
-To support the computational demands of the RL strategy, a `SignalEngine` was developed using \textbf{AVX2 SIMD} intrinsics. \textit{SIMD stands for "Single Instruction, Multiple Data," which is like being able to perform the same calculation on a whole row of numbers at once, instead of doing them one by one.} By processing batches of price data in parallel, the software control plane can recalculate model parameters over millions of historical ticks in under 200 milliseconds.
+To support the computational demands of the RL strategy, a `SignalEngine` was developed using \textbf{AVX2 SIMD} intrinsics. AVX2 SIMD intrinsics enable the parallel processing of price vectors at the register level. By processing batches of price data in parallel, the software control plane can recalculate model parameters over millions of historical ticks in under 200 milliseconds.
 
 \subsection{Direct Market Access Protocol (OUCH 5.0)}
 To ensure the system's readiness for deployment, the text-based order entry protocols often used in academic simulations were replaced with a native `OUCHCodec`. This component strictly adheres to the NASDAQ OUCH 5.0 specification, packing order fields into compact, Little-Endian binary structures. This verifies that the system can interface correctly with production-grade exchange gateways.

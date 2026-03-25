@@ -1,59 +1,7 @@
-\appendix
-\chapter{Appendix}
-
-\section{Setup Guide: Verilog on Apple Silicon}
-
-\begin{enumerate}
-    \item \textbf{Install Apple's Command Line Utilities}
-    
-    The first step is to install Apple's command line developer tools. This will provide you with essential tools like \texttt{git} and a compiler. Open your terminal and run the following command: 
-    
-    \begin{verbatim}
-xcode-select --install
-    \end{verbatim}
-    
-    \item \textbf{Install Homebrew}
-    
-    Homebrew is a package manager for macOS that simplifies the installation of software. To install Homebrew, execute the following command in your terminal:
-    
-    \begin{verbatim}
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    \end{verbatim}
-    
-    \item \textbf{Install Verilator and SystemC}
-    
-    Next, you will install Verilator, a Verilog simulator, and SystemC, a C++ library for system-level modeling. Use Homebrew to install them with this command:
-    
-    \begin{verbatim}
-brew install verilator systemc
-    \end{verbatim}
-    
-    \item \textbf{Install GTKWave}
-    
-    GTKWave is a waveform viewer that you will use to analyze the simulation results. Install it using Homebrew:
-    
-    \begin{verbatim}
-brew install gtkwave
-    \end{verbatim}
-    
-    \item \textbf{Configure Your Environment}
-    
-    After installing all the necessary tools, you need to configure your environment. This involves setting up the required environment variables. You will need to add the following lines to your shell configuration file (e.g., \texttt{\textasciitilde/.zshrc} or \texttt{\textasciitilde/.bash\_profile}):
-    
-    \begin{verbatim}
-export SYSTEMC_HOME=/opt/homebrew/opt/systemc
-export VERILATOR_ROOT=/opt/homebrew/opt/verilator
-export PATH=$VERILATOR_ROOT/bin:$PATH
-    \end{verbatim}
-    
-    After adding these lines, restart your terminal or source the configuration file for the changes to take effect (e.g., \texttt{source \textasciitilde/.zshrc}).
-
-\end{enumerate}
-
-\section{FPGA Code Explanation and Module Overview}
+\chapter{FPGA Code Explanation and Module Overview}
 \label{sec:codeexplain}
 
-This section provides an overview of the Verilog and VHDL code implementations that form the backbone of the proposed Tick-to-Trade (T2T) pipeline. The full code listings are provided in Appendix A.
+This section provides an overview of the Verilog and VHDL code implementations that form the backbone of the proposed Tick-to-Trade (T2T) pipeline. The full code listings are provided in the subsequent sections of this Appendix.
 
 \subsection{Network Ingress Modules}
 \textbf{Parser (Listing \ref{lst:parser}):} Extracts Ethernet/IP/UDP headers and market data payloads, forming the entry point of the T2T pipeline.  
@@ -77,28 +25,46 @@ This section provides an overview of the Verilog and VHDL code implementations t
 
 Each of these components is designed with deterministic latency in mind, and the overall architecture ensures that all decision-making, order handling, and safety checks occur in hardware to meet sub-microsecond trading requirements.
 
-\section{Appendix: Core Implementation Snippets}
+\chapter{Source Code Listings}
 \label{appendix:code}
 
-\noindent \textbf{Note on Source Code:} Due to the extensive nature of the codebase, the full source listings, build scripts, and configuration files are hosted in the project repository at: \\
-\url{https://github.com/shreejitverma/trishul-ultra-hft-project}
+This appendix contains the full hardware implementation code for all modules described in Section~\ref{sec:codeexplain}. Each listing corresponds to a functional block within the Tick-to-Trade FPGA pipeline.
 
-The following sections provide \textbf{abridged snippets} of the critical modules discussed in the thesis, focusing on the core algorithmic logic and removing standard boilerplate.
+\section{Hardware Domain: FPGA RTL Implementation (Verilog \& VHDL)}
 
-%-----------------------------------
-\subsection{1. Network Ingress: Parser (Verilog)}
-The state machine responsible for zero-copy extraction of UDP payloads from raw Ethernet frames.
+\subsection{1. Network Ingress: Parser}
+This module parses Ethernet/IP/UDP headers to extract the market data payload.
 
-\begin{lstlisting}[language=Verilog, caption={Packet Parsing State Machine (Snippet)}, label={lst:parser}]
-// (Module ports and declarations omitted for brevity)
+\begin{lstlisting}[language=Verilog, caption={Minimal RX L2/L3/L4 parser for UDP market data}, label={lst:parser}]
+module rx_121314_min #(
+    parameter DATA_W = 64
+) (
+    input wire clk,
+    input wire rst,
+    input wire [DATA_W-1:0] s_axis_tdata,
+    input wire s_axis_tvalid,
+    input wire s_axis_tlast,
+    output wire s_axis_tready,
+    output reg [DATA_W-1:0] m_axis_tdata,
+    output reg m_axis_tvalid,
+    output reg m_axis_tlast,
+    input wire m_axis_tready,
+    output reg [31:0] ip_src,
+    output reg [31:0] ip_dst,
+    output reg [15:0] udp_sport,
+    output reg [15:0] udp_dport
+);
+assign s_axis_tready = m_axis_tready;
+localparam ST_ETH=0, ST_IP=1, ST_UDP=2, ST_PAY=3;
+reg [1:0] state;
 always @(posedge clk) begin
     if (rst) begin
-        state <= ST_ETH; m_axis_tvalid <= 1'b0;
+        state <= ST_ETH; m_axis_tvalid <= 1'b0; m_axis_tlast <= 1'b0;
     end else begin
-        // Pipeline control logic
+        m_axis_tvalid <= 1'b0; m_axis_tlast <= 1'b0;
         if (s_axis_tvalid && s_axis_tready) begin
             case(state)
-                ST_ETH: state <= ST_IP; // Skip Eth Header
+                ST_ETH: state <= ST_IP;
                 ST_IP: begin
                     ip_src <= s_axis_tdata[31:0];
                     ip_dst <= s_axis_tdata[63:32];
@@ -110,273 +76,445 @@ always @(posedge clk) begin
                     state <= ST_PAY;
                 end
                 ST_PAY: begin
-                    // Streaming payload to downstream modules
                     m_axis_tdata <= s_axis_tdata;
                     m_axis_tvalid <= 1'b1;
+                    m_axis_tlast <= s_axis_tlast;
                     if (s_axis_tlast) state <= ST_ETH;
                 end
             endcase
         end
     end
 end
+endmodule
 \end{lstlisting}
 
-\begin{lstlisting}[language=Verilog, caption={Multicast Gate Logic}, label={lst:gate}]
-always @(posedge clk) begin
-    if (valid_udp) begin
-        // Check Dest IP and Port against whitelist
-        if (udp_dst_ip == 32'hE9_36_0C_6F && // 233.54.12.111
-            udp_dst_port == 16'd5000) begin
-            pass <= 1'b1;
-        end else begin
-            pass <= 1'b0; // Drop packet
-        end
-    end
-end
+\subsection{2. Network Ingress: Multicast Gate}
+Filters traffic by destination IP and UDP port.
+
+\begin{lstlisting}[language=VHDL, caption={VHDL multicast port/IP gating (simple allowlist)}, label={lst:gate}]
+library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
+entity mcast_gate is
+port(clk:in std_logic; rst:in std_logic; ip_dst:in std_logic_vector(31 downto 0);
+     udp_dport:in std_logic_vector(15 downto 0); in_valid:in std_logic; out_accept:out std_logic);
+end entity;
+
+architecture rtl of mcast_gate is
+constant ALLOW_IP  : std_logic_vector(31 downto 0) := x"E0010101"; -- 224.1.1.1
+constant ALLOW_UDP : std_logic_vector(15 downto 0) := x"1F90";     -- 8080
+begin
+process(clk)
+begin
+    if rising_edge(clk) then
+        if rst='1' then
+            out_accept <= '0';
+        else
+            if in_valid='1' then
+                if ip_dst = ALLOW_IP and udp_dport = ALLOW_UDP then
+                    out_accept <= '1';
+                else
+                    out_accept <= '0';
+                end if;
+            end if;
+        end if;
+    end if;
+end process;
+end architecture;
 \end{lstlisting}
 
-%-----------------------------------
-\subsection{2. Feed Handler Modules}
+\subsection{3. Feed Handler: Frame Extractor}
+Detects message boundaries from the UDP payload.
 
-\begin{lstlisting}[language=Verilog, caption={Frame Extractor}, label={lst:frame}]
-// Accumulates bytes until a full message is received
-always @(posedge clk) begin
-    if (payload_valid) begin
-        buffer <= {buffer[W-9:0], s_axis_tdata};
-        count <= count + 1;
-        if (count == MSG_LEN) begin
-            msg_out <= buffer;
-            msg_valid <= 1'b1;
-            count <= 0;
-        end
-    end
-end
-\end{lstlisting}
-
-\begin{lstlisting}[language=Verilog, caption={Order Book Update Logic}, label={lst:book}]
-always @(posedge clk) begin
-    if (tick_valid) begin
-        if (tick_side == "B" && tick_price > best_bid) begin
-            best_bid <= tick_price; // New Best Bid
-        end
-        if (tick_side == "S" && tick_price < best_ask) begin
-            best_ask <= tick_price; // New Best Ask
-        end
-    end
-end
-\end{lstlisting}
-
-%-----------------------------------
-\subsection{3. Strategy Logic: Decision Block (Verilog)}
-The hardware circuit that generates buy/sell signals based on pre-calculated price thresholds.
-
-\begin{lstlisting}[language=Verilog, caption={Hardware Strategy Decision Logic}, label={lst:strategy}]
-// Threshold comparison logic
-wire buy_cond = (ask_px0 + thresh_buy < fair_px);
-wire sell_cond = (bid_px0 - thresh_sell > fair_px);
-
-always @(posedge clk) begin
-    if (rst) begin 
-        buy <= 1'b0; sell <= 1'b0; out_valid <= 1'b0; 
-    end else begin
-        out_valid <= 1'b0;
-        // Trigger on valid market data update
-        if (in_valid) begin
-            // Single-cycle decision latency
-            buy <= buy_cond; 
-            sell <= sell_cond; 
-            out_valid <= 1'b1;
-        end
-    end
-end
-\end{lstlisting}
-
-%-----------------------------------
-\subsection{4. Hardware Pre-Trade Risk Gate (Verilog)}
-Ensures strict compliance with notional and message rate limits before order generation.
-
-\begin{lstlisting}[language=Verilog, caption={Risk Check Logic}, label={lst:risk}]
-wire [63:0] notional_in = in_px * in_qty;
-
+\begin{lstlisting}[language=Verilog, caption={Frame extractor for fixed-width records}, label={lst:frame}]
+module frame_extract #(
+    parameter DATA_W=64, parameter REC_W=256
+) (
+    input wire clk, input wire rst,
+    input wire [DATA_W-1:0] s_tdata, input wire s_tvalid, input wire s_tlast,
+    output wire s_tready, output reg [REC_W-1:0] m_record, output reg m_valid,
+    input wire m_ready
+);
+assign s_tready = m_ready;
+reg [REC_W-1:0] shreg; reg [8:0] byte_cnt; reg in_msg;
 always @(posedge clk) begin
     if (rst) begin
-        notional_accum <= 64'd0; 
-        pass <= 1'b0;
+        m_valid <= 1'b0; in_msg <= 1'b0; byte_cnt <= 9'd0;
     end else begin
-        if (in_valid) begin
-            // Parallel check of all risk limits
-            pass <= enable && 
-                   (notional_accum + notional_in <= notional_limit) && 
-                   (msg_count + 1 <= msg_rate_limit);
-            
-            // Update state only if checks pass
-            if (enable) begin
-                notional_accum <= notional_accum + notional_in;
-                msg_count <= msg_count + 1;
+        m_valid <= 1'b0;
+        if (s_tvalid && s_tready) begin
+            if (!in_msg) begin
+                in_msg <= 1'b1; byte_cnt <= 9'd0;
+                shreg <= {shreg[REC_W-DATA_W-1:0], s_tdata};
+            end else begin
+                shreg <= {shreg[REC_W-DATA_W-1:0], s_tdata};
+                byte_cnt <= byte_cnt + (DATA_W/8);
+            end
+            if (s_tlast) begin
+                m_record <= shreg; m_valid <= 1'b1; in_msg <= 1'b0;
             end
         end
     end
 end
-\end{lstlisting}
-
-%-----------------------------------
-\subsection{5. Order Transmission Modules}
-
-\begin{lstlisting}[language=Verilog, caption={Order Encoder (OUCH)}, label={lst:encoder}]
-always @(posedge clk) begin
-    if (trigger_buy) begin
-        // Construct OUCH 'Enter Order' message
-        packet[7:0]   <= 8'h4F; // Type 'O'
-        packet[39:8]  <= token;
-        packet[47:40] <= 8'h42; // 'B'uy
-        packet[79:48] <= price;
-        // ... (remaining fields)
-        tx_valid <= 1'b1;
-    end
-end
-\end{lstlisting}
-
-\begin{lstlisting}[language=Verilog, caption={TX Bridge}, label={lst:tx}]
-// Adapts internal parallel bus to AXI-Stream MAC interface
-assign m_axis_tdata = packet_shift_reg[63:0];
-always @(posedge clk) begin
-    if (m_axis_tready) begin
-        packet_shift_reg <= packet_shift_reg >> 64;
-    end
-end
-\end{lstlisting}
-
-%-----------------------------------
-\subsection{6. Control Plane and Integration}
-
-\begin{lstlisting}[language=Verilog, caption={AXI-Lite Register Interface}, label={lst:axi}]
-// Maps PCIe writes to internal control registers
-always @(posedge clk) begin
-    if (axi_wvalid && axi_wready) begin
-        case (axi_awaddr[7:0])
-            8'h00: control_reg <= axi_wdata;
-            8'h04: risk_limit_reg <= axi_wdata;
-            8'h08: strategy_param_reg <= axi_wdata;
-        endcase
-    end
-end
-\end{lstlisting}
-
-\begin{lstlisting}[language=Verilog, caption={Top-Level Integration}, label={lst:top}]
-module top_wrapper (
-    input wire clk,
-    input wire [63:0] eth_rx_data,
-    output wire [63:0] eth_tx_data
-);
-    // Instantiate and connect all modules
-    rx_parser   u_parser (...);
-    book_engine u_book (...);
-    strat_core  u_strat (...);
-    risk_gate   u_risk (...);
-    tx_encoder  u_enc (...);
-    // ...
 endmodule
 \end{lstlisting}
 
-% -----------------------------------------------------
-%APPENDIX B: C++ ULL SOFTWARE CODE LISTINGS
-% -----------------------------------------------------
+\subsection{4. Feed Handler: Order Book Update}
+Updates Level-1 (BBO) order book state.
 
-\section{Appendix: C++ Software Baseline Snippets}
+\begin{lstlisting}[language=VHDL, caption={Two-level book update}, label={lst:book}]
+library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
+entity book2 is
+port(clk:in std_logic; rst:in std_logic; rec_in:in std_logic_vector(255 downto 0);
+     valid:in std_logic; bid_px0:out unsigned(31 downto 0);
+     bid_sz0:out unsigned(31 downto 0); ask_px0:out unsigned(31 downto 0);
+     ask_sz0:out unsigned(31 downto 0));
+end entity;
+architecture rtl of book2 is
+signal bpx0, bsz0, apx0, asz0: unsigned(31 downto 0);
+begin
+process(clk)
+begin
+    if rising_edge(clk) then
+        if rst='1' then bpx0 <= (others=>'0'); bsz0 <= (others=>'0');
+            apx0 <= (others=>'0'); asz0 <= (others=>'0');
+        else
+            if valid='1' then
+                bpx0 <= unsigned(rec_in(31 downto 0));
+                bsz0 <= unsigned(rec_in(63 downto 32));
+                apx0 <= unsigned(rec_in(95 downto 64));
+                asz0 <= unsigned(rec_in(127 downto 96));
+            end if;
+        end if;
+    end if;
+end process;
+bid_px0 <= bpx0; bid_sz0 <= bsz0; ask_px0 <= apx0; ask_sz0 <= asz0;
+end architecture;
+\end{lstlisting}
+
+\subsection{5. Strategy Logic: Decision Block}
+Adaptive quoting strategy inference core.
+
+\begin{lstlisting}[language=Verilog, caption={Hardware-synthesized policy inference}, label={lst:strategy}]
+module strat_decide #(
+    parameter W = 32, FEAT_DIM = 4
+) (
+    input wire clk, rst, in_valid,
+    input wire [W-1:0] bid_px0, ask_px0, fair_px,
+    input wire signed [W-1:0] inventory,
+    input wire [W-1:0] volatility,
+    output reg buy, sell, out_valid
+);
+    // Stage 1: Feature Extraction
+    reg signed [W-1:0] feat_vec [0:FEAT_DIM-1];
+    always @(posedge clk) begin
+        if (in_valid) begin
+            feat_vec[0] <= $signed(ask_px0 - bid_px0); // Spread
+            feat_vec[1] <= $signed(fair_px - ((ask_px0 + bid_px0) >> 1)); // Alpha
+            feat_vec[2] <= inventory;
+            feat_vec[3] <= $signed(volatility);
+        end
+    end
+
+    // Stage 2: DSP MAC (Dot Product)
+    reg signed [47:0] dot_prod;
+    always @(posedge clk) begin
+        dot_prod <= (feat_vec[0] * weights[0]) + (feat_vec[1] * weights[1]) + 
+                    (feat_vec[2] * weights[2]) + (feat_vec[3] * weights[3]);
+    end
+
+    // Stage 3 & 4: ReLU Activation and Thresholding
+    always @(posedge clk) begin
+        if (dot_prod > THRESHOLD) buy <= 1; else buy <= 0;
+    end
+endmodule
+\end{lstlisting}
+
+\subsection{6. Hardware Pre-Trade Risk Gate}
+Applies notional and message-rate limits.
+
+\begin{lstlisting}[language=Verilog, caption={Risk gate with notional and message-rate limits}, label={lst:risk}]
+module risk_gate #(
+    parameter W=32
+) (
+    input wire clk, input wire rst, input wire enable,
+    input wire [63:0] notional_limit, input wire [31:0] msg_rate_limit,
+    input wire in_valid, input wire in_side, input wire [W-1:0] in_px, input wire [W-1:0] in_qty,
+    output reg pass, output reg out_valid
+);
+reg [63:0] notional_accum;
+reg [31:0] msg_count;
+wire [63:0] notional_in = in_px * in_qty;
+always @(posedge clk) begin
+    if (rst) begin
+        notional_accum <= 64'd0; msg_count <= 32'd0;
+        pass <= 1'b0; out_valid <= 1'b0;
+    end else begin
+        out_valid <= 1'b0;
+        if (in_valid) begin
+            pass <= enable && (notional_accum+notional_in <= notional_limit) && (msg_count+1 <= msg_rate_limit);
+            if (enable) begin
+                notional_accum <= notional_accum + notional_in;
+                msg_count <= msg_count + 1;
+            end
+            out_valid <= 1'b1;
+        end
+    end
+end
+endmodule
+\end{lstlisting}
+
+\subsection{7. Order Encoder}
+Formats a "pass" signal into OUCH messages.
+
+\begin{lstlisting}[language=Verilog, caption={Minimal OUCH 5.0 order encoder}, label={lst:encoder}]
+module order_encode #(
+    parameter DW=64
+) (
+    input wire clk, input wire rst, input wire in_valid, input wire in_buy,
+    input wire [31:0] in_px, input wire [31:0] in_qty,
+    output reg [DW-1:0] m_tdata, output reg m_tvalid, output reg m_tlast,
+    input wire m_tready
+);
+localparam ST_IDLE=0, ST_SEND=1; reg state;
+always @(posedge clk) begin
+    if (rst) begin state<=ST_IDLE; m_tvalid<=1'b0; m_tlast<=1'b0; end
+    else begin
+        m_tvalid<=1'b0; m_tlast<=1'b0;
+        case(state)
+            ST_IDLE: begin
+                if (in_valid && m_tready) begin
+                    m_tdata <= {in_buy,31'd0,in_px,in_qty};
+                    m_tvalid <= 1'b1; m_tlast <= 1'b1;
+                    state <= ST_IDLE;
+                end
+            end
+            default: state <= ST_IDLE;
+        endcase
+    end
+end
+endmodule
+\end{lstlisting}
+
+\subsection{8. Order Egress: TX Bridge}
+Connects order encoder output to MAC TX.
+
+\begin{lstlisting}[language=VHDL, caption={VHDL bridge to MAC TX stream}, label={lst:tx}]
+library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
+entity tx_bridge is
+port(clk:in std_logic; rst:in std_logic;
+     enc_data:in std_logic_vector(63 downto 0);
+     enc_valid:in std_logic; enc_last:in std_logic;
+     mac_tready:in std_logic;
+     mac_tdata:out std_logic_vector(63 downto 0);
+     mac_tvalid:out std_logic; mac_tlast:out std_logic);
+end entity;
+
+architecture rtl of tx_bridge is
+begin
+process(clk)
+begin
+    if rising_edge(clk) then
+        if rst='1' then
+            mac_tdata<=(others=>'0'); mac_tvalid<='0'; mac_tlast<='0';
+        else
+            mac_tvalid<='0'; mac_tlast<='0';
+            if enc_valid='1' and mac_tready='1' then
+                mac_tdata <= enc_data; mac_tvalid <= '1'; mac_tlast <= enc_last;
+            end if;
+        end if;
+    end if;
+end process;
+end architecture;
+\end{lstlisting}
+
+\subsection{9. Control Plane: AXI-Lite Registers}
+Non-critical path for CPU-based updates.
+
+\begin{lstlisting}[language=Verilog, caption={AXI-Lite register file for controls/telemetry}, label={lst:axi}]
+module axil_regs #(
+    parameter AW=8
+) (
+    input wire clk, input wire rst,
+    input wire [AW-1:0] s_awaddr, input wire s_awvalid, output wire s_awready,
+    input wire [31:0] s_wdata, input wire [3:0] s_wstrb, input wire s_wvalid, output wire s_wready,
+    output reg [1:0] s_bresp, output reg s_bvalid, input wire s_bready,
+    input wire [AW-1:0] s_araddr, input wire s_arvalid, output wire s_arready,
+    output reg [31:0] s_rdata, output reg [1:0] s_rresp, output reg s_rvalid,
+    input wire s_rready,
+    output reg enable, output reg [63:0] notional_limit
+);
+assign s_awready=1'b1; assign s_wready=1'b1; assign s_arready=1'b1;
+always @(posedge clk) begin
+    if (rst) begin
+        enable <= 1'b0; notional_limit <= 64'd0; s_bvalid<=1'b0; s_rvalid<=1'b0;
+    end else begin
+        if (s_awvalid && s_wvalid) begin
+            case(s_awaddr[7:0])
+                8'h00: enable <= s_wdata[0];
+                8'h08: notional_limit[31:0] <= s_wdata;
+                8'h0C: notional_limit[63:32] <= s_wdata;
+            endcase
+            s_bresp <= 2'b00; s_bvalid <= 1'b1;
+        end else if (s_bvalid && s_bready) s_bvalid <= 1'b0;
+        
+        if (s_arvalid) begin
+            case(s_araddr[7:0])
+                8'h00: s_rdata <= {31'd0,enable};
+                8'h08: s_rdata <= notional_limit[31:0];
+                8'h0C: s_rdata <= notional_limit[63:32];
+                default: s_rdata <= 32'hDEAD_BEEF;
+            endcase
+            s_rresp <= 2'b00; s_rvalid <= 1'b1;
+        end else if (s_rvalid && s_rready) s_rvalid <= 1'b0;
+    end
+end
+endmodule
+\end{lstlisting}
+
+\subsection{10. Top-Level Integration}
+Instantiates and connects all modules into the full T2T pipeline.
+
+\begin{lstlisting}[language=Verilog, caption={Top-level glue for T2T pipeline}, label={lst:top}]
+module t2t_top (
+    input wire clk_rx, clk_core, clk_tx, rst,
+    input wire [63:0] rx_tdata, input wire rx_tvalid, input wire rx_tlast, 
+    output wire rx_tready,
+    output wire [63:0] tx_tdata, output wire tx_tvalid, output wire tx_tlast, 
+    input wire tx_tready
+);
+// RX parsing
+wire [63:0] udp_data; wire udp_valid, udp_last; wire udp_ready;
+wire [31:0] ip_src, ip_dst; wire [15:0] sport, dport;
+rx_121314_min RX(.clk(clk_rx), .rst(rst),
+    .s_axis_tdata(rx_tdata), .s_axis_tvalid(rx_tvalid),
+    .s_axis_tlast(rx_tlast), .s_axis_tready(rx_tready),
+    .m_axis_tdata(udp_data), .m_axis_tvalid(udp_valid),
+    .m_axis_tlast(udp_last), .m_axis_tready(udp_ready),
+    .ip_src(ip_src), .ip_dst(ip_dst),
+    .udp_sport(sport), .udp_dport(dport)
+);
+// Feed framing
+wire [255:0] rec; wire rec_valid; wire rec_ready=1'b1;
+frame_extract FE(.clk(clk_core), .rst(rst),
+    .s_tdata(udp_data), .s_tvalid(udp_valid), .s_tlast(udp_last),
+    .s_tready(udp_ready),
+    .m_record(rec), .m_valid(rec_valid), .m_ready(rec_ready));
+// Book build
+wire [31:0] bid_px0, bid_sz0, ask_px0, ask_sz0;
+book2 BK(.clk(clk_core), .rst(rst), .rec_in(rec), .valid(rec_valid),
+    .bid_px0(bid_px0), .bid_sz0(bid_sz0), .ask_px0(ask_px0), .ask_sz0(ask_sz0));
+// Strategy
+wire buy, sell, dec_valid;
+strat_decide SD(.clk(clk_core), .rst(rst),
+    .bid_px0(bid_px0), .ask_px0(ask_px0),
+    .fair_px(32'd100000), .inventory(32'd0), .volatility(32'd100),
+    .in_valid(rec_valid), .buy(buy), .sell(sell), .out_valid(dec_valid));
+// Risk
+wire pass, risk_valid;
+risk_gate RG(.clk(clk_core), .rst(rst), .enable(1'b1),
+    .notional_limit(64'd1000000), .msg_rate_limit(32'd100000),
+    .in_valid(dec_valid), .in_side(buy),
+    .in_px(ask_px0), .in_qty(32'd100), .pass(pass), .out_valid(risk_valid));
+// Encoder
+wire [63:0] enc_data; wire enc_valid, enc_last; wire enc_ready;
+order_encode OE(.clk(clk_core), .rst(rst),
+    .in_valid(risk_valid && pass), .in_buy(buy),
+    .in_px(buy ? ask_px0 : bid_px0), .in_qty(32'd100),
+    .m_tdata(enc_data), .m_tvalid(enc_valid), .m_tlast(enc_last),
+    .m_tready(enc_ready));
+// TX bridge
+tx_bridge TX(.clk(clk_tx), .rst(rst),
+    .enc_data(enc_data), .enc_valid(enc_valid), .enc_last(enc_last),
+    .mac_tready(tx_tready), .mac_tdata(tx_tdata),
+    .mac_tvalid(tx_tvalid), .mac_tlast(tx_tlast));
+endmodule
+\end{lstlisting}
+
+\section{Appendix: C++ ULL Software Baseline Code Listings}
 \label{appendix:code_cpp}
+This appendix contains the C++ implementation code for the ultra-low-latency software baseline system.
 
-\subsection{1. High-Precision Timing (C++)}
-Calibration routine for the RDTSC (Read Time-Stamp Counter) instruction to achieve nanosecond precision.
+\begin{lstlisting}[style=cppstyle, caption={RDTSC High-Precision Clock Implementation}, label={lst:rdtsc}]
+#include <cstdint>
+#include <atomic>
+#include <chrono>
+#include <algorithm>
 
-\begin{lstlisting}[style=cppstyle, caption={RDTSC Calibration Routine}, label={lst:rdtsc}]
-void RDTSCClock::calibrate() noexcept {
-    constexpr int SAMPLES = 10;
-    double factors[SAMPLES];
-    
-    // Sample system clock vs RDTSC multiple times
-    for (int i = 0; i < SAMPLES; ++i) {
-        auto sys_start = std::chrono::high_resolution_clock::now();
-        uint64_t tsc_start = __rdtscp(&aux);
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        
-        auto sys_end = std::chrono::high_resolution_clock::now();
-        uint64_t tsc_end = __rdtscp(&aux);
-        
-        auto elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>
-                          (sys_end - sys_start).count();
-        factors[i] = static_cast<double>(elapsed_ns) / (tsc_end - tsc_start);
+namespace ultra {
+class RDTSCClock {
+private:
+    static std::atomic<double> tsc_to_ns_factor_;
+public:
+    static void calibrate() noexcept {
+        constexpr int SAMPLES = 10;
+        double factors[SAMPLES];
+        for (int i = 0; i < SAMPLES; ++i) {
+            auto sys_start = std::chrono::high_resolution_clock::now();
+            uint64_t tsc_start = __rdtscp(&aux);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            auto sys_end = std::chrono::high_resolution_clock::now();
+            uint64_t tsc_end = __rdtscp(&aux);
+            auto elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(sys_end - sys_start).count();
+            factors[i] = static_cast<double>(elapsed_ns) / (tsc_end - tsc_start);
+        }
+        std::sort(factors, factors + SAMPLES);
+        tsc_to_ns_factor_.store(factors[SAMPLES / 2], std::memory_order_release);
     }
-    
-    // Use median factor to reject OS jitter/outliers
-    std::sort(factors, factors + SAMPLES);
-    tsc_to_ns_factor_.store(factors[SAMPLES / 2], std::memory_order_release);
+};
 }
 \end{lstlisting}
 
-\subsection{2. RL Strategy Logic (C++)
-}
-The Avellaneda-Stoikov approximation used as the baseline heuristic strategy.
-
-\begin{lstlisting}[style=cppstyle, caption={Heuristic Strategy Inference Logic}, label={lst:nn}]
-void RLPolicyStrategy::run_inference() noexcept {
-    auto bbo_bid = order_book_.best_bid();
-    auto bbo_ask = order_book_.best_ask();
-    if (bbo_bid.price == 0 || bbo_ask.price == INVALID_PRICE) return;
-
-    // 1. Feature Extraction
-    double mid_price = (bbo_bid.price + bbo_ask.price) / 2.0;
-    
-    // 2. Model Parameters (Tuned or Learned)
-    double gamma = 0.1;       // Risk aversion
-    double sigma = 2.0;       // Volatility proxy
-    
-    // 3. Avellaneda-Stoikov Approximation
-    // Adjust reservation price based on current inventory
-    double inventory_risk_adj = current_inventory_ * gamma * (sigma * sigma); 
-    double reservation_price = mid_price - inventory_risk_adj;
-    
-    // Calculate optimal spread centered on reservation price
-    double half_spread = (sigma * 5000.0); 
-    if (half_spread < (bbo_ask.price - bbo_bid.price)/2.0) {
-        half_spread = (bbo_ask.price - bbo_bid.price)/2.0; 
+\begin{lstlisting}[style=cppstyle, caption={Zero-Copy Ethernet/IP/UDP Parser}, label={lst:cpp_parser}]
+namespace ultra::net {
+class EthernetParser {
+public:
+    ParsedPacket parse(const uint8_t* packet, size_t packet_len) noexcept {
+        ParsedPacket result{};
+        if (__builtin_expect(packet_len < 42, 0)) return result;
+        const auto* eth = reinterpret_cast<const EthernetHeader*>(packet);
+        if (__builtin_expect(ntohs(eth->ethertype) != 0x0800, 0)) return result;
+        const auto* ip = reinterpret_cast<const IPv4Header*>(packet + 14);
+        const uint8_t ip_hdr_len = (ip->version_ihl & 0x0F) * 4;
+        if (__builtin_expect(ip->protocol != 17, 0)) return result;
+        const auto* udp = reinterpret_cast<const UDPHeader*>(packet + 14 + ip_hdr_len);
+        result.payload = packet + 14 + ip_hdr_len + 8;
+        result.payload_len = packet_len - (14 + ip_hdr_len + 8);
+        result.valid = true;
+        return result;
     }
-
-    Price optimal_bid = static_cast<Price>(reservation_price - half_spread);
-    Price optimal_ask = static_cast<Price>(reservation_price + half_spread);
-    
-    // 4. Order Generation (Quantized to tick size)
-    // (Order construction code omitted...)
-    if (optimal_bid > 0) order_queue_.push(buy_order);
-    if (optimal_ask > optimal_bid) order_queue_.push(sell_order);
+};
 }
 \end{lstlisting}
 
-\subsection{3. Zero-Copy Parser (C++)
-}
-Optimized Ethernet header parsing using pointer arithmetic.
+\begin{lstlisting}[style=cppstyle, caption={Array-Based L2 Order Book Snippet}, label={lst:l2book}]
+template<size_t MAX_LEVELS=10>
+class OrderBookL2 {
+private:
+    struct Level { Price px; Quantity qty; };
+    std::array<Level, MAX_LEVELS> bids_, asks_;
+public:
+    void add_order(Side side, Price px, Quantity qty) noexcept {
+        auto& levels = (side == Side::BUY) ? bids_ : asks_;
+        // O(N) insertion into sorted array for cache locality
+        for (size_t i = 0; i < MAX_LEVELS; ++i) {
+            if (levels[i].px == px) {
+                levels[i].qty += qty;
+                return;
+            } else if ((side == Side::BUY && px > levels[i].px) || (side == Side::SELL && px < levels[i].px)) {
+                std::move_backward(levels.begin() + i, levels.end() - 1, levels.end());
+                levels[i] = {px, qty};
+                return;
+            }
+        }
+    }
+};
+\end{lstlisting}
 
-\begin{lstlisting}[style=cppstyle, caption={Ethernet/IP/UDP Header Parsing}, label={lst:cpp_parser}]
-ParsedPacket parse(const uint8_t* packet, size_t len, Timestamp ts) noexcept {
-    ParsedPacket result{};
-    result.timestamp_ns = ts;
-    
-    // Fast checks for packet validity
-    if (ULTRA_UNLIKELY(len < 42)) return result;
-    
-    const auto* eth = reinterpret_cast<const EthernetHeader*>(packet);
-    if (ULTRA_UNLIKELY(ntohs_fast(eth->ethertype) != 0x0800)) return result; // IPv4
-    
-    const auto* ip = reinterpret_cast<const IPv4Header*>(packet + 14);
-    if (ULTRA_UNLIKELY(ip->protocol != 17)) return result; // UDP
-    
-    // Extract pointers directly from buffer (Zero-Copy)
-    const uint8_t ip_hdr_len = (ip->version_ihl & 0x0F) * 4;
-    const size_t header_len = 14 + ip_hdr_len + 8; // Eth + IP + UDP
-    
-    result.payload = packet + header_len;
-    result.payload_len = len - header_len;
-    result.valid = true;
-    return result;
-}
+\begin{lstlisting}[style=bashstyle, caption={System Performance Tuning (Linux)}, label={lst:tuning}]
+# 1. CPU Isolation
+# Edit /etc/default/grub: isolcpus=2,3,4,5 nohz_full=2,3,4,5
+# 2. Network Tuning
+sudo ethtool -C eth0 rx-usecs 0 tx-usecs 0
+sudo ethtool -G eth0 rx 4096 tx 4096
+# 3. Memory Configuration
+echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 \end{lstlisting}

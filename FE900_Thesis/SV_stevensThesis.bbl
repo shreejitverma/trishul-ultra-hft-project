@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{32}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -15,6 +15,16 @@ S.~A. Al-Ahmed et~al.
 S.~Aouini et~al.
 \newblock Dynamic fpga reconfiguration for scalable embedded artificial intelligence, 2025.
 \newblock URL \url{https://www.sciencedirect.com/science/article/pii/S0167739X2500072X}.
+
+\bibitem[Avellaneda and Stoikov(2008)]{Avellaneda2008}
+Marco Avellaneda and Sasha Stoikov.
+\newblock High-frequency trading in a limit order book.
+\newblock \emph{Quantitative Finance}, 8\penalty0 (3):\penalty0 217--224, 2008.
+
+\bibitem[Black and Scholes(1973)]{Black1973}
+Fischer Black and Myron Scholes.
+\newblock The pricing of options and corporate liabilities.
+\newblock \emph{Journal of Political Economy}, 81\penalty0 (3):\penalty0 637--654, 1973.
 
 \bibitem[Briere(2025)]{Briere2025}
 J.~Briere.
@@ -96,6 +106,11 @@ MDPI.
 \newblock Special issue: Advanced ai hardware designs based on fpgas, 2024.
 \newblock URL \url{https://www.mdpi.com/journal/electronics/special_issues/HD_FPGAs}.
 
+\bibitem[Merton(1976)]{Merton1976}
+Robert~C. Merton.
+\newblock Option pricing when underlying stock returns are discontinuous.
+\newblock \emph{Journal of Financial Economics}, 3\penalty0 (1):\penalty0 125--144, 1976.
+
 \bibitem[Napatech(n.d.)]{NapatechND}
 Napatech.
 \newblock Ai inference acceleration for trading with xelera, n.d.
@@ -123,6 +138,11 @@ Global Banking \&~Finance Review.
 M.~Schneider.
 \newblock Low-latency neural networks on fpga, 2023.
 \newblock Technical Report.
+
+\bibitem[Schulman et~al.(2017)Schulman, Wolski, Dhariwal, Radford, and Klimov]{Schulman2017}
+John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov.
+\newblock Proximal policy optimization algorithms.
+\newblock \emph{arXiv preprint arXiv:1707.06347}, 2017.
 
 \bibitem[Semiconductor(2025)]{Lattice2025}
 Lattice Semiconductor.

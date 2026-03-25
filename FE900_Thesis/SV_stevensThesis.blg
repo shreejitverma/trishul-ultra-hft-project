@@ -4,54 +4,58 @@ The top-level auxiliary file: SV_stevensThesis.aux
 A level-1 auxiliary file: glossary.aux
 A level-1 auxiliary file: SV_Introduction.aux
 A level-1 auxiliary file: chapter2.aux
-A level-1 auxiliary file: chapter3.aux
-A level-1 auxiliary file: chapter4.aux
-A level-1 auxiliary file: chapter5.aux
-A level-1 auxiliary file: chapter6.aux
-A level-1 auxiliary file: chapter7.aux
+A level-1 auxiliary file: chapter3_FE.aux
+A level-1 auxiliary file: chapter4_FE.aux
+A level-1 auxiliary file: chapter5_FE.aux
+A level-1 auxiliary file: chapter6_arch.aux
+A level-1 auxiliary file: chapter7_fpga.aux
+A level-1 auxiliary file: chapter8_sw.aux
+A level-1 auxiliary file: chapter9_results.aux
+A level-1 auxiliary file: chapter10_benchmarking.aux
+A level-1 auxiliary file: chapter11_conclusion.aux
 A level-1 auxiliary file: Appendix.aux
 The style file: plainnat.bst
-Database file #1: SV_References.bib
+Database file #1: myrefs.bib
 Warning--empty journal in Spooner2020
-You've used 28 entries,
+You've used 32 entries,
             2773 wiz_defined-function locations,
-            773 strings with 10322 characters,
-and the built_in function-call counts, 10128 in all, are:
-= -- 920
-> -- 469
-< -- 28
-+ -- 170
-- -- 141
-* -- 615
-:= -- 1586
-add.period$ -- 101
-call.type$ -- 28
-change.case$ -- 117
-chr.to.int$ -- 27
-cite$ -- 57
-duplicate$ -- 489
-empty$ -- 938
-format.name$ -- 185
-if$ -- 2172
+            806 strings with 11020 characters,
+and the built_in function-call counts, 11944 in all, are:
+= -- 1086
+> -- 569
+< -- 31
++ -- 204
+- -- 171
+* -- 764
+:= -- 1866
+add.period$ -- 113
+call.type$ -- 32
+change.case$ -- 139
+chr.to.int$ -- 31
+cite$ -- 65
+duplicate$ -- 569
+empty$ -- 1089
+format.name$ -- 223
+if$ -- 2548
 int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 11
-newline$ -- 165
-num.names$ -- 112
-pop$ -- 293
+missing$ -- 15
+newline$ -- 185
+num.names$ -- 128
+pop$ -- 332
 preamble$ -- 1
-purify$ -- 89
+purify$ -- 107
 quote$ -- 0
-skip$ -- 423
+skip$ -- 485
 stack$ -- 0
-substring$ -- 164
-swap$ -- 41
+substring$ -- 247
+swap$ -- 45
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 308
+type$ -- 352
 warning$ -- 1
-while$ -- 90
+while$ -- 108
 width$ -- 0
-write$ -- 383
+write$ -- 434
 (There was 1 warning)

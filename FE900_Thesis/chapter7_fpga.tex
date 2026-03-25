@@ -23,10 +23,10 @@ The \texttt{itch\_decoder} transforms the raw byte stream into semantic market e
 The pivotal contribution of this work is the replacement of static decision logic with the \texttt{strat\_decide.v} module. This hardware core embeds a trained Reinforcement Learning policy directly into the datapath. To meet the stringent timing requirements of a 300 MHz clock domain, the inference engine is structured as a 4-stage pipeline:
 
 \begin{enumerate}
-    \item \textbf{Stage 1: Feature Extraction.} The module computes derived market features in real-time. \textit{Features are essentially "summaries" of the market state, like whether the spread is wide or if there are more buyers than sellers.}
-    \item \textbf{Stage 2: DSP-Accelerated MAC.} The feature vector is fed into specialized arithmetic units. \textit{MAC stands for "Multiply-Accumulate," which is just a fancy way of saying the system performs thousands of weighted calculations simultaneously to find the best signal.}
-    \item \textbf{Stage 3: Hardware Activation.} The output passes through an activation function. \textit{This acts like a filter that ignores weak, unimportant signals and only passes through strong, useful information.}
-    \item \textbf{Stage 4: Decision Thresholding.} The activated values are compared against learned thresholds. \textit{This is the final "Go/No-Go" check. If the signal is strong enough, it triggers a discrete BUY or SELL order.}
+    \item \textbf{Stage 1: Feature Extraction.} The module computes derived market features in real-time. Features are essentially "summaries" of the market state, like whether the spread is wide or if there are more buyers than sellers.
+    \item \textbf{Stage 2: DSP-Accelerated MAC.} The feature vector is fed into specialized arithmetic units. MAC stands for "Multiply-Accumulate," which is just a fancy way of saying the system performs thousands of weighted calculations simultaneously to find the best signal.
+    \item \textbf{Stage 3: Hardware Activation.} The output passes through an activation function. This acts like a filter that ignores weak, unimportant signals and only passes through strong, useful information.
+    \item \textbf{Stage 4: Decision Thresholding.} The activated values are compared against learned thresholds. This is the final "Go/No-Go" check. If the signal is strong enough, it triggers a discrete BUY or SELL order.
 \end{enumerate}
 
 This pipelined architecture achieves a total inference latency of approximately 13.3 nanoseconds, effectively rendering the AI decision-making cost negligible in the context of the total system latency.

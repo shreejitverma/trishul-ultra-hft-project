@@ -1,4 +1,5 @@
 \chapter{High-Level Architecture of the FPGA-Based Matching Engine}
+\label{ch:architecture}
 
 The design of a high-frequency trading (HFT) system requires a rigorous adherence to the principles of determinism and minimal latency. Unlike general-purpose computing architectures, which optimize for average-case throughput, an FPGA-based matching engine must be architected for worst-case execution time. This chapter details the high-level architecture of the proposed system, decomposing it into a pipeline of highly specialized, heterogeneous modules. Figure \ref{fig:matching_engine_arch} illustrates the unidirectional data flow, tracing the lifecycle of a market event from network ingress to trade execution.
 
@@ -6,31 +7,7 @@ The design of a high-frequency trading (HFT) system requires a rigorous adherenc
     \centering
     \caption{Data Flow Architecture of the FPGA Matching Engine}
     \label{fig:matching_engine_arch}
-    \begin{tikzpicture}[node distance = 1.0cm and 0.5cm, auto]
-        % Define styles
-        \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em]
-        \tikzstyle{line} = [draw, -latex', thick]
-        \tikzstyle{cloud} = [draw, ellipse, fill=red!10, node distance=2cm, minimum height=2em]
-        
-        % Nodes
-        \node [block] (mac_rx) {MAC RX (AXI-S)};
-        \node [block, below=of mac_rx] (parser) {RX Parser (L2/L3/L4)};
-        \node [block, below=of parser] (decoder) {ITCH Decoder};
-        \node [block, right=of decoder] (book) {Order Book (L1/BBO)};
-        \node [block, right=of book] (strategy) {RL Inference Core};
-        \node [block, above=of strategy] (encoder) {OUCH Encoder};
-        \node [block, above=of encoder] (bridge) {TX Bridge};
-        \node [block, left=of bridge] (mac_tx) {MAC TX (AXI-S)};
-
-        % Edges
-        \path [line] (mac_rx) -- (parser);
-        \path [line] (parser) -- node[midway, right, scale=0.7] {UDP Payload} (decoder);
-        \path [line] (decoder) -- node[midway, below, scale=0.7] {Tick (Price/Qty)} (book);
-        \path [line] (book) -- node[midway, below, scale=0.7] {BBO State} (strategy);
-        \path [line] (strategy) -- node[midway, right, scale=0.7] {Trade Signal} (encoder);
-        \path [line] (encoder) -- node[midway, left, scale=0.7] {OUCH Packet} (bridge);
-        \path [line] (bridge) -- (mac_tx);
-    \end{tikzpicture}
+    \input{diagrams/fig9_matching_engine.tex}
 \end{figure}
 
 \section{Modular Design and Functional Decomposition}
@@ -48,9 +25,9 @@ The ingress stage is responsible for the line-rate consumption of Ethernet frame
 \subsection{State Management and Decision Logic}
 The core of the trading engine resides in its ability to maintain state and make decisions based on that state.
 \begin{description}
-    \item[Order Book Management (\texttt{book2}):] The normalized ticks feed into the hardware Order Book. This module is optimized to maintain the \textbf{Best Bid and Offer (BBO)}---which represents the \textit{"Top of the Pile." It is simply the highest price anyone is currently willing to pay and the lowest price anyone is currently willing to accept.} By maintaining this state in hardware, the system can react to price changes instantaneously.
+    \item[Order Book Management (\texttt{book2}):] The normalized ticks feed into the hardware Order Book. This module is optimized to maintain the \textbf{Best Bid and Offer (BBO)}---the highest current bid price and the lowest current ask price. By maintaining this state in hardware, the system can react to price changes instantaneously.
 
-    \item[Reinforcement Learning Strategy Core (\texttt{strat\_decide}):] This module is the \textit{"Brain"} of the system. Instead of simple, rigid rules, it uses a \textit{trained AI model} to analyze the market and decide whether to buy or sell. By running this AI directly on the FPGA hardware, we get the best of both worlds: adaptive intelligence and lightning-fast speed.
+    \item[Reinforcement Learning Strategy Core (\texttt{strat\_decide}):] This module functions as the primary decision engine, employing a synthesized reinforcement learning policy to evaluate market conditions and generate optimal quoting decisions. By running this AI directly on the FPGA hardware, we get the best of both worlds: adaptive intelligence and lightning-fast speed.
 \end{description}
 
 \subsection{Egress and Execution}

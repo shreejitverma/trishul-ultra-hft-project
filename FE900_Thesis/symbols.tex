@@ -1,29 +1,17 @@
-%   This is the file for symbols used in the paper.
-%
-%\addnotation \alpha: {some variable that means something to me}{alpha}
-%\addnotation \Omega: {abstract probability space}{alpha}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%
-%Sample List of Symbols
-%%%%%%%%%%%%%%%%%%%%%%%
+\chapter*{List of Symbols}
 \begin{tabbing}
-% YOU NEED TO ADD THE FIRST ONE MANUALLY TO ADJUST THE TABBING AND SPACES
-\hspace{5mm}$n$~~~~~\=\parbox{5in}{Vector size\dotfill \pageref{symbol:nml}}\\
-%ADD THE REST OF SYMBOLS WITH THE HELP OF MACRO
-\hspace{5mm}\addsymbol m: {Vector size}{symbol:nml}
-\hspace{5mm}\addsymbol l: {Vector size}{symbol:nml}
-\hspace{5mm}\addsymbol x: {State vector}{symbol:x}
-\hspace{5mm}\addsymbol u: {Control input}{symbol:x}
-\hspace{5mm}\addsymbol y: {Output vector}{symbol:x}
-% .
-% .
-% .
-\hspace{5mm}\addsymbol \mathbf{A}: {State Matrix}{symbol:A}
-\hspace{5mm}\addsymbol \mathbf{B}: {Input Matrix}{symbol:B}
-\hspace{5mm}\addsymbol \mathbf{C}: {Output Matrix}{symbol:C}
-% .
-% .
-% .
-% ALWAYS KEEP THE FOLLOWING LINE
+\hspace{5mm}$\mu$~~~~~\=\parbox{5in}{Drift coefficient representing expected return\dotfill \pageref{ch:microstructure}}\\
+\hspace{5mm}\addsymbol \sigma: {Instantaneous volatility of asset returns}{ch:microstructure}
+\hspace{5mm}\addsymbol S_t: {Mid-price of the asset at time $t$}{ch:microstructure}
+\hspace{5mm}\addsymbol dW_t: {Increment of a standard Wiener process}{ch:microstructure}
+\hspace{5mm}\addsymbol q_t: {Net inventory position of the market maker}{ch:microstructure}
+\hspace{5mm}\addsymbol X_t: {Wealth process of the market maker}{ch:microstructure}
+\hspace{5mm}\addsymbol \delta^a: {Offset of the ask price from the mid-price}{ch:microstructure}
+\hspace{5mm}\addsymbol \delta^b: {Offset of the bid price from the mid-price}{ch:microstructure}
+\hspace{5mm}\addsymbol \gamma: {Risk aversion parameter}{ch:microstructure}
+\hspace{5mm}\addsymbol \rho_t: {Order Book Imbalance (OBI) signal}{ch:microstructure}
+\hspace{5mm}\addsymbol \Lambda: {Trade arrival intensity}{ch:volatility_modeling}
+\hspace{5mm}\addsymbol J: {Random jump size in Merton Jump-Diffusion}{ch:volatility_modeling}
+\hspace{5mm}\addsymbol N_t: {Poisson process for discrete events}{ch:volatility_modeling}
+\hspace{5mm}\addsymbol \psi: {Quoting spread ($\delta^a + \delta^b$)}{ch:microstructure}
 \end{tabbing}

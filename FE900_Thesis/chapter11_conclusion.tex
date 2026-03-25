@@ -1,0 +1,30 @@
+\chapter{Conclusion and Future Work}
+\label{ch:conclusion}
+
+\section{Summary of Research Contributions}
+This dissertation has addressed a fundamental challenge in high-frequency trading: the dichotomy between the adaptive flexibility of reinforcement learning and the deterministic execution speed of FPGA hardware. Through the design, implementation, and evaluation of a Unified Hybrid Control Plane Architecture, this research has demonstrated the feasibility of operationalizing intelligent quoting policies at the microstructural limit.
+
+The primary contributions of this work are summarized across three dimensions:
+\begin{enumerate}
+    \item \textbf{Financial Engineering Framework:} We established a rigorous MDP formulation for market making that synthesizes the classical Avellaneda--Stoikov stochastic control framework with modern deep reinforcement learning. By utilizing microstructural features such as Order Book Imbalance and rolling volatility, we derived an adaptive quoting policy that proactively mitigates adverse selection risk.
+    \item \textbf{Architectural Synthesis:} We designed a hybrid hardware-software architecture that decouples the time-critical execution path from the model management layer. The implementation of a 4-stage pipelined neural inference core on FPGA fabric achieves a deterministic inference latency of 13.3ns, effectively rendering the AI decision-making cost negligible.
+    \item \textbf{Empirical Validation:} Through a series of multi-regime simulations, we quantified the systemic advantages of the proposed system. The results confirm that the Project achieves a 400\% PnL improvement over traditional co-located software baselines and significantly enhances risk-adjusted returns (Sharpe Ratio 1.85) compared to static hardware implementations.
+\end{enumerate}
+
+\section{Scholarly and Industrial Impact}
+The synthesis of adaptive intelligence and deterministic hardware represents a paradigm shift in liquidity provision. From a scholarly perspective, this research provides a blueprint for operationalizing sophisticated FE models within the constraints of real-time hardware. From an industrial standpoint, the architecture offers a tangible competitive edge in fragmented and volatile markets, where execution speed and strategy intelligence are the primary determinants of profitability.
+
+\section{Future Research Directions}
+While this dissertation establishes a foundational framework, several avenues for further investigation remain:
+
+\subsection{Cross-Asset Cross-Correlation and Arbitrage}
+The current architecture is optimized for single-asset liquidity provision. Future research will explore multi-core hardware architectures that can model the lead-lag relationships between correlated assets (e.g., ETFs and their underlying constituents) to capture cross-asset arbitrage opportunities at nanosecond scales.
+
+\subsection{Online Hardware Learning and SGD}
+The current system relies on offline training on the host CPU. The development of on-chip learning modules, such as hardware-accelerated Stochastic Gradient Descent (SGD), would allow the system to adapt its policy parameters autonomously in response to real-time market shifts without requiring host intervention.
+
+\subsection{Decentralized Finance (DeFi) Integration}
+As decentralized exchanges (DEXs) adopt Limit Order Book models, there is a significant opportunity to deploy hardware-accelerated liquidity provision strategies in the DeFi ecosystem. Investigating the integration of FPGA-based trading cores with blockchain-native execution layers represents a promising frontier for financial engineering.
+
+\section{Final Remarks}
+The convergence of reinforcement learning and FPGA technology defines the next frontier of high-frequency finance. This dissertation provides a verified architectural framework for navigating this complexity, offering a path toward a new generation of intelligent, autonomous, and ultra-low-latency execution systems.
