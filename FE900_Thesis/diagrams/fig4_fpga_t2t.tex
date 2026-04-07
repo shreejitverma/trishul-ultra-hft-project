@@ -1,1 +1,31 @@
-\begin{center} \resizebox{0.98\textwidth}{!}{ \begin{tikzpicture}[node distance=1.5cm, auto, >=latex'] \tikzset{ fpga_mod/.style={rectangle, draw, fill=orange!10, text width=6em, text centered, rounded corners, minimum height=3em}, fifo/.style={rectangle, draw, fill=gray!20, text width=2em, text centered, minimum height=2em}, axis/.style={draw, -latex', line width=2pt} } \node [fpga_mod] (mac_rx) {AXI MAC RX}; \node [fifo, right=of mac_rx] (f1) {CDC FIFO}; \node [fpga_mod, right=of f1] (parser) {RTL Parser}; \node [fpga_mod, right=of parser] (decoder) {ITCH Decoder}; \node [fpga_mod, below=of decoder] (book) {RTL Order Book}; \node [fpga_mod, left=of book] (algo) {Strategy Engine}; \node [fpga_mod, left=of algo] (risk) {Risk Gate}; \node [fpga_mod, below=of risk] (encoder) {OUCH Encoder}; \node [fifo, right=of encoder] (f2) {CDC FIFO}; \node [fpga_mod, right=of f2] (mac_tx) {AXI MAC TX}; \path [axis] (mac_rx) -- (f1); \path [axis] (f1) -- (parser); \path [axis] (parser) -- (decoder); \path [axis] (decoder) -- (book); \path [axis] (book) -- (algo); \path [axis] (algo) -- (risk); \path [axis] (risk) -- (encoder); \path [axis] (encoder) -- (f2); \path [axis] (f2) -- (mac_tx); \node [draw, dashed, fit=(mac_rx) (f1), label=above:Net Clk (156MHz)] {}; \node [draw, dashed, fit=(parser) (risk), label=right:Core Clk (300MHz)] {}; \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.95\textheight}{!}{
+\begin{tikzpicture}[node distance=2.8cm, auto, >=latex', thick]
+\tikzset{
+    block/.style={rectangle, draw, fill=blue!10, text width=8em, text centered, rounded corners, minimum height=4em},
+    hw_block/.style={rectangle, draw, fill=red!10, text width=8em, text centered, rounded corners, minimum height=4em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [block] (feed) {Market Data \\ Feed};
+\node [block, right=of feed] (handler) {Feed Handler \\ (ITCH 5.0)};
+\node [block, right=of handler] (queue) {Lock-Free \\ Event Queue};
+
+\node [hw_block, right=of queue, xshift=1cm] (fpga) {FPGA Logic \\ (RL Model)};
+\node [hw_block, right=of fpga] (exec) {Execution \\ Engine};
+
+\node [block, right=of exec, xshift=1cm] (router) {Smart Order \\ Router};
+\node [block, right=of router] (exch) {Exchange \\ (NASDAQ/NYSE)};
+
+\path [line] (feed) -- (handler);
+\path [line] (handler) -- (queue);
+\path [line] (queue) -- node[above, midway] {DMA Stream} (fpga);
+\path [line] (fpga) -- node[above, midway] {Trade} (exec);
+\path [line] (exec) -- (router);
+\path [line] (router) -- node[above, midway] {OUCH/FIX} (exch);
+
+\node [draw, dashed, fit=(fpga) (exec), label=above:FPGA Acceleration Card] {};
+
+\end{tikzpicture}
+}
+\end{center}

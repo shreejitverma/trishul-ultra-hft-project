@@ -6,114 +6,128 @@
 \contentsline {chapter}{List of Symbols}{xvi}{chapter*.3}%
 \contentsline {chapter}{Glossary}{xvii}{chapter*.5}%
 \contentsline {chapter}{\numberline {1}Introduction and System Overview}{1}{chapter.1}%
-\contentsline {chapter}{\numberline {2}Literature Review}{17}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Introduction}{17}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Theoretical Background}{18}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Overview of Existing Research}{19}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}From Classical Market Making to Learning-Based Control}{19}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Hardware Acceleration and FPGA Design in HFT}{20}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}AI on FPGAs and Edge Inference}{21}{subsection.2.3.3}%
-\contentsline {subsection}{\numberline {2.3.4}Hybrid Systems Integrating Learning and Hardware}{21}{subsection.2.3.4}%
-\contentsline {section}{\numberline {2.4}Critical Evaluation}{22}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Identification of Gaps}{22}{section.2.5}%
-\contentsline {section}{\numberline {2.6}Relevance to the Present Research}{23}{section.2.6}%
-\contentsline {section}{\numberline {2.7}Conceptual Framework}{23}{section.2.7}%
-\contentsline {section}{\numberline {2.8}Summary and Transition}{24}{section.2.8}%
-\contentsline {chapter}{\numberline {3}Market Microstructure and Stochastic Foundations of Liquidity Provision}{25}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Introduction}{25}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Dynamics of the Limit Order Book}{25}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}Price-Time Priority and Execution Mechanics}{25}{subsection.3.2.1}%
-\contentsline {section}{\numberline {3.3}The Avellaneda--Stoikov Optimal Control Framework}{26}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Asset Price and Wealth Dynamics}{26}{subsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.3.2}Utility Maximization and the HJB Equation}{27}{subsection.3.3.2}%
-\contentsline {subsection}{\numberline {3.3.3}The Reservation Price and Optimal Offsets}{27}{subsection.3.3.3}%
-\contentsline {section}{\numberline {3.4}Microstructural Signals and Adverse Selection}{28}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1}Order Book Imbalance (OBI)}{28}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.4.2}Adverse Selection and Toxic Flow}{28}{subsection.3.4.2}%
-\contentsline {section}{\numberline {3.5}Conclusion}{29}{section.3.5}%
-\contentsline {chapter}{\numberline {4}Volatility Dynamics and Synthetic Data Generation}{30}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Introduction}{30}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Stochastic Foundations of Price Modeling}{30}{section.4.2}%
-\contentsline {subsection}{\numberline {4.2.1}Stable Regimes: Geometric Brownian Motion (GBM)}{30}{subsection.4.2.1}%
-\contentsline {subsection}{\numberline {4.2.2}Extreme Regimes: Merton Jump-Diffusion Model}{31}{subsection.4.2.2}%
-\contentsline {section}{\numberline {4.3}Regime-Switching Dynamics}{32}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Market Microstructure Synthesis}{32}{section.4.4}%
-\contentsline {subsection}{\numberline {4.4.1}Trade Arrival: The Poisson Process}{32}{subsection.4.4.1}%
-\contentsline {subsection}{\numberline {4.4.2}Synthesizing Order Book Imbalance (OBI)}{32}{subsection.4.4.2}%
-\contentsline {section}{\numberline {4.5}Summary of Generated Data Profiles}{33}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Conclusion}{33}{section.4.6}%
-\contentsline {chapter}{\numberline {5}Adaptive Liquidity Provision via Reinforcement Learning}{34}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Introduction}{34}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Markov Decision Process (MDP) Formulation}{34}{section.5.2}%
-\contentsline {subsection}{\numberline {5.2.1}State Space Representation ($S$)}{34}{subsection.5.2.1}%
-\contentsline {subsection}{\numberline {5.2.2}Action Space and Quoting Policy ($A$)}{35}{subsection.5.2.2}%
-\contentsline {subsection}{\numberline {5.2.3}Risk-Adjusted Reward Function ($R$)}{35}{subsection.5.2.3}%
-\contentsline {section}{\numberline {5.3}Learning Algorithm: Proximal Policy Optimization (PPO)}{36}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Hardware-Centric Model Optimization}{36}{section.5.4}%
-\contentsline {subsection}{\numberline {5.4.1}Fixed-Point Quantization}{36}{subsection.5.4.1}%
-\contentsline {subsection}{\numberline {5.4.2}Pruning and Sparsity}{37}{subsection.5.4.2}%
-\contentsline {section}{\numberline {5.5}Conclusion}{37}{section.5.5}%
-\contentsline {chapter}{\numberline {6}High-Level Architecture of the FPGA-Based Matching Engine}{38}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Modular Design and Functional Decomposition}{39}{section.6.1}%
-\contentsline {subsection}{\numberline {6.1.1}Ingress and Protocol Parsing}{39}{subsection.6.1.1}%
-\contentsline {subsection}{\numberline {6.1.2}State Management and Decision Logic}{39}{subsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.1.3}Egress and Execution}{40}{subsection.6.1.3}%
-\contentsline {section}{\numberline {6.2}Software Support Architecture}{41}{section.6.2}%
-\contentsline {chapter}{\numberline {7}FPGA System Methodology and Implementation}{42}{chapter.7}%
-\contentsline {section}{\numberline {7.1}The Ultra-Low-Latency Data Path Implementation}{42}{section.7.1}%
-\contentsline {subsection}{\numberline {7.1.1}Network Ingress: Deterministic Parsing}{42}{subsection.7.1.1}%
-\contentsline {subsection}{\numberline {7.1.2}Feed Handling: Semantic Extraction}{43}{subsection.7.1.2}%
-\contentsline {section}{\numberline {7.2}Core Innovation: The RL-Inference Module}{43}{section.7.2}%
-\contentsline {subsection}{\numberline {7.2.1}Safety Systems: Hardware Risk Gating}{44}{subsection.7.2.1}%
-\contentsline {section}{\numberline {7.3}The Hybrid Control Plane}{45}{section.7.3}%
-\contentsline {chapter}{\numberline {8}Software Control Plane Implementation}{46}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Software System Architecture}{46}{section.8.1}%
-\contentsline {section}{\numberline {8.2}Core Implementation Details}{48}{section.8.2}%
-\contentsline {subsection}{\numberline {8.2.1}Smart Order Router (Hybrid Execution)}{48}{subsection.8.2.1}%
-\contentsline {subsection}{\numberline {8.2.2}Exchange Simulation (Matching Engine)}{48}{subsection.8.2.2}%
-\contentsline {subsection}{\numberline {8.2.3}Vectorized Signal Engine}{48}{subsection.8.2.3}%
-\contentsline {subsection}{\numberline {8.2.4}Direct Market Access Protocol (OUCH 5.0)}{49}{subsection.8.2.4}%
-\contentsline {chapter}{\numberline {9}Experimental Results and Analysis}{50}{chapter.9}%
-\contentsline {section}{\numberline {9.1}Experimental Setup}{50}{section.9.1}%
-\contentsline {subsection}{\numberline {9.1.1}Latency Analysis (Tick-to-Trade)}{50}{subsection.9.1.1}%
-\contentsline {section}{\numberline {9.2}Throughput and Capacity Analysis}{51}{section.9.2}%
-\contentsline {section}{\numberline {9.3}Strategy Performance Evaluation}{52}{section.9.3}%
-\contentsline {subsection}{\numberline {9.3.1}Financial Metrics}{53}{subsection.9.3.1}%
-\contentsline {section}{\numberline {9.4}Operational Stability Analysis}{53}{section.9.4}%
-\contentsline {section}{\numberline {9.5}Summary of Results}{54}{section.9.5}%
-\contentsline {chapter}{\numberline {10}Comparative Performance Benchmarking}{55}{chapter.10}%
-\contentsline {section}{\numberline {10.1}Introduction}{55}{section.10.1}%
-\contentsline {section}{\numberline {10.2}Quantifying the Latency Penalty: Determinism vs. Stochastic Jitter}{55}{section.10.2}%
-\contentsline {section}{\numberline {10.3}Throughput Scaling and Queue Dynamics}{56}{section.10.3}%
-\contentsline {section}{\numberline {10.4}Adaptive Spread Efficacy and Adverse Selection}{57}{section.10.4}%
-\contentsline {section}{\numberline {10.5}Holistic Performance Comparison}{58}{section.10.5}%
-\contentsline {section}{\numberline {10.6}Conclusion}{59}{section.10.6}%
-\contentsline {chapter}{\numberline {11}Conclusion and Future Work}{60}{chapter.11}%
-\contentsline {section}{\numberline {11.1}Summary of Research Contributions}{60}{section.11.1}%
-\contentsline {section}{\numberline {11.2}Scholarly and Industrial Impact}{61}{section.11.2}%
-\contentsline {section}{\numberline {11.3}Future Research Directions}{61}{section.11.3}%
-\contentsline {subsection}{\numberline {11.3.1}Cross-Asset Cross-Correlation and Arbitrage}{61}{subsection.11.3.1}%
-\contentsline {subsection}{\numberline {11.3.2}Online Hardware Learning and SGD}{62}{subsection.11.3.2}%
-\contentsline {subsection}{\numberline {11.3.3}Decentralized Finance (DeFi) Integration}{62}{subsection.11.3.3}%
-\contentsline {section}{\numberline {11.4}Final Remarks}{62}{section.11.4}%
-\contentsline {chapter}{\numberline {A}FPGA Code Explanation and Module Overview}{63}{appendix.A}%
-\contentsline {subsection}{\numberline {A.0.1}Network Ingress Modules}{63}{subsection.A.0.1}%
-\contentsline {subsection}{\numberline {A.0.2}Feed Handler Modules}{63}{subsection.A.0.2}%
-\contentsline {subsection}{\numberline {A.0.3}Strategy and Decision Logic}{63}{subsection.A.0.3}%
-\contentsline {subsection}{\numberline {A.0.4}Order Transmission Modules}{64}{subsection.A.0.4}%
-\contentsline {subsection}{\numberline {A.0.5}Control Plane and Integration}{64}{subsection.A.0.5}%
-\contentsline {chapter}{\numberline {B}Source Code Listings}{65}{appendix.B}%
-\contentsline {section}{\numberline {B.1}Hardware Domain: FPGA RTL Implementation (Verilog \& VHDL)}{65}{section.B.1}%
-\contentsline {subsection}{\numberline {B.1.1}1. Network Ingress: Parser}{65}{subsection.B.1.1}%
-\contentsline {subsection}{\numberline {B.1.2}2. Network Ingress: Multicast Gate}{67}{subsection.B.1.2}%
-\contentsline {subsection}{\numberline {B.1.3}3. Feed Handler: Frame Extractor}{68}{subsection.B.1.3}%
-\contentsline {subsection}{\numberline {B.1.4}4. Feed Handler: Order Book Update}{70}{subsection.B.1.4}%
-\contentsline {subsection}{\numberline {B.1.5}5. Strategy Logic: Decision Block}{71}{subsection.B.1.5}%
-\contentsline {subsection}{\numberline {B.1.6}6. Hardware Pre-Trade Risk Gate}{72}{subsection.B.1.6}%
-\contentsline {subsection}{\numberline {B.1.7}7. Order Encoder}{74}{subsection.B.1.7}%
-\contentsline {subsection}{\numberline {B.1.8}8. Order Egress: TX Bridge}{75}{subsection.B.1.8}%
-\contentsline {subsection}{\numberline {B.1.9}9. Control Plane: AXI-Lite Registers}{76}{subsection.B.1.9}%
-\contentsline {subsection}{\numberline {B.1.10}10. Top-Level Integration}{78}{subsection.B.1.10}%
-\contentsline {section}{\numberline {B.2}Appendix: C++ ULL Software Baseline Code Listings}{80}{section.B.2}%
-\contentsline {chapter}{Bibliography}{85}{lstnumber.B.14.7}%
-\contentsline {chapter}{Vita}{88}{appendix*.6}%
+\contentsline {chapter}{\numberline {2}Literature Review}{21}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Introduction}{21}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Theoretical Background}{22}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Overview of Existing Research}{23}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}From Classical Market Making to Learning-Based Control}{23}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Hardware Acceleration and FPGA Design in HFT}{24}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}AI on FPGAs and Edge Inference}{25}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Hybrid Systems Integrating Learning and Hardware}{25}{subsection.2.3.4}%
+\contentsline {section}{\numberline {2.4}Critical Evaluation}{26}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Identification of Gaps}{26}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Relevance to the Present Research}{27}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Conceptual Framework}{27}{section.2.7}%
+\contentsline {section}{\numberline {2.8}Summary and Transition}{28}{section.2.8}%
+\contentsline {chapter}{\numberline {3}Market Microstructure and Stochastic Foundations of Liquidity Provision}{29}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Introduction}{29}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Dynamics of the Limit Order Book}{29}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Price-Time Priority and Execution Mechanics}{30}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Point Process Representation of the LOB}{30}{subsection.3.2.2}%
+\contentsline {section}{\numberline {3.3}The Avellaneda and Stoikov Optimal Control Framework}{31}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Asset Price and Wealth Dynamics}{31}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Utility Maximization and the HJB Equation}{33}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}The Reservation Price and Optimal Offsets}{34}{subsection.3.3.3}%
+\contentsline {section}{\numberline {3.4}Microstructural Signals and Adverse Selection}{35}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Order Book Imbalance (OBI)}{35}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Volume Toxicity and VPIN}{36}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {3.4.3}Adverse Selection and the "Winner's Curse"}{37}{subsection.3.4.3}%
+\contentsline {section}{\numberline {3.5}Stochastic Discounting and Multi-Period Optimization}{38}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Conclusion}{38}{section.3.6}%
+\contentsline {chapter}{\numberline {4}Volatility Dynamics and Synthetic Data Generation}{39}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Introduction}{39}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Stochastic Foundations of Price Modeling}{39}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Stable Regimes: Geometric Brownian Motion (GBM)}{39}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Advanced Dynamics: The Heston Stochastic Volatility Model}{40}{subsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.2.3}Extreme Regimes: Merton Jump-Diffusion Model}{41}{subsection.4.2.3}%
+\contentsline {section}{\numberline {4.3}Regime-Switching Dynamics}{42}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Market Microstructure and Point Processes}{42}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Self-Exciting Dynamics: The Hawkes Process}{43}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Synthesizing Order Book Imbalance (OBI)}{43}{subsection.4.4.2}%
+\contentsline {section}{\numberline {4.5}Summary of Generated Data Profiles}{44}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Conclusion}{44}{section.4.6}%
+\contentsline {chapter}{\numberline {5}Adaptive Liquidity Provision via Reinforcement Learning}{45}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Introduction}{45}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Markov Decision Process (MDP) Formulation}{45}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}State Space Representation ($\mathcal {S}$)}{46}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Action Space and Quoting Policy ($\mathcal {A}$)}{47}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Risk-Adjusted Reward Function ($\mathcal {R}$)}{47}{subsection.5.2.3}%
+\contentsline {section}{\numberline {5.3}The Proximal Policy Optimization (PPO) Algorithm}{48}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}The Clipped Surrogate Objective}{48}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Value Function Approximation and Advantage Estimation (GAE)}{49}{subsection.5.3.2}%
+\contentsline {section}{\numberline {5.4}Hardware-Centric Model Optimization}{49}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Quantization-Aware Training (QAT) Mathematics}{49}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Weight Pruning and Sparsity}{50}{subsection.5.4.2}%
+\contentsline {section}{\numberline {5.5}Conclusion}{51}{section.5.5}%
+\contentsline {chapter}{\numberline {6}High-Level Architecture of the FPGA-Based Matching Engine}{52}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Modular Design and Functional Decomposition}{52}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}Ingress and Protocol Parsing}{52}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}State Management and Decision Logic}{54}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}Egress and Execution}{54}{subsection.6.1.3}%
+\contentsline {section}{\numberline {6.2}Latency Decomposition and Determinism}{55}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Software Support and Hybrid Co-Design}{56}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Conclusion}{56}{section.6.4}%
+\contentsline {chapter}{\numberline {7}FPGA System Methodology and Implementation}{58}{chapter.7}%
+\contentsline {section}{\numberline {7.1}The Ultra-Low-Latency Data Path: "Pure-in-Gates" Philosophy}{58}{section.7.1}%
+\contentsline {subsection}{\numberline {7.1.1}Network Ingress: Cycle-Accurate Deterministic Parsing}{58}{subsection.7.1.1}%
+\contentsline {subsection}{\numberline {7.1.2}Feed Handling: Semantic Extraction and Bit-Slicing}{59}{subsection.7.1.2}%
+\contentsline {section}{\numberline {7.2}Core Innovation: The RL-Inference Systolic Array}{60}{section.7.2}%
+\contentsline {subsection}{\numberline {7.2.1}DSP-Accelerated MAC Units}{60}{subsection.7.2.1}%
+\contentsline {subsection}{\numberline {7.2.2}Pipelined Inference Stages}{60}{subsection.7.2.2}%
+\contentsline {section}{\numberline {7.3}Hardware Risk Management: Pre-Trade Gating}{61}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Hardware-Software Co-Design via PCIe Gen4}{61}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Timing Closure and Physical Constraints}{62}{section.7.5}%
+\contentsline {section}{\numberline {7.6}Conclusion}{62}{section.7.6}%
+\contentsline {chapter}{\numberline {8}Software Control Plane Implementation}{63}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Software System Architecture}{63}{section.8.1}%
+\contentsline {subsection}{\numberline {8.1.1}The Event Processing Pipeline}{63}{subsection.8.1.1}%
+\contentsline {section}{\numberline {8.2}Core Implementation and Optimization}{65}{section.8.2}%
+\contentsline {subsection}{\numberline {8.2.1}Vectorized Signal Engine (AVX2/AVX-512)}{65}{subsection.8.2.1}%
+\contentsline {subsection}{\numberline {8.2.2}Hybrid Smart Order Router (SOR)}{66}{subsection.8.2.2}%
+\contentsline {subsection}{\numberline {8.2.3}Lock-Free Ring Buffer Mechanics}{66}{subsection.8.2.3}%
+\contentsline {subsection}{\numberline {8.2.4}Direct Market Access (OUCH 5.0)}{66}{subsection.8.2.4}%
+\contentsline {section}{\numberline {8.3}Conclusion}{67}{section.8.3}%
+\contentsline {chapter}{\numberline {9}Experimental Results and Analysis}{69}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Experimental Setup}{69}{section.9.1}%
+\contentsline {subsection}{\numberline {9.1.1}Latency Analysis (Tick-to-Trade)}{69}{subsection.9.1.1}%
+\contentsline {section}{\numberline {9.2}Throughput and Capacity Analysis}{70}{section.9.2}%
+\contentsline {section}{\numberline {9.3}Strategy Performance Evaluation}{70}{section.9.3}%
+\contentsline {subsection}{\numberline {9.3.1}Financial Metrics}{71}{subsection.9.3.1}%
+\contentsline {section}{\numberline {9.4}Operational Stability Analysis}{71}{section.9.4}%
+\contentsline {section}{\numberline {9.5}Summary of Results}{72}{section.9.5}%
+\contentsline {chapter}{\numberline {10}Comparative Performance Benchmarking}{76}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Introduction}{76}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Quantifying the Latency Penalty: Determinism vs. Stochastic Jitter}{76}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Throughput Scaling and Queue Dynamics}{77}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Adaptive Spread Efficacy and Adverse Selection}{77}{section.10.4}%
+\contentsline {section}{\numberline {10.5}Holistic Performance Comparison}{77}{section.10.5}%
+\contentsline {section}{\numberline {10.6}Conclusion}{78}{section.10.6}%
+\contentsline {chapter}{\numberline {11}Conclusion and Future Work}{84}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Summary of Research Contributions}{84}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Scholarly and Industrial Impact}{85}{section.11.2}%
+\contentsline {section}{\numberline {11.3}Future Research Directions}{85}{section.11.3}%
+\contentsline {subsection}{\numberline {11.3.1}Cross-Asset Cross-Correlation and Arbitrage}{85}{subsection.11.3.1}%
+\contentsline {subsection}{\numberline {11.3.2}Online Hardware Learning and SGD}{86}{subsection.11.3.2}%
+\contentsline {subsection}{\numberline {11.3.3}Decentralized Finance (DeFi) Integration}{86}{subsection.11.3.3}%
+\contentsline {section}{\numberline {11.4}Final Remarks}{86}{section.11.4}%
+\contentsline {chapter}{\numberline {A}FPGA Code Explanation and Module Overview}{87}{appendix.A}%
+\contentsline {subsection}{\numberline {A.0.1}Network Ingress Modules}{87}{subsection.A.0.1}%
+\contentsline {subsection}{\numberline {A.0.2}Feed Handler Modules}{87}{subsection.A.0.2}%
+\contentsline {subsection}{\numberline {A.0.3}Strategy and Decision Logic}{87}{subsection.A.0.3}%
+\contentsline {subsection}{\numberline {A.0.4}Order Transmission Modules}{88}{subsection.A.0.4}%
+\contentsline {subsection}{\numberline {A.0.5}Control Plane and Integration}{88}{subsection.A.0.5}%
+\contentsline {chapter}{\numberline {B}Source Code Listings}{89}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Hardware Domain: FPGA RTL Implementation (Verilog \& VHDL)}{89}{section.B.1}%
+\contentsline {subsection}{\numberline {B.1.1}1. Network Ingress: Parser}{89}{subsection.B.1.1}%
+\contentsline {subsection}{\numberline {B.1.2}2. Network Ingress: Multicast Gate}{91}{subsection.B.1.2}%
+\contentsline {subsection}{\numberline {B.1.3}3. Feed Handler: Frame Extractor}{92}{subsection.B.1.3}%
+\contentsline {subsection}{\numberline {B.1.4}4. Feed Handler: Order Book Update}{94}{subsection.B.1.4}%
+\contentsline {subsection}{\numberline {B.1.5}5. Strategy Logic: Decision Block}{95}{subsection.B.1.5}%
+\contentsline {subsection}{\numberline {B.1.6}6. Hardware Pre-Trade Risk Gate}{96}{subsection.B.1.6}%
+\contentsline {subsection}{\numberline {B.1.7}7. Order Encoder}{98}{subsection.B.1.7}%
+\contentsline {subsection}{\numberline {B.1.8}8. Order Egress: TX Bridge}{99}{subsection.B.1.8}%
+\contentsline {subsection}{\numberline {B.1.9}9. Control Plane: AXI-Lite Registers}{100}{subsection.B.1.9}%
+\contentsline {subsection}{\numberline {B.1.10}10. Top-Level Integration}{102}{subsection.B.1.10}%
+\contentsline {section}{\numberline {B.2}Appendix: C++ ULL Software Baseline Code Listings}{104}{section.B.2}%
+\contentsline {chapter}{Bibliography}{109}{lstnumber.B.14.7}%
+\contentsline {chapter}{Vita}{112}{appendix*.6}%

@@ -1,15 +1,15 @@
 \chapter{Introduction and System Overview}
 
-Market making is central to modern financial markets, as liquidity providers continuously quote \textbf{bid and ask prices}---the prices at which they are willing to buy and sell, respectively---to facilitate trading. By doing so, they manage \textbf{inventory risk}---the possibility of losses due to adverse price movements while holding a position---and seek profit from the \textbf{spread}, which is the difference between the bid and ask prices. The advent of \textbf{high-frequency trading (HFT)}, characterized by extremely high execution speeds and order-to-trade ratios, has transformed this role, demanding ultra-low-latency decision-making under dynamic and volatile conditions. Traditional stochastic frameworks, such as the Avellaneda–Stoikov model, offer valuable theoretical foundations but often falter in environments characterized by sudden price swings, \textbf{order book imbalances}---discrepancies between buy and sell interest at the top of the book---and liquidity shortages. 
+Market making is central to modern financial markets, as liquidity providers continuously quote \textbf{bid and ask prices}, representing the levels at which they are willing to buy and sell respectively, to facilitate trading. By doing so, they manage \textbf{inventory risk}, which is the potential for losses due to adverse price movements while holding a position, and seek profit from the \textbf{spread}, which is the difference between the bid and ask prices. The advent of \textbf{high-frequency trading (HFT)}, characterized by extremely high execution speeds and order-to-trade ratios, has transformed this role, demanding ultra-low-latency decision-making under dynamic and volatile conditions. Traditional stochastic frameworks, such as the Avellaneda and Stoikov model, offer valuable theoretical foundations but often falter in environments characterized by sudden price swings, \textbf{order book imbalances}, which are discrepancies between buy and sell interest at the top of the book, and liquidity shortages. 
  Their reliance on fixed assumptions limits adaptability in real-time, high-
- volatility settings \citep{Patel2022,Su2025}. This has prompted significant interest in more flexible approaches capable of balancing \textbf{adverse selection}---the risk of trading with a better-informed counterparty---\textbf{inventory control}, and profitability at microsecond scales. 
+ volatility settings \citep{Patel2022,Su2025}. This has prompted significant interest in more flexible approaches capable of balancing \textbf{adverse selection}, the risk of trading with a better-informed counterparty, \textbf{inventory control}, and profitability at microsecond scales. 
  
  
- Recent advances in artificial intelligence (AI), particularly reinforcement learning (RL), have provided promising alternatives. RL agents learn adaptive quoting strategies through iterative interactions with either simulated markets or historical order book data, enabling dynamic policies that outperform rule-based methods \citep{Spooner2020,Kumar2023}. Deep RL models, including recurrent architectures, have demonstrated enhanced performance in inventory management and order placement, particularly in stressed environments \citep{Vakkilainen2023,Jiang2025}. Moreover, multi-objective RL frameworks have applied Pareto optimization to manage trade-offs between latency, volatility resilience, and \textbf{slippage reduction}---minimizing the difference between the expected price of a trade and the actual execution price \citep{Li2025}.
+ Recent advances in artificial intelligence (AI), particularly reinforcement learning (RL), have provided promising alternatives. RL agents learn adaptive quoting strategies through iterative interactions with either simulated markets or historical order book data, enabling dynamic policies that outperform rule-based methods \citep{Spooner2020,Kumar2023}. Deep RL models, including recurrent architectures, have demonstrated enhanced performance in inventory management and order placement, particularly in stressed environments \citep{Vakkilainen2023,Jiang2025}. Moreover, multi-objective RL frameworks have applied Pareto optimization to manage trade-offs between latency, volatility resilience, and \textbf{slippage reduction}, which involves minimizing the difference between the expected price of a trade and the actual execution price \citep{Li2025}.
   Despite these advances, most implementations remain software-based, and the computational overhead of deep learning methods introduces latency that undermines their applicability in production-grade HFT environments. 
 
 
-Parallel to developments in AI, \textbf{field-programmable gate arrays (FPGAs)} have emerged as critical enablers of ultra-low-latency trading. Field-programmable gate arrays (FPGAs) allow for the implementation of custom hardware-level logic, enabling deterministic execution that bypasses the latency overhead of general-purpose processors. These chips allow for near-instantaneous decision-making, minimizing \textbf{latency}---the tiny delay between a market event and a trader's response. To minimize this even further, trading firms use \textbf{co-location}, which reduces the physical distance of data transmission to approach the theoretical limits of the speed of light.
+Parallel to developments in AI, \textbf{field-programmable gate arrays (FPGAs)} have emerged as critical enablers of ultra-low-latency trading. Field-programmable gate arrays (FPGAs) allow for the implementation of custom hardware-level logic, enabling deterministic execution that bypasses the latency overhead of general-purpose processors. These chips allow for near-instantaneous decision-making, minimizing \textbf{latency}, the marginal delay between a market event and a trader's response. To minimize this even further, trading firms use \textbf{co-location}, which reduces the physical distance of data transmission to approach the theoretical limits of the speed of light.
 
 
 The convergence of AI and FPGA technology offers a promising path forward. Recent studies have explored FPGA-accelerated AI inference in trading contexts, enabling models such as XGBoost or neural networks to run at sub-microsecond scales \citep{NapatechND,Fidus2024}. Dynamic FPGA reconfiguration has been proposed as a means to accommodate evolving RL or deep learning models in real time \citep{Aouini2025}. Early prototypes of AI-augmented FPGA trading systems suggest significant reductions in end-to-end latencies for market-making strategies \citep{Lee2023,Kuzmanovic2023}. Yet, gaps remain: few studies systematically evaluate AI–FPGA integration under extreme volatility, flash-crash conditions, or across multi-asset contexts. Moreover, while industry reports emphasize the growing adoption of FPGA–AI platforms for finance \citep{Markets2025,Lattice2025}, rigorous academic investigations into resilience, scalability, and security trade-offs remain limited. 
@@ -18,27 +18,27 @@ The convergence of AI and FPGA technology offers a promising path forward. Recen
 This thesis aims to bridge these gaps by developing an integrated reinforcement learning–FPGA framework for market making under high-volatility scenarios. By combining RL’s adaptive decision-making capabilities with FPGA’s hardware-level acceleration, the proposed system seeks to reduce latency bottlenecks, improve inventory risk management, and enhance robustness in stressed market conditions. In doing so, it builds upon the strengths of prior RL and FPGA research while addressing limitations in real-world deployment contexts. 
 
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig1_ingestion.tex}
     \caption{High Level Design - Part 1}
     \label{fig:hld_1}
-\end{figure}
+\end{sidewaysfigure}
 
 \noindent
-The first stage of the proposed system begins with the \textbf{ingestion of raw market data from stock exchanges such as NASDAQ and NYSE}. These exchanges publish continuous streams of tick-level information, including order book updates and trade events, using \textbf{multicast feeds}---a protocol that disseminates tick-level updates to multiple subscribers simultaneously. Within this co-located environment, data is captured through specialized hardware and processed using \textbf{kernel-bypass mechanisms}. Kernel-bypass techniques allow the trading application to access network packets directly from the hardware buffer, avoiding the significant latency penalties associated with operating system context switching and memory copies.
+The first stage of the proposed system begins with the \textbf{ingestion of raw market data from stock exchanges such as NASDAQ and NYSE}. These exchanges publish continuous streams of tick-level information, including order book updates and trade events, using \textbf{multicast feeds}, which is a protocol that disseminates tick-level updates to multiple subscribers simultaneously. Within this co-located environment, data is captured through specialized hardware and processed using \textbf{kernel-bypass mechanisms}. Kernel-bypass techniques allow the trading application to access network packets directly from the hardware buffer, avoiding the significant latency penalties associated with operating system context switching and memory copies.
 
 The processed feed is then passed to the \textbf{market data feed handler}, which performs protocol decoding, normalization, and transformation into an internal format suitable for downstream components. This module acts as the critical bridge between raw exchange data and the trading logic of the system, ensuring that millions of messages per second can be ingested and translated without loss.
 
-This stage, illustrated in Figure~\ref{fig:hld_1}, provides the \textbf{foundational data layer for the AI-integrated FPGA framework}. By guaranteeing ultra-low-latency and reliable data delivery, it enables the reinforcement learning agents and FPGA-accelerated decision modules in later stages of the architecture to operate on timely and accurate market signals---an essential requirement for market making in volatile, high-frequency environments. 
+This stage, illustrated in Figure~\ref{fig:hld_1}, provides the \textbf{foundational data layer for the AI-integrated FPGA framework}. By guaranteeing ultra-low-latency and reliable data delivery, it enables the reinforcement learning agents and FPGA-accelerated decision modules in later stages of the architecture to operate on timely and accurate market signals, which is an essential requirement for market making in volatile, high-frequency environments. 
 
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig2_orderbook.tex}
     \caption{Order Book Management and Event-Driven Propagation}
     \label{fig:order_book_management}
-\end{figure}
+\end{sidewaysfigure}
 
 Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_management} illustrates the core processing architecture responsible for maintaining the market state and disseminating updates to decision-making components. This event-driven design is critical for achieving nanosecond-level determinism. The decoded data from the \textbf{Market Data Pipeline} is first used to update the \textbf{Order Book Cluster}. To eliminate disk I/O latency and ensure high availability, the system maintains a complete, live snapshot of the order book entirely in-memory. The architecture employs a fault-tolerant design, featuring two synchronized instances, \textbf{Replica A} and \textbf{Replica B}, which are maintained through continuous \textbf{in-memory replication}. Should one instance fail, the system can seamlessly failover to the other without interruption. Upon each update to the order book, a state change event is published to a lock-free, multi-consumer \textbf{Event Stream}. This stream serves as the central backbone of the system, broadcasting timestamped market events to all downstream modules. This publish-subscribe model decouples the order book from the logic engines, allowing for parallel, independent processing. The primary \textbf{Consumers} of this event stream are: \begin{itemize} 
     \item \textbf{Trading Logic:} A software-based strategy engine that subscribes to the stream to evaluate market conditions, manage inventory risk, and execute algorithmic strategies. This component allows for complex, nuanced decision-making that may be difficult to implement directly in hardware. 
@@ -46,12 +46,12 @@ Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_
     \item \textbf{Smart Router:} This module consumes market data to make optimal routing decisions, determining the best venue and method for order execution based on factors like liquidity, fees, and latency. 
 \end{itemize} This architecture ensures that the AI-driven FPGA engine, alongside other critical components, receives a synchronized and near-instantaneous view of the market, which is essential for the efficacy of any high-frequency market-making strategy.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig3_event_pipeline.tex}
     \caption{Event-Driven Pipeline and Nanosecond-Precision Timing} 
     \label{fig:event_pipeline_timing}
-\end{figure}
+\end{sidewaysfigure}
 
  Figure ~\ref{fig:event_pipeline_timing} details the architecture's event-driven core, which is responsible for propagating market state changes with deterministic, nanosecond-level precision. This pipeline is the central nervous system of the trading platform, ensuring all components operate on a synchronized and chronologically exact sequence of market events. The process begins when an update to the in-memory \textbf{Order Book} is published into the \textbf{Event Driven Pipeline}. To manage high-throughput, concurrent data access without introducing latency from thread contention, the event is first placed into a \textbf{Lock-Free Queue}. As the event is dequeued, it is immediately stamped with a \textbf{Nanosecond Timestamp}. This high-resolution timestamp is fundamentally important for several reasons: it establishes an indisputable sequence of events, enables precise latency benchmarking across different system components, and provides a synchronization clock for time-sensitive external systems. The timestamped event is then multicast to a variety of consumers: \begin{itemize} 
     \item \textbf{Downstream Systems:} These software-based components consume the event stream to perform their respective functions. This includes the \textbf{Trading Strategies} engine, the pre-trade \textbf{Risk Engines} that enforce safety checks, and the \textbf{Smart Routers} that determine optimal execution venues. 
@@ -59,21 +59,21 @@ Following the initial ingestion and decoding phase, Figure ~\ref{fig:order_book_
     \item \textbf{Monitoring:} A dedicated \textbf{Latency Monitor} subscribes to the event stream to benchmark the performance of the entire "tick-to-trade" pipeline. By comparing timestamps at various stages, the system can be continuously optimized to eliminate bottlenecks. 
 \end{itemize} This architecture guarantees that the AI-integrated FPGA, along with all other decision-making modules, operates on a coherent and precisely timed representation of the market, which is a non-negotiable requirement for competitive high-frequency trading.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig4_fpga_t2t.tex}
     \caption{FPGA-Accelerated Tick-to-Trade Pipeline}
     \label{fig:tick_to_trade_pipeline}
-\end{figure}
+\end{sidewaysfigure}
 
 Figure ~\ref{fig:tick_to_trade_pipeline} illustrates the most latency-sensitive segment of the architecture: the hardware-accelerated High-Frequency Trading (HFT) pipeline. This diagram demonstrates the end-to-end flow from market data reception to order execution, with the Field-Programmable Gate Array (FPGA) acting as the primary decision-making engine. The process initiates with the \textbf{Market Data Feed}, which is processed by the \textbf{Feed Handler}. The resulting normalized data is then timestamped and placed into a lock-free \textbf{Event Queue}. This queue streams \textbf{direct tick events} to the FPGA, ensuring the hardware receives market data with minimal jitter and the lowest possible latency. The central component is the \textbf{FPGA Acceleration} module. Within this module, the custom \textbf{FPGA Logic}, which contains the synthesized reinforcement learning (RL) model, receives the tick event. At hardware speed, without the overhead of a CPU or operating system, the logic evaluates the market state and decides on the optimal quoting strategy based on its learned policy. This decision is passed to the hardware \textbf{Execution Engine}, which formulates the corresponding order message. The entire process, from receiving the tick to generating a response, occurs in sub-microsecond timeframes. The resulting \textbf{sub-microsecond orders} are then forwarded to the \textbf{Order Router}. Before being sent to the exchange, these orders would pass through the pre-trade risk checks (as detailed in Figure ~\ref{fig:event_pipeline_timing}) to ensure compliance and safety. Finally, the order is dispatched to the \textbf{Exchange}. This "tick-to-trade" pathway represents the system's critical advantage, leveraging the parallelism and deterministic, low-latency nature of FPGAs to react to market opportunities faster than any software-based equivalent could. 
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig5_fpga_internal.tex}
     \caption{Internal Architecture of the FPGA Acceleration Module} 
     \label{fig:fpga_internal_architecture}
-\end{figure}
+\end{sidewaysfigure}
 
 Figure ~\ref{fig:fpga_internal_architecture} provides a granular view of the internal architecture of the \textbf{FPGA Acceleration} module, detailing the parallel hardware logic blocks responsible for strategy execution. The module operates on two primary data streams. The first is the \textbf{Market Data} stream, where the \textbf{Exchange Feed} is buffered into a \textbf{Tick Queue}, providing a continuous flow of \textbf{nanosecond-timestamped ticks}. The second is a critical feedback loop of \textbf{submitted orders} from the \textbf{Order Router}. This feedback is essential for state-aware strategies, allowing the FPGA to manage its inventory and outstanding orders in real-time. Within the FPGA, several specialized logic blocks operate in parallel: \begin{itemize} 
     \item \textbf{Timestamping Unit:} An internal unit for precise latency measurement and ensuring synchronization of all internal processes relative to the incoming market data. 
@@ -81,12 +81,12 @@ Figure ~\ref{fig:fpga_internal_architecture} provides a granular view of the int
     \item \textbf{Decision Engine:} This is the central processing core of the FPGA. It integrates the signals and outputs from all parallel strategy blocks, considers the current state of submitted orders, and makes the final, unified trading decision. This engine effectively performs the inference step of the embedded RL model. 
 \end{itemize} The output of the Decision Engine is a stream of \textbf{sub-microsecond orders}, which are sent to the \textbf{Order Router} for execution. This modular, parallel hardware design enables the system to evaluate multiple complex market conditions simultaneously and react with deterministic, ultra-low latency, achieving performance unattainable by conventional software-based systems.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig6_execution.tex}
     \caption{Order Processing and Post-Trade Analytics} 
     \label{fig:order_processing_analytics} 
-\end{figure}
+\end{sidewaysfigure}
 
 Figure ~\ref{fig:order_processing_analytics} illustrates the final stages of the trade lifecycle: order processing, risk management, and post-trade analysis. These components ensure that trading is executed safely and provide a critical feedback loop for continuous strategy improvement. The process begins when a \textbf{Trading Strategy} (originating from either the FPGA or a software-based engine) generates a desire to trade. This signal is sent to the \textbf{Order Processing} module. \begin{itemize} 
     \item \textbf{Smart Order Router (SOR):} The first component within this module is the SOR. It receives the trade signal and determines the optimal venue and method for execution based on factors like liquidity, latency, and exchange fee structures. 
@@ -96,12 +96,12 @@ Figure ~\ref{fig:order_processing_analytics} illustrates the final stages of the
     \item \textbf{Analytics Engine:} The logs are consumed by the \textbf{Analytics Engine}. This engine is responsible for audit and learning. For the proposed system, this engine would analyze the performance of the RL-based market-making strategy, providing data on profitability, adverse selection, and inventory risk. The insights derived here are crucial for retraining and refining the AI models, thus closing the loop and enabling continuous, data-driven strategy optimization. 
 \end{itemize} This complete feedback architecture, combining ultra-low-latency execution with robust risk management and intelligent analytics, forms a comprehensive framework for deploying adaptive, high-performance trading strategies in volatile market environments.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig7_monitoring.tex}
     \caption{System-Wide Monitoring and Metrics Infrastructure} 
     \label{fig:monitoring_metrics}
-\end{figure}
+\end{sidewaysfigure}
 
 Figure ~\ref{fig:monitoring_metrics} provides a detailed overview of the system's comprehensive monitoring and metrics infrastructure. This architecture operates in parallel to the main trading pipeline and is critical for ensuring operational stability, performance tuning, and regulatory compliance. The core of this infrastructure is the \textbf{Order Management System (OMS)}, which acts as the central nervous system for all trade-related information. The OMS tracks critical data points for every order, including the \textbf{Routes Taken}, precise \textbf{Execution Timestamps}, real-time \textbf{Status Updates} (e.g., filled, partially filled, rejected), and the initial \textbf{Orders Sent}. This wealth of data from the OMS feeds into two primary downstream processes: 
 \begin{enumerate} 
@@ -114,12 +114,12 @@ Figure ~\ref{fig:monitoring_metrics} provides a detailed overview of the system'
         \item \textbf{Post-Trade Analysis \& Compliance:} The data from the OMS is also funneled into this module, which is responsible for regulatory reporting and strategy performance analysis. The collected metrics and logs are used to monitor the performance of \textbf{Strategy Engines}, \textbf{Reporting Systems}, and the interactions with \textbf{Exchanges}.\end{enumerate}
 This robust monitoring framework ensures that every aspect of the trading system is observable, from high-level strategy performance down to the microsecond-level latency of individual components. The continuous feedback loop it provides is essential for maintaining a competitive edge and ensuring the stability and integrity of the entire trading operation.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
 \input{diagrams/fig8_unified.tex}
     \caption{Unified High-Frequency Trading System Architecture}
     \label{fig:unified_architecture}
-\end{figure}
+\end{sidewaysfigure}
 
 Figure ~\ref{fig:unified_architecture} presents the unified, end-to-end architecture of the high-frequency trading system, integrating all previously discussed subsystems into a cohesive whole. This master diagram illustrates the complete data flow from market data ingestion to order execution and post-trade analysis, governed by three core design principles: \textbf{Hardware Acceleration}, \textbf{Event-Driven Software}, and \textbf{Nanosecond Precision}. The data lifecycle begins at the \textbf{Co-Location Site}, where multicast market data is ingested through an ultra-low-latency NIC, bypassing the kernel's TCP/IP stack. The \textbf{Market Data Feed Handler} decodes this raw data, which is then used to update the replicated, in-memory \textbf{Order Book Cluster}. This update triggers the \textbf{Event-Driven Pipeline}. A lock-free queue publishes the market state, which is stamped with a \textbf{Nanosecond Precision Clock}. This timestamped event stream serves as the single source of truth for all decision-making modules. The stream is consumed by multiple parallel systems: \begin{itemize} 
     \item \textbf{FPGA Engines:} The primary focus of this research, these modules consume the event stream directly for the lowest possible latency. They execute hardware-synthesized strategies, including the proposed AI-driven market-making logic, to generate trading decisions in sub-microsecond timeframes. 

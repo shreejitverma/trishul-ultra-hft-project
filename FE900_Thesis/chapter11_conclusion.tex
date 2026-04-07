@@ -6,7 +6,7 @@ This dissertation has addressed a fundamental challenge in high-frequency tradin
 
 The primary contributions of this work are summarized across three dimensions:
 \begin{enumerate}
-    \item \textbf{Financial Engineering Framework:} We established a rigorous MDP formulation for market making that synthesizes the classical Avellaneda--Stoikov stochastic control framework with modern deep reinforcement learning. By utilizing microstructural features such as Order Book Imbalance and rolling volatility, we derived an adaptive quoting policy that proactively mitigates adverse selection risk.
+    \item \textbf{Financial Engineering Framework:} We established a rigorous MDP formulation for market making that synthesizes the classical Avellaneda-Stoikov stochastic control framework with modern deep reinforcement learning. By utilizing microstructural features such as Order Book Imbalance and rolling volatility, we derived an adaptive quoting policy that proactively mitigates adverse selection risk.
     \item \textbf{Architectural Synthesis:} We designed a hybrid hardware-software architecture that decouples the time-critical execution path from the model management layer. The implementation of a 4-stage pipelined neural inference core on FPGA fabric achieves a deterministic inference latency of 13.3ns, effectively rendering the AI decision-making cost negligible.
     \item \textbf{Empirical Validation:} Through a series of multi-regime simulations, we quantified the systemic advantages of the proposed system. The results confirm that the Project achieves a 400\% PnL improvement over traditional co-located software baselines and significantly enhances risk-adjusted returns (Sharpe Ratio 1.85) compared to static hardware implementations.
 \end{enumerate}

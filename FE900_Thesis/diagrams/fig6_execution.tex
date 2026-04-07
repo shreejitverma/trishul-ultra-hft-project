@@ -1,1 +1,33 @@
-\begin{center} \resizebox{0.98\textwidth}{!}{ \begin{tikzpicture}[node distance=1.5cm, auto, >=latex'] \tikzset{ srv/.style={rectangle, draw, fill=cyan!10, text width=6em, text centered, rounded corners, minimum height=3em}, net/.style={cloud, draw, node distance=3cm, minimum height=2em} } \node [srv] (strat) {Strategy}; \node [srv, below=of strat] (sor) {Smart Order Router}; \node [srv, below=of sor] (tcp) {TCP/IP Stack}; \node [srv, right=of tcp] (gw) {Exchange Gateway (FIX)}; \node [srv, right=of strat] (oms) {OMS}; \path [draw, ->] (strat) -- (sor); \path [draw, ->] (sor) -- (tcp); \path [draw, ->] (tcp) -- (gw); \path [draw, dashed, ->] (gw) -- node[right, scale=0.7] {Exec Rpt} (oms); \path [draw, dashed, ->] (oms) -- node[above, scale=0.7] {Update Inv} (strat); \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.95\textheight}{!}{
+\begin{tikzpicture}[node distance=3.0cm, auto, >=latex', thick]
+\tikzset{
+    block/.style={rectangle, draw, fill=blue!10, text width=9em, text centered, rounded corners, minimum height=4em},
+    risk_block/.style={rectangle, draw, fill=red!10, text width=9em, text centered, rounded corners, minimum height=4em},
+    data_block/.style={rectangle, draw, fill=yellow!10, text width=9em, text centered, minimum height=4em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [block] (strat) {Trading Strategy \\ (FPGA/Software)};
+\node [block, right=of strat] (sor) {Smart Order \\ Router (SOR)};
+\node [risk_block, right=of sor] (risk) {Pre-Trade \\ Risk Checks};
+\node [block, right=of risk] (exch) {Exchange \\ (NASDAQ/NYSE)};
+
+\node [data_block, below=of exch, yshift=0.5cm] (log) {Execution Log \\ (Audit Trail)};
+\node [block, left=of log, xshift=-1cm] (audit) {Audit \& \\ Analytics};
+\node [block, left=of audit, xshift=-1cm] (engine) {Analytics Engine \\ (Model Learning)};
+
+\path [line] (strat) -- (sor);
+\path [line] (sor) -- (risk);
+\path [line] (risk) -- (exch);
+\path [line] (exch) -- node[left] {Fill/Reject} (log);
+\path [line] (log) -- (audit);
+\path [line] (audit) -- (engine);
+\path [line, dashed] (engine) -- node[above, sloped] {Model Feedback} (strat);
+
+\node [draw, dashed, fit=(sor) (risk), label=above:Order Management System (OMS)] {};
+\node [draw, dashed, fit=(log) (audit) (engine), label=below:Post-Trade Lifecycle] {};
+
+\end{tikzpicture}
+}
+\end{center}

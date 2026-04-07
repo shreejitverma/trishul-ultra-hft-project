@@ -5,70 +5,164 @@
 High-frequency market making is fundamentally an exercise in stochastic optimal control under strict inventory constraints. This chapter establishes the quantitative framework required to model the dynamics of the Limit Order Book (LOB) and derives the theoretical foundations for optimal liquidity provision. We formulate the market-making problem as a utility maximization task, focusing on the derivation of optimal bid and ask offsets from the fair value of an asset.
 
 \section{Dynamics of the Limit Order Book}
-The LOB is modeled as a continuous-time double auction where liquidity is provided via limit orders and consumed by market orders. Let $L_t$ denote the state of the LOB at time $t$. The evolution of the LOB is governed by the arrival of orders following a point process.
+The Limit Order Book (LOB) is the fundamental data structure in electronic markets, representing the instantaneous supply and demand for an asset. It is modeled as a continuous-time double auction where liquidity is provided via limit orders and consumed by market orders. Let $L_t$ denote the state of the LOB at time $t$, defined as the set of all active limit orders:
+\begin{equation}
+    L_t = \{ (p_i, q_i, \tau_i, s_i) \}_{i=1}^{n_t}
+\end{equation}
+where $p_i \in \mathbb{R}^+$ is the price, $q_i \in \mathbb{Z}^+$ is the quantity (number of shares or contracts), $\tau_i \leq t$ is the arrival timestamp, and $s_i \in \{ \text{buy, sell} \}$ is the side of the order. The evolution of $L_t$ is governed by three primary event types:
+\begin{enumerate}
+    \item \textbf{Limit Order Arrivals:} A new order $O(p, q, \tau, s)$ is added to $L_t$.
+    \item \textbf{Cancellations:} An existing order is removed from $L_t$ before execution.
+    \item \textbf{Market Order Arrivals:} An aggressive order $O_{mkt}(q, \tau, s)$ is matched against existing limit orders on the opposite side, resulting in execution.
+\end{enumerate}
 
 \subsection{Price-Time Priority and Execution Mechanics}
-Execution at major electronic venues is governed by Price-Time Priority. An order $O(p, q, \tau)$ with price $p$, quantity $q$, and arrival time $\tau$ is executed only if:
+Execution at major electronic venues (e.g., NASDAQ, NYSE) is governed by \textbf{Price-Time Priority}. This deterministic matching algorithm ensures that orders at more aggressive prices are filled first. For orders at the same price, the order with the earlier arrival timestamp $\tau$ is prioritized. Formally, an order $O(p, q, \tau, s)$ is executed only if:
 \begin{enumerate}
-    \item There exists an aggressive market order at price $p'$ such that $p' \geq p$ (for sell orders) or $p' \leq p$ (for buy orders).
-    \item No other order $O'$ exists with price $p$ and arrival time $\tau' < \tau$.
+    \item \textbf{Price Condition:} There exists an aggressive market order at price $p'$ such that $p' \geq p$ (for sell orders) or $p' \leq p$ (for buy orders).
+    \item \textbf{Time Priority (Queue Position):} No other order $O'$ exists in $L_t$ with price $p$ and arrival time $\tau' < \tau$.
 \end{enumerate}
-This deterministic rule underscores the necessity of the ultra-low-latency execution implemented in this research. Queue position is a primary determinant of fill probability; therefore, any delay in quoting response significantly increases the risk of adverse selection and missed execution alpha.
+This rule underscores the necessity of the ultra-low-latency execution implemented in this research. \textit{Queue position} is a primary determinant of fill probability; therefore, any delay in quoting response (the "tick-to-trade" latency) significantly increases the risk of \textbf{adverse selection} and missed execution alpha. If a market maker reacts too slowly to a mid-price move, they remain at the top of the queue at an "obsolete" price, making them a target for informed traders.
 
-\section{The Avellaneda--Stoikov Optimal Control Framework}
-The core financial engineering problem is to determine the optimal bid-ask spread that maximizes the market maker's terminal utility. We build upon the seminal work of \citet{Avellaneda2008}.
+\subsection{Point Process Representation of the LOB}
+To model the stochastic evolution of the LOB, we represent the arrival of events as a \textbf{Point Process}. The cumulative number of orders of type $k$ arriving up to time $t$ is denoted by $N_t^k$. The intensity of these arrivals, $\lambda_t^k$, is defined as the conditional probability of an event occurring in an infinitesimal interval $dt$:
+\begin{equation}
+    \lambda_t^k = \lim_{dt \rightarrow 0} \frac{\mathbf{P}(N_{t+dt}^k - N_t^k = 1 | \mathcal{F}_t)}{dt}
+\end{equation}
+where $\mathcal{F}_t$ is the filtration representing the history of the LOB up to time $t$. In simple models, $\lambda_t^k$ is assumed to be a constant Poisson intensity. However, in high-frequency regimes, these intensities are often \textit{self-exciting} (Hawkes processes) or dependent on the current state of the book (e.g., the depth of the bid-ask spread).
+
+\section{The Avellaneda and Stoikov Optimal Control Framework}
+The core financial engineering problem for a market maker is to determine the optimal bid-ask offsets that maximize terminal utility while managing inventory risk. We build upon the seminal stochastic control framework developed by \citet{Avellaneda2008}, which extends the Ho and Stoll model to the high-frequency domain.
 
 \subsection{Asset Price and Wealth Dynamics}
-Let $S_t$ be the mid-price of an asset, following a Wiener Process:
+We model the mid-price $S_t$ of the asset as a \textbf{Wiener Process} (Arithmetic Brownian Motion):
 \begin{equation}
     dS_t = \sigma dW_t
 \end{equation}
-where $\sigma$ denotes the instantaneous volatility and $W_t$ is a standard Brownian motion. The market maker's wealth $X_t$ and inventory $q_t$ evolve according to the following stochastic differential equations (SDEs):
+In this equation:
+\begin{itemize}
+    \item $S_t$: The mid-price at time $t$, calculated as $\frac{P_{ask} + P_{bid}}{2}$.
+    \item $\sigma$: The \textbf{instantaneous volatility} of the asset, representing the standard deviation of price returns per unit of time.
+    \item $dW_t$: The increment of a \textbf{Standard Brownian Motion} (Wiener Process), where $dW_t \sim \mathcal{N}(0, dt)$.
+\end{itemize}
+
+The market maker manages a portfolio consisting of cash $X_t$ and a risky inventory $q_t$. Their wealth $X_t$ evolves according to the following stochastic differential equation (SDE):
 \begin{equation}
     dX_t = (S_t + \delta^a_t) dN^a_t - (S_t - \delta^b_t) dN^b_t
 \end{equation}
+Variables in the wealth SDE:
+\begin{itemize}
+    \item $X_t$: The market maker's \textbf{cash balance} at time $t$.
+    \item $\delta^a_t$: The \textbf{ask offset}, the distance from the mid-price at which the market maker places their sell limit order ($P_{ask}^{quote} = S_t + \delta^a_t$).
+    \item $\delta^b_t$: The \textbf{bid offset}, the distance from the mid-price at which the market maker places their buy limit order ($P_{bid}^{quote} = S_t - \delta^b_t$).
+    \item $dN^a_t$: An indicator variable (increment of a Poisson process) that is 1 if the market maker's ask order is filled at time $t$, and 0 otherwise.
+    \item $dN^b_t$: An indicator variable that is 1 if the market maker's bid order is filled at time $t$, and 0 otherwise.
+\end{itemize}
+
+The \textbf{inventory} $q_t$ (the number of shares held) evolves as:
 \begin{equation}
     dq_t = dN^b_t - dN^a_t
 \end{equation}
-where $\delta^a_t, \delta^b_t$ are the offsets from the mid-price, and $N^a_t, N^b_t$ are Poisson processes representing the arrival of sell and buy fill events, respectively.
+where a bid fill increases inventory ($+1$) and an ask fill decreases it ($-1$).
 
 \subsection{Utility Maximization and the HJB Equation}
-The market maker seeks to maximize the expected exponential utility of terminal wealth:
+The objective is to maximize the \textbf{Expected Exponential Utility} of the terminal wealth at time $T$. The use of exponential utility incorporates \textbf{constant absolute risk aversion (CARA)}:
 \begin{equation}
     \max_{\delta^a, \delta^b} \mathbf{E} \left[ -\exp(-\gamma (X_T + q_T S_T)) \right]
 \end{equation}
-where $\gamma$ is the risk-aversion parameter. The value function $u(s, x, q, t)$ satisfies the Hamilton-Jacobi-Bellman (HJB) equation:
+Terms in the objective function:
+\begin{itemize}
+    \item $\gamma$: The \textbf{risk-aversion parameter}. A higher $\gamma$ implies the market maker is more sensitive to inventory risk and will prioritize liquidating positions over capturing more spread.
+    \item $X_T + q_T S_T$: The \textbf{total mark-to-market wealth} at terminal time $T$.
+\end{itemize}
+
+To solve this stochastic optimal control problem, we define the \textbf{Value Function} $u(s, x, q, t)$ as the maximum expected utility from time $t$ to $T$, given the current state $(S_t=s, X_t=x, q_t=q)$. This function satisfies the \textbf{Hamilton-Jacobi-Bellman (HJB)} equation:
 \begin{equation}
     \frac{\partial u}{\partial t} + \frac{1}{2} \sigma^2 \frac{\partial^2 u}{\partial s^2} + \max_{\delta^b} \lambda^b(\delta^b) [u(s, x-s+\delta^b, q+1, t) - u] + \max_{\delta^a} \lambda^a(\delta^a) [u(s, x+s+\delta^a, q-1, t) - u] = 0
 \end{equation}
-where $\lambda(\delta)$ is the fill intensity function, modeled as a decreasing function of the offset:
-\begin{equation}
-    \lambda(\delta) = A e^{-k\delta}
-\end{equation}
-with $A$ and $k$ representing market liquidity parameters.
+The HJB equation components:
+\begin{itemize}
+    \item $\frac{\partial u}{\partial t}$: The time-decay (theta) of the value function.
+    \item $\frac{1}{2} \sigma^2 \frac{\partial^2 u}{\partial s^2}$: The \textbf{diffusion term}, representing the impact of mid-price volatility on the expected utility.
+    \item $\lambda(\delta)$: The \textbf{fill intensity function}, representing the rate at which the market maker's orders are executed as a function of their distance from the mid-price. We model this as:
+    \begin{equation}
+        \lambda(\delta) = A e^{-k\delta}
+    \end{equation}
+    where $A$ is the arrival rate of market orders and $k$ is the "decay" constant related to the density of the LOB. High $k$ implies that moving away from the mid-price drastically reduces fill probability.
+\end{itemize}
 
 \subsection{The Reservation Price and Optimal Offsets}
-The \textbf{Reservation Price} $r(s, q, t)$ is the price at which the market maker is indifferent between their current portfolio and a portfolio with one fewer unit of inventory. Under the assumption of constant volatility and small $\gamma$, the reservation price is approximated as:
+The \textbf{Reservation Price} $r(s, q, t)$ is a fundamental concept in this framework. It represents the "indifference price" at which the market maker is neutral toward their current inventory. If the market maker has a long position ($q > 0$), their reservation price will be \textit{lower} than the mid-price to reflect the risk of a price drop.
 \begin{equation}
     r(s, q, t) = S_t - q \gamma \sigma^2 (T - t)
 \end{equation}
-This derivation reveals the fundamental mechanics of inventory management: as $q_t$ increases, the reservation price shifts downward, inducing the market maker to lower their bid and ask quotes to encourage sells and discourage further buys. The optimal symmetric spread $\psi^*$ around the reservation price is given by:
+Variables in the reservation price:
+\begin{itemize}
+    \item $q \gamma \sigma^2 (T - t)$: The \textbf{inventory risk premium}. It is proportional to the size of the position $q$, the risk aversion $\gamma$, the variance $\sigma^2$, and the remaining time to the horizon $T-t$.
+\end{itemize}
+
+The optimal offsets $\delta^a$ and $\delta^b$ are centered around this reservation price, rather than the mid-price. This leads to the \textbf{skewed quoting strategy}:
+\begin{equation}
+    \text{Optimal Bid} = r(s, q, t) - \frac{\psi^*}{2}, \quad \text{Optimal Ask} = r(s, q, t) + \frac{\psi^*}{2}
+\end{equation}
+The optimal symmetric spread $\psi^*$ is derived as:
 \begin{equation}
     \psi^* = \frac{2}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \gamma \sigma^2 (T - t)
 \end{equation}
+This derivation reveals the fundamental mechanics of market making:
+\begin{enumerate}
+    \item \textbf{Inventory Skewing:} As $q_t$ increases, the reservation price $r$ drops, causing the market maker to lower both their bid and ask. This makes their bid less likely to be filled (avoiding more inventory) and their ask more likely to be filled (liquidating the current position).
+    \item \textbf{Volatility Expansion:} As $\sigma$ increases, the optimal spread $\psi^*$ widens to compensate the market maker for the higher risk of price gapping.
+\end{enumerate}
 
 \section{Microstructural Signals and Adverse Selection}
-Classical models assume that order arrivals are independent of the LOB state. However, in modern markets, the probability of a fill is highly contingent on microstructural signals.
+Classical market-making models, such as the Avellaneda and Stoikov framework, assume that order arrivals follow an exogenous Poisson process that is independent of the current state of the Limit Order Book (LOB). However, in modern high-frequency environments, the probability of an order fill and the subsequent price move are highly contingent on \textbf{microstructural signals}. Ignoring these signals leads to \textbf{adverse selection}, where the market maker provides liquidity to "informed" traders and suffers losses as the mid-price moves against their position.
 
 \subsection{Order Book Imbalance (OBI)}
-The Order Book Imbalance $\rho_t$ is a primary signal used in this research to proxy information asymmetry:
+The Order Book Imbalance $\rho_t$ is a primary high-frequency signal used in this research to proxy \textbf{information asymmetry} and predict short-term price innovations. It measures the relative supply and demand at the best bid and ask levels.
 \begin{equation}
     \rho_t = \frac{V_t^b - V_t^a}{V_t^b + V_t^a}
 \end{equation}
-where $V^b_t, V^a_t$ are the volumes at the best bid and ask. A significant imbalance ($\rho_t \rightarrow 1$ or $\rho_t \rightarrow -1$) indicates a directional bias in the aggressive order flow, suggesting an imminent price innovation.
+Variables in the OBI equation:
+\begin{itemize}
+    \item $\rho_t$: The \textbf{imbalance ratio} at time $t$, where $\rho_t \in [-1, 1]$.
+    \item $V_t^b$: The \textbf{volume (quantity)} available at the best bid price ($L1$ bid depth).
+    \item $V_t^a$: The \textbf{volume (quantity)} available at the best ask price ($L1$ ask depth).
+\end{itemize}
 
-\subsection{Adverse Selection and Toxic Flow}
-Adverse selection occurs when a market maker provides liquidity to an informed trader who possesses a short-term predictive edge. This "toxic flow" results in the market maker being filled just before a large price move against their position. To mitigate this risk, the adaptive reinforcement learning model (detailed in Chapter \ref{ch:rl_strategy}) utilizes $\rho_t$ and $\sigma_t$ as non-linear features to adjust quoting spreads dynamically, surpassing the performance of static AS-heuristics.
+The interpretation of $\rho_t$ is as follows:
+\begin{enumerate}
+    \item $\rho_t \rightarrow 1$: Indicates a significant surplus of buy interest relative to sell interest. This "buy pressure" often precedes an upward movement in the mid-price as aggressive market orders consume the remaining ask liquidity.
+    \item $\rho_t \rightarrow -1$: Indicates a surplus of sell interest ("sell pressure"), typically preceding a downward mid-price move.
+    \item $\rho_t \approx 0$: Indicates a balanced book with no clear directional bias.
+\end{enumerate}
+In our adaptive system, $\rho_t$ is used to adjust the reservation price $r$ beyond the inventory-based skew. If $\rho_t > 0.8$, the system anticipates a price increase and shifts the reservation price \textit{upward}, even if inventory is balanced, to avoid being "picked off" by aggressive buyers.
 
+\subsection{Volume Toxicity and VPIN}
+To quantify the "toxicity" of the incoming order flow, we incorporate concepts from the \textbf{Volume-Synchronized Probability of Informed Trading (VPIN)} framework. Flow toxicity occurs when market orders are consistently lopsided, suggesting that traders possess private information or superior predictive models.
+\begin{equation}
+    \text{Toxicity}_t \approx \frac{|E[V_t^b] - E[V_t^a]|}{V_{total}}
+\end{equation}
+where $E[V]$ denotes the expected volume of aggressive orders over a fixed time window. A high toxicity value signals that the market maker's limit orders are likely being filled by informed participants, increasing the probability of \textbf{post-fill price drift}.
+
+\subsection{Adverse Selection and the "Winner's Curse"}
+Adverse selection in market making is often referred to as the \textbf{Winner's Curse}. The market maker "wins" the trade (gets a fill) precisely when it is least advantageous to do so. Formally, if a market maker is filled on a bid at $S_t - \delta^b$, the expected profit is:
+\begin{equation}
+    E[\Pi] = \delta^b - E[S_{t+\tau} - S_t | \text{bid fill at } t]
+\end{equation}
+where $\tau$ is the holding period. In a toxic environment, $E[S_{t+\tau} - S_t | \text{bid fill at } t] < 0$ and its magnitude may exceed the captured spread $\delta^b$, leading to a net loss.
+
+To mitigate this, the \textbf{Adaptive Reinforcement Learning Model} (detailed in Chapter \ref{ch:rl_strategy}) utilizes $\rho_t$, $\sigma_t$, and trade flow imbalances as non-linear features. By learning the complex relationship between these microstructural variables and future price delta, the RL agent can dynamically "widen" its spreads or "withdraw" from the book during periods of high toxicity, significantly outperforming static AS-heuristics.
+
+\section{Stochastic Discounting and Multi-Period Optimization}
+Beyond the single-period terminal utility, a production-grade HFT system must consider the \textbf{path-dependent} nature of wealth. We introduce the concept of a \textbf{discounted reward function} to ensure that the system prioritizes immediate stability while pursuing long-term profitability. The RL agent's objective function is formulated as:
+\begin{equation}
+    J = E \left[ \sum_{k=t}^{T} \gamma^{k-t} R_k \right]
+\end{equation}
+where:
+\begin{itemize}
+    \item $R_k$: The reward at step $k$, typically defined as the change in \textbf{mark-to-market (MtM) PnL} adjusted for inventory risk.
+    \item $\gamma$: The \textbf{discount factor} ($0 < \gamma < 1$), which determines the agent's horizon. In ultra-HFT, $\gamma$ is often set close to $1$ to account for the high frequency of events, but slightly less than $1$ to prevent divergence in infinite-horizon approximations.
+\end{itemize}
 \section{Conclusion}
 This chapter has established the stochastic foundations of optimal liquidity provision. The derivation of the reservation price and optimal spread provides the theoretical benchmark for our system. In the following chapters, we detail how these quantitative models are operationalized using high-fidelity data generation and hardware-accelerated reinforcement learning.

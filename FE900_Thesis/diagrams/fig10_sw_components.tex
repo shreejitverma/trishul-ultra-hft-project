@@ -1,1 +1,28 @@
-\begin{center} \resizebox{0.7\textwidth}{!}{ \begin{tikzpicture}[node distance=1.2cm, auto] \tikzset{ class/.style={rectangle, draw, fill=yellow!10, text width=12em, text centered, rounded corners, minimum height=3.5em}, line/.style={draw, -latex', thick} } \node [class] (book) {\textbf{OrderBookL2} \\ \small +update() \\ \small +best\_bid()}; \node [class, below=of book] (strat) {\textbf{MarketMaker} \\ \small +on\_market\_data() \\ \small +get\_order()}; \node [class, below=of strat] (oms) {\textbf{OrderManagementSystem} \\ \small +send\_order() \\ \small +on\_exec\_report()}; \node [class, right=of oms, xshift=1.0cm] (sor) {\textbf{SmartOrderRouter} \\ \small +route()}; \path [line] (book) -- node [right, scale=0.7] {BBO Event} (strat); \path [line] (strat) -- node [right, scale=0.7] {Order Request} (oms); \path [line] (oms) -- node [above, scale=0.7] {Execution} (sor); \node [draw, dashed, right=of sor, xshift=0.5cm] (exch) {Exchange}; \path [line, dashed] (sor) -- (exch); \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.98\textheight}{!}{
+\begin{tikzpicture}[node distance=3.5cm, auto, >=latex', thick]
+\tikzset{
+    class/.style={rectangle, draw, fill=yellow!10, text width=14em, text centered, rounded corners, minimum height=5em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [class] (book) {\textbf{OrderBookL2} \\ \small +update(tick: Tick) \\ \small +best\_bid(): Price \\ \small +best\_ask(): Price};
+
+\node [class, right=of book] (strat) {\textbf{MarketMaker (RL)} \\ \small +on\_market\_data(eb: Event) \\ \small +get\_optimal\_quote(): Quote \\ \small +on\_execution(er: Report)};
+
+\node [class, right=of strat] (oms) {\textbf{OrderManagementSystem} \\ \small +send\_order(ord: Order) \\ \small +cancel\_order(id: uint64) \\ \small +on\_exec\_report(er: Report)};
+
+\node [class, right=of oms] (sor) {\textbf{SmartOrderRouter} \\ \small +route(ord: Order) \\ \small +select\_venue(): Venue};
+
+\node [draw, dashed, right=of sor, xshift=0.5cm, minimum height=3em] (exch) {Exchange};
+
+\path [line] (book) -- node [above, midway, scale=0.8] {BBO State} (strat);
+\path [line] (strat) -- node [above, midway, scale=0.8] {Order Request} (oms);
+\path [line] (oms) -- node [above, midway, scale=0.8] {Routed Order} (sor);
+\path [line, dashed] (sor) -- (exch);
+
+\node [draw, dashed, fit=(book) (sor), label=above:Software Component Class Hierarchy] {};
+
+\end{tikzpicture}
+}
+\end{center}

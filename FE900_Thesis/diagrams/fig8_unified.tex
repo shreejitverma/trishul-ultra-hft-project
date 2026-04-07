@@ -1,1 +1,42 @@
-\begin{center} \resizebox{0.75\textwidth}{!}{ \begin{tikzpicture}[node distance=1.2cm, auto, >=latex'] \tikzset{ domain_style/.style={rectangle, draw, dashed, fill=white, minimum width=10cm, minimum height=3cm}, block/.style={rectangle, draw, fill=blue!10, text width=5em, text centered, rounded corners, minimum height=3em}, mem/.style={rectangle, draw, fill=yellow!10, text width=4em, text centered} } \node [domain_style, label=left:Hardware (FPGA)] (hw) {}; \node [block, right=of hw.west, xshift=0.5cm] (rx) {RX}; \node [block, right=of rx, xshift=-0.5cm] (book) {Book}; \node [block, right=of book, xshift=-0.5cm] (rl) {RL Core}; \node [block, right=of rl, xshift=-0.5cm] (risk) {Risk}; \node [block, right=of risk, xshift=-0.5cm] (tx) {TX}; \node [rectangle, fill=gray!20, minimum width=8cm, minimum height=0.4cm, below=of hw, yshift=0.3cm] (pcie) {PCIe / DMA Interconnect}; \node [domain_style, below=of pcie, label=left:Software (CPU), yshift=0.3cm] (sw) {}; \node [block, right=of sw.west, xshift=0.5cm] (train) {RL Training}; \node [mem, right=of train] (shm) {Shared Mem}; \node [block, right=of shm] (sim) {Market Sim}; \node [block, right=of sim] (log) {Logging}; \path [draw, ->, line width=1.5pt] (rx) -- (book); \path [draw, ->, line width=1.5pt] (book) -- (rl); \path [draw, ->, line width=1.5pt] (rl) -- (risk); \path [draw, ->, line width=1.5pt] (risk) -- (tx); \path [draw, <->, dashed] (rl) -- (pcie); \path [draw, <->, dashed] (train) -- (pcie); \path [draw, ->] (sim) -- (train); \path [draw, ->] (train) -- (shm); \path [draw, ->] (shm) -- (log); \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.98\textheight}{!}{
+\begin{tikzpicture}[node distance=2.5cm, auto, >=latex', thick]
+\tikzset{
+    domain_style/.style={rectangle, draw, dashed, fill=white, minimum width=18cm, minimum height=4cm},
+    hw_block/.style={rectangle, draw, fill=red!10, text width=7em, text centered, rounded corners, minimum height=4em},
+    sw_block/.style={rectangle, draw, fill=blue!10, text width=7em, text centered, rounded corners, minimum height=4em},
+    mem_block/.style={rectangle, draw, fill=yellow!10, text width=7em, text centered, minimum height=4em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [domain_style, label=left:\textbf{Hardware (FPGA)}] (hw) {};
+\node [hw_block, right=of hw.west, xshift=0.5cm] (rx) {MAC/PHY RX};
+\node [hw_block, right=of rx] (book) {L2 Order Book};
+\node [hw_block, right=of book] (rl) {\textbf{RL Inference}};
+\node [hw_block, right=of rl] (risk) {Risk Filter};
+\node [hw_block, right=of risk] (tx) {MAC/PHY TX};
+
+\node [rectangle, fill=gray!20, minimum width=16cm, minimum height=0.6cm, below=of hw, yshift=0.5cm] (pcie) {PCIe Gen4 x16 / DMA Interconnect (Zero-Copy)};
+
+\node [domain_style, below=of pcie, label=left:\textbf{Software (CPU)}, yshift=0.5cm] (sw) {};
+\node [sw_block, right=of sw.west, xshift=0.5cm] (train) {RL Training \\ (PyTorch)};
+\node [mem_block, right=of train] (shm) {Shared \\ Memory};
+\node [sw_block, right=of shm] (sim) {Exchange \\ Simulator};
+\node [sw_block, right=of sim] (log) {Telemetry \\ \& Logging};
+
+\path [line] (rx) -- (book);
+\path [line] (book) -- (rl);
+\path [line] (rl) -- (risk);
+\path [line] (risk) -- (tx);
+
+\path [draw, <->, line width=1pt, dashed, blue] (rl) -- (pcie);
+\path [draw, <->, line width=1pt, dashed, blue] (train) -- (pcie);
+\path [draw, <->, line width=1pt, dashed, blue] (shm) -- (pcie);
+
+\path [line] (sim) -- (train);
+\path [line] (train) -- (shm);
+\path [line] (shm) -- (log);
+
+\end{tikzpicture}
+}
+\end{center}

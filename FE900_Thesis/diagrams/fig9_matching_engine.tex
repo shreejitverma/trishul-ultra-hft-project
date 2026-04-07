@@ -1,1 +1,33 @@
-\begin{center} \resizebox{0.98\textwidth}{!}{ \begin{tikzpicture}[node distance = 1.0cm and 0.5cm, auto] \tikzset{ block/.style={rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners, minimum height=3em}, line/.style={draw, -latex', thick}, cloud/.style={draw, ellipse, fill=red!10, node distance=2cm, minimum height=2em} } \node [block] (mac_rx) {MAC RX (AXI-S)}; \node [block, below=of mac_rx] (parser) {RX Parser (L2/L3/L4)}; \node [block, below=of parser] (decoder) {ITCH Decoder}; \node [block, right=of decoder] (book) {Order Book (L1/BBO)}; \node [block, right=of book] (strategy) {RL Inference Core}; \node [block, above=of strategy] (encoder) {OUCH Encoder}; \node [block, above=of encoder] (bridge) {TX Bridge}; \node [block, left=of bridge] (mac_tx) {MAC TX (AXI-S)}; \path [line] (mac_rx) -- (parser); \path [line] (parser) -- node[midway, right, scale=0.7] {UDP Payload} (decoder); \path [line] (decoder) -- node[midway, below, scale=0.7] {Tick (Price/Qty)} (book); \path [line] (book) -- node[midway, below, scale=0.7] {BBO State} (strategy); \path [line] (strategy) -- node[midway, right, scale=0.7] {Trade Signal} (encoder); \path [line] (encoder) -- node[midway, left, scale=0.7] {OUCH Packet} (bridge); \path [line] (bridge) -- (mac_tx); \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.98\textheight}{!}{
+\begin{tikzpicture}[node distance=2.5cm, auto, >=latex', thick]
+\tikzset{
+    hw_block/.style={rectangle, draw, fill=red!10, text width=8em, text centered, rounded corners, minimum height=4em},
+    logic_block/.style={rectangle, draw, fill=blue!10, text width=8em, text centered, rounded corners, minimum height=4em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [hw_block] (rx) {MAC RX \\ (AXI-Stream)};
+\node [logic_block, right=of rx] (parser) {Protocol \\ Parser};
+\node [logic_block, right=of parser] (decoder) {ITCH 5.0 \\ Decoder};
+\node [logic_block, right=of decoder] (book) {L2 Order \\ Book};
+
+\node [logic_block, right=of book, xshift=1cm] (strat) {\textbf{RL Inference} \\ \textbf{Engine}};
+
+\node [logic_block, right=of strat, xshift=1cm] (encoder) {OUCH 2.0 \\ Encoder};
+\node [logic_block, right=of encoder] (bridge) {AXI-Bridge \\ (TX)};
+\node [hw_block, right=of bridge] (tx) {MAC TX \\ (AXI-Stream)};
+
+\path [line] (rx) -- (parser);
+\path [line] (parser) -- node[above, midway] {Payload} (decoder);
+\path [line] (decoder) -- node[above, midway] {Tick} (book);
+\path [line] (book) -- node[above, midway] {State} (strat);
+\path [line] (strat) -- node[above, midway] {Order} (encoder);
+\path [line] (encoder) -- (bridge);
+\path [line] (bridge) -- (tx);
+
+\node [draw, dashed, fit=(rx) (tx), label=above:FPGA Matching Engine Pipeline] {};
+
+\end{tikzpicture}
+}
+\end{center}

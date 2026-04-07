@@ -6,7 +6,7 @@ This chapter presents the empirical evaluation of the proposed Ultra-Low-Latency
 The benchmarking environment utilized an Apple M3 processor, serving as a proxy for modern high-frequency x86 servers (e.g., Intel Core i9 or AMD EPYC) through Docker-based emulation. While absolute timing values differ between ARM64 and x86 architectures, the relative performance characteristics and architectural bottlenecks remain consistent.
 
 \subsection{Latency Analysis (Tick-to-Trade)}
-The most critical metric for a market-making system is Tick-to-Trade (T2T) latency—the time elapsed between the arrival of a market data packet at the NIC and the transmission of the corresponding order packet.
+The most critical metric for a market-making system is Tick-to-Trade (T2T) latency, defined as the time elapsed between the arrival of a market data packet at the NIC and the transmission of the corresponding order packet.
 
 \begin{table}[h!]
     \centering
@@ -27,24 +27,24 @@ The most critical metric for a market-making system is Tick-to-Trade (T2T) laten
     \label{tab:latency_breakdown}
 \end{table}
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
     \input{diagrams/fig11_latency_hist.tex}
     \caption{Probability density of T2T latency showing the P99 tail at 1150ns.}
     \label{fig:latency_hist}
-\end{figure}
+\end{sidewaysfigure}
 
 The median T2T latency of \textbf{850 nanoseconds} represents a significant achievement. In our testing, we look at P50 (the typical delay you see most of the time) and P99 (the worst-case delay that only happens 1\% of the time). In high-speed trading, keeping the worst-case delay low is just as important as being fast on average.
 
 \section{Throughput and Capacity Analysis}
 To evaluate the system's resilience during market bursts (e.g., economic announcements), we measured the maximum message processing rate.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
     \input{diagrams/fig12_throughput.tex}
     \caption{Throughput improvement resulting from Lock-Free Ring Buffers and Object Pooling.}
     \label{fig:throughput_comparison}
-\end{figure}
+\end{sidewaysfigure}
 
 This throughput represents a **20x improvement** over the initial baseline implementation.
  This gain is directly attributable to two optimizations:
@@ -54,7 +54,7 @@ This throughput represents a **20x improvement** over the initial baseline imple
 \end{enumerate}
 
 \section{Strategy Performance Evaluation}
-The market-making strategy, enhanced with the Order Book Imbalance (OBI) signal, was backtested against a synthetic dataset comprising 10 million trade events generated via a \textbf{Geometric Brownian Motion (GBM)} model---a continuous-time stochastic process where the logarithm of the randomly varying quantity follows a Brownian motion with drift.
+The market-making strategy, enhanced with the Order Book Imbalance (OBI) signal, was backtested against a synthetic dataset comprising 10 million trade events generated via a \textbf{Geometric Brownian Motion (GBM)} model, which is a continuous-time stochastic process where the logarithm of the randomly varying quantity follows a Brownian motion with drift.
 
 \subsection{Financial Metrics}
 \begin{table}[h!]
@@ -75,17 +75,17 @@ The market-making strategy, enhanced with the Order Book Imbalance (OBI) signal,
     \label{tab:strategy_performance}
 \end{table}
 
-The \textbf{Sharpe Ratio of 1.85} indicates a robust risk-adjusted return. In simple terms, the Sharpe Ratio measures "bang for your buck"---how much profit you make compared to how much the price swings up and down. The \textbf{Sortino Ratio of 2.10} is a variation that only penalizes "bad" swings (downside volatility), suggesting the strategy effectively avoided large losses. This confirms the efficacy of the OBI signal in detecting short-term liquidity imbalances and adjusting quotes to avoid \textbf{toxic flow}---order flow from informed traders that consistently moves the price against the market maker.
+The \textbf{Sharpe Ratio of 1.85} indicates a robust risk-adjusted return. In simple terms, the Sharpe Ratio measures "bang for your buck," representing how much profit you make compared to how much the price swings up and down. The \textbf{Sortino Ratio of 2.10} is a variation that only penalizes "bad" swings (downside volatility), suggesting the strategy effectively avoided large losses. This confirms the efficacy of the OBI signal in detecting short-term liquidity imbalances and adjusting quotes to avoid \textbf{toxic flow}, which refers to order flow from informed traders that consistently moves the price against the market maker.
 
 \section{Operational Stability Analysis}
 The stability of the system was assessed by subjecting the `AsyncLogger` to a synthetic load of 100,000 log messages per second while simultaneously processing market data.
 
-\begin{figure}[h!]
+\begin{sidewaysfigure}[h!]
     \centering
     \input{diagrams/fig13_stability.tex}
     \caption{Deterministic Latency Profile under Logging Stress}
     \label{fig:latency_stability}
-\end{figure}
+\end{sidewaysfigure}
 
 As illustrated conceptually in Figure \ref{fig:latency_stability}, the trading thread maintained a stable latency profile with negligible jitter. This demonstrates that the lock-free ring buffer successfully decoupled the I/O-intensive logging operations from the latency-sensitive trading logic.
 

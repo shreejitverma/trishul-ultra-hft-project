@@ -1,1 +1,36 @@
-\begin{center} \resizebox{0.8\textwidth}{!}{ \begin{tikzpicture}[node distance=1.0cm, auto, >=latex'] \tikzset{ reg/.style={rectangle, draw, fill=yellow!10, text width=6em, text centered, minimum height=2em}, logic/.style={rectangle, draw, fill=red!10, text width=7em, text centered, rounded corners, minimum height=3em}, mem/.style={rectangle, draw, fill=blue!10, text width=6em, text centered, minimum height=3em} } \node [reg] (bbo) {BBO Regs}; \node [reg, left=of bbo] (pos) {Inventory}; \node [reg, right=of bbo] (vol) {Volatility}; \node [logic, below=of bbo] (feat) {Feature Extraction \\ (State Normalization)}; \node [mem, left=of feat, xshift=-0.5cm] (weights) {Weight ROM \\ (Policy Paras)}; \node [logic, below=of feat, yshift=-0.2cm] (dsp) {DSP48 Pipelined \\ (MAC Operations)}; \node [logic, below=of dsp] (act) {Non-Linear \\ Activation (ReLU)}; \node [logic, below=of act] (comp) {Quoting \\ Decision Engine}; \node [reg, below=of comp] (out) {Strategy Order \\ (AXI-Stream)}; \path [draw, ->, thick] (bbo) -- (feat); \path [draw, ->, thick] (pos) |- (feat); \path [draw, ->, thick] (vol) |- (feat); \path [draw, ->, thick] (feat) -- (dsp); \path [draw, ->, thick] (weights) |- (dsp); \path [draw, ->, thick] (dsp) -- (act); \path [draw, ->, thick] (act) -- (comp); \path [draw, ->, thick] (comp) -- (out); \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.95\textheight}{!}{
+\begin{tikzpicture}[node distance=3.2cm, auto, >=latex', thick]
+\tikzset{
+    block/.style={rectangle, draw, fill=red!10, text width=9em, text centered, rounded corners, minimum height=4.5em},
+    input/.style={rectangle, draw, fill=gray!10, text width=8em, text centered, minimum height=3em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [input] (mkt) {Market Data \\ (ITCH 5.0)};
+\node [input, below=of mkt, yshift=1.5cm] (ord) {Order Feedback \\ (OUCH)};
+
+\node [block, right=of mkt] (ts) {Timestamping \\ Unit (PTP)};
+\node [block, right=of ord] (tick) {Internal \\ Tick Queue};
+
+\node [block, right=of ts] (mm) {\textbf{Market-Making} \\ (RL Model Core)};
+\node [block, above=of mm, yshift=-1.5cm] (arb) {Arbitrage \\ Logic};
+\node [block, below=of mm, yshift=1.5cm] (quote) {Quote-Stuffing \\ Logic};
+
+\node [block, right=of mm, xshift=1.5cm] (dec) {Decision \\ Engine};
+\node [input, right=of dec] (out) {Sub-microsecond \\ Orders};
+
+\path [line] (mkt) -- (ts);
+\path [line] (ts) -- (mm);
+\path [line] (ord) -- (tick);
+\path [line] (tick) -- (mm);
+\path [line] (arb) -- (dec);
+\path [line] (mm) -- (dec);
+\path [line] (quote) -- (dec);
+\path [line] (dec) -- (out);
+
+\node [draw, dashed, fit=(ts) (tick) (mm) (arb) (quote) (dec), label=above:FPGA Programmable Logic (PL)] {};
+
+\end{tikzpicture}
+}
+\end{center}

@@ -1,1 +1,33 @@
-\begin{center} \resizebox{0.98\textwidth}{!}{ \begin{tikzpicture}[node distance=1.5cm, auto, >=latex'] \tikzset{ metric/.style={circle, draw, fill=orange!20, inner sep=2pt, text width=3em, text centered}, proc/.style={rectangle, draw, fill=blue!10, text width=6em, text centered, rounded corners} } \node [proc] (fpga) {FPGA}; \node [proc, below=of fpga] (sw) {Software}; \node [metric, right=of fpga] (t2t) {T2T Latency}; \node [metric, right=of sw] (cpu) {CPU Usage}; \node [metric, below=of cpu] (pnl) {PnL}; \node [proc, right=of t2t, yshift=-1cm] (col) {Metrics Collector}; \node [proc, right=of col] (db) {InfluxDB}; \node [proc, below=of db] (graf) {Grafana}; \path [draw, dashed, ->] (fpga) -- (t2t); \path [draw, dashed, ->] (sw) -- (cpu); \path [draw, dashed, ->] (sw) -- (pnl); \path [draw, ->] (t2t) -- (col); \path [draw, ->] (cpu) -- (col); \path [draw, ->] (pnl) -- (col); \path [draw, ->] (col) -- (db); \path [draw, ->] (db) -- (graf); \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.95\textheight}{!}{
+\begin{tikzpicture}[node distance=3.2cm, auto, >=latex', thick]
+\tikzset{
+    block/.style={rectangle, draw, fill=blue!10, text width=9em, text centered, rounded corners, minimum height=4.5em},
+    data_block/.style={rectangle, draw, fill=yellow!10, text width=9em, text centered, minimum height=4.5em},
+    alert_block/.style={rectangle, draw, fill=red!10, text width=9em, text centered, rounded corners, minimum height=4.5em},
+    line/.style={draw, -latex', line width=1.5pt}
+}
+
+\node [block] (oms) {Order Management \\ System (OMS)};
+
+\node [data_block, right=of oms, xshift=1.5cm] (metrics) {Metrics Collectors \\ (Throughput/Errors)};
+\node [alert_block, right=of metrics] (alerts) {Real-Time \\ Alerts};
+
+\node [block, above=of metrics, yshift=-1cm] (monitor) {System-Wide \\ Monitoring};
+\node [block, below=of metrics, yshift=1cm] (compliance) {Post-Trade \\ Compliance};
+
+\node [data_block, left=of monitor, xshift=-1cm] (routes) {Routes Taken \\ (SOR Log)};
+\node [data_block, left=of compliance, xshift=-1cm] (orders) {Orders Sent \\ (OUCH Log)};
+
+\path [line] (routes) -- (monitor);
+\path [line] (orders) -- (compliance);
+\path [line] (oms) -- node[above, sloped] {Telemetry} (metrics);
+\path [line] (metrics) -- (alerts);
+\path [line] (monitor) -- (metrics);
+\path [line] (compliance) -- (metrics);
+
+\node [draw, dashed, fit=(monitor) (metrics) (alerts) (compliance), label=above:Observability Infrastructure] {};
+
+\end{tikzpicture}
+}
+\end{center}

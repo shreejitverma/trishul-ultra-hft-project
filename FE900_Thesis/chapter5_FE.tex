@@ -2,52 +2,104 @@
 \label{ch:rl_strategy}
 
 \section{Introduction}
-The inherent non-stationarity of financial markets, characterized by shifting volatility regimes and non-linear microstructural dependencies, necessitates a quoting strategy that possesses high adaptive capacity. This chapter details the formulation of the reinforcement learning (RL) framework used to optimize the market-making policies defined in the stochastic control context of Chapter \ref{ch:microstructure}. We focus on the transformation of the continuous quoting problem into a discrete-time Markov Decision Process (MDP) and delineate the learning algorithm employed to derive robust execution policies.
+The inherent non-stationarity of financial markets, characterized by shifting volatility regimes, transient liquidity droughts, and non-linear microstructural dependencies, necessitates a quoting strategy that possesses high \textbf{adaptive capacity}. While the stochastic control framework derived in Chapter \ref{ch:microstructure} provides a theoretical benchmark, its reliance on simplifying assumptions (e.g., constant parameters, independent Poisson arrivals) limits its efficacy in fragmented, toxic environments.
+ This chapter details the formulation of a \textbf{Deep Reinforcement Learning (DRL)} framework used to optimize market-making policies. We transform the continuous quoting problem into a discrete-time \textbf{Markov Decision Process (MDP)} and delineate the architectural and algorithmic innovations required to derive robust, hardware-accelerated execution policies.
 
 \section{Markov Decision Process (MDP) Formulation}
-We model the market-making task as a discrete-time MDP defined by the tuple $(S, A, P, R, \gamma)$.
+We model the market-making task as a discrete-time MDP defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$. The agent (the market maker) interacts with the environment (the Limit Order Book) by observing the state $s_t$, taking an action $a_t$, and receiving a reward $r_t$ and a next state $s_{t+1}$.
 
-\subsection{State Space Representation ($S$)}
-The state vector $s_t \in S$ is engineered to capture a multidimensional summary of the instantaneous Limit Order Book (LOB) state and the market maker's internal constraints. The features include:
+\subsection{State Space Representation ($\mathcal{S}$)}
+The state vector $s_t \in \mathcal{S}$ is a multidimensional summary of the instantaneous LOB state and the market maker's internal constraints. We define $s_t$ as:
 \begin{equation}
-    s_t = \left[ \rho_t, \sigma_t, q_t, \psi_{t-1}, \Delta S_t, \text{imb}_{vol} \right]
+    s_t = \left[ \rho_t, \sigma_t, q_t, \psi_{t-1}, \Delta S_t, \tau_t, \text{vpin}_t \right]
+\end{equation}
+Variables and features in the state vector:
+\begin{itemize}
+    \item $\rho_t$: The \textbf{Order Book Imbalance} at time $t$, representing the normalized volume difference between the best bid and ask ($L1$ imbalance).
+    \item $\sigma_t$: The \textbf{rolling volatility estimate}, typically calculated over a sliding window of the last $N$ ticks to proxy current market risk.
+    \item $q_t$: The \textbf{net inventory position} of the market maker, where $q_t \in [q_{min}, q_{max}]$.
+    \item $\psi_{t-1}$: The \textbf{previous spread} utilized by the agent, allowing the model to incorporate "quoting inertia" and avoid jitter.
+    \item $\Delta S_t$: The \textbf{mid-price innovation}, defined as $S_t - S_{t-1}$, capturing short-term momentum.
+    \item $\tau_t$: The \textbf{time-to-horizon} parameter, $T-t$, which informs the agent about the remaining duration of the trading session.
+    \item $\text{vpin}_t$: A proxy for \textbf{Order Flow Toxicity}, calculated using volume-synchronized probability of informed trading metrics.
+\end{itemize}
+
+\subsection{Action Space and Quoting Policy ($\mathcal{A}$)}
+The agent's action $a_t \in \mathcal{A}$ determines the placement of bid and ask limit orders. To maintain deterministic execution within the FPGA fabric, we utilize a \textbf{discretized action space}. The agent selects a spread $\psi_t$ and a skew $\theta_t$:
+\begin{equation}
+    P_{ask}^{quote} = S_t + \frac{\psi_t}{2} + \theta_t, \quad P_{bid}^{quote} = S_t - \frac{\psi_t}{2} + \theta_t
 \end{equation}
 where:
 \begin{itemize}
-    \item $\rho_t$: Normalized Order Book Imbalance.
-    \item $\sigma_t$: Rolling volatility estimate (GARCH-like feature).
-    \item $q_t$: Current net inventory position.
-    \item $\psi_{t-1}$: The spread utilized in the previous time step.
-    \item $\Delta S_t$: Short-term mid-price innovation.
+    \item $\psi_t$: The \textbf{bid-ask spread}, chosen from a finite set $\{ \psi_{min}, \dots, \psi_{max} \}$.
+    \item $\theta_t$: The \textbf{price skew}, which shifts the entire quoting envelope to manage inventory or front-run anticipated price moves.
+\end{itemize}
+By discretizing these parameters into $M$ possible levels, we reduce the neural network's output layer size, facilitating low-latency hardware inference.
+
+\subsection{Risk-Adjusted Reward Function ($\mathcal{R}$)}
+The reward function is the most critical component of the DRL framework, as it encodes the market maker's utility. We define the instantaneous reward $R_t$ as:
+\begin{equation}
+    R_t = \Delta \text{PnL}_t - \eta \cdot \phi(q_t) - \zeta \cdot \mathcal{L}_{cost}(a_t)
+\end{equation}
+Variables in the reward function:
+\begin{itemize}
+    \item $\Delta \text{PnL}_t$: The \textbf{mark-to-market (MtM) profit and loss} change between $t-1$ and $t$. It includes captured spread from fills and the valuation change of the existing inventory $q_{t-1}$.
+    \item $\eta$: The \textbf{inventory risk aversion coefficient}.
+    \item $\phi(q_t)$: The \textbf{inventory penalty function}, often modeled as $\phi(q_t) = q_t^2$. This term penalizes the agent for holding large positions, forcing it to "lean" the book to neutralize risk.
+    \item $\zeta$: The \textbf{transaction/execution cost coefficient}.
+    \item $\mathcal{L}_{cost}(a_t)$: A penalty for \textbf{adverse selection} and quoting instability, discouraging the agent from placing orders that are immediately picked off by toxic flow.
 \end{itemize}
 
-\subsection{Action Space and Quoting Policy ($A$)}
-The agent's action $a_t \in A$ corresponds to the selection of bid and ask offsets $(\delta^b, \delta^a)$ relative to the reservation price $r_t$ derived in Equation 3.10. To maintain computational efficiency within the FPGA fabric, we discretize the action space into a finite set of spread-shift commands $(\Delta \delta)$. This discretization allows the model to "tilt" or "widen" the quoting envelope in response to detected regime shifts.
+\section{The Proximal Policy Optimization (PPO) Algorithm}
+To derive the optimal policy $\pi_\theta(a|s)$, we employ the \textbf{Proximal Policy Optimization (PPO)} algorithm. PPO is an \textit{actor-critic} method that ensures stable learning by constraining the magnitude of policy updates.
 
-\subsection{Risk-Adjusted Reward Function ($R$)}
-The objective of the RL agent is to maximize terminal utility by balancing the capture of the bid-ask spread against the costs of inventory holding and adverse selection. The reward function $r_t$ is formulated as:
+\subsection{The Clipped Surrogate Objective}
+The PPO agent maximizes the following objective function:
 \begin{equation}
-    r_t = \Delta PnL_t - \eta \cdot \text{Var}(q_t) - \zeta \cdot \mathbf{I}(|q_t| > q_{max})
+    L^{CLIP}(\theta) = \hat{\mathbf{E}}_t \left[ \min(w_t(\theta) \hat{A}_t, \text{clip}(w_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) \right]
 \end{equation}
-where $\Delta PnL_t$ is the change in mark-to-market wealth, $\eta$ is the inventory risk aversion coefficient, and $\zeta$ is a heavy penalty for violating the hard risk limits enforced by the system's safety envelope.
+Terms in the PPO objective:
+\begin{itemize}
+    \item $w_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$: The \textbf{probability ratio} between the new and old policies.
+    \item $\hat{A}_t$: The \textbf{estimated advantage} at time $t$, representing how much better the action $a_t$ is compared to the average action in state $s_t$.
+    \item $\epsilon$: The \textbf{clipping hyperparameter} (typically $0.1$ or $0.2$), which prevents the new policy from deviating too far from the old one, ensuring monotonic improvement.
+\end{itemize}
 
-\section{Learning Algorithm: Proximal Policy Optimization (PPO)}
-To ensure stable policy updates in the noisy HFT environment, we utilize the **Proximal Policy Optimization (PPO)** algorithm \citep{Schulman2017}. PPO is particularly suited for financial applications due to its clipped surrogate objective, which prevents large, destructive updates to the policy parameters that could lead to catastrophic losses during the training phase.
-
-The objective function minimized by the agent is:
+\subsection{Value Function Approximation and Advantage Estimation (GAE)}
+The "Critic" network approximates the \textbf{Value Function} $V(s_t)$, which estimates the expected cumulative discounted reward from state $s_t$. To reduce variance in the gradient estimates, we use \textbf{Generalized Advantage Estimation (GAE)}:
 \begin{equation}
-    L^{CLIP}(\theta) = \hat{\mathbf{E}}_t \left[ \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) \right]
+    \hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}
 \end{equation}
-where $r_t(\theta)$ is the probability ratio between the new and old policies, and $\hat{A}_t$ is the estimated advantage.
+where:
+\begin{itemize}
+    \item $\delta_t = R_t + \gamma V(s_{t+1}) - V(s_t)$: The \textbf{Temporal Difference (TD) error}.
+    \item $\gamma$: The \textbf{discount factor}.
+    \item $\lambda$: The \textbf{GAE smoothing parameter}, which balances the trade-off between bias and variance.
+\end{itemize}
 
 \section{Hardware-Centric Model Optimization}
-The transition from a high-level RL model to a hardware-executable core requires significant numerical optimization.
+Deploying deep neural networks (DNNs) on FPGA logic requires transforming the high-precision software model into a resource-efficient hardware core.
 
-\subsection{Fixed-Point Quantization}
-While RL models are typically trained using 32-bit floating-point precision, hardware execution on FPGAs is most efficient using fixed-point arithmetic. We employ **Quantization-Aware Training (QAT)** to ensure that the policy's performance does not degrade when converted to 16-bit fixed-point representations. This process allows the hardware DSP48 slices to perform the necessary Multiply-Accumulate (MAC) operations within a single clock cycle.
+\subsection{Quantization-Aware Training (QAT) Mathematics}
+Standard training occurs in FP32 (32-bit floating point). However, FPGA DSP48 slices are optimized for \textbf{Fixed-Point Arithmetic}. To prevent accuracy loss during conversion, we use \textbf{QAT}, which simulates the effects of low-precision quantization during the training process. The quantization function $Q(x, s, z)$ is:
+\begin{equation}
+    Q(x, s, z) = \text{clip}\left(\text{round}\left(\frac{x}{s} + z\right), q_{min}, q_{max}\right)
+\end{equation}
+Variables in quantization:
+\begin{itemize}
+    \item $x$: The high-precision weight or activation.
+    \item $s$: The \textbf{scale factor}, $s = \frac{max - min}{q_{max} - q_{min}}$.
+    \item $z$: The \textbf{zero-point offset}.
+    \item $q_{min}, q_{max}$: The limits of the target integer range (e.g., $-128$ to $127$ for \text{INT8}).
+\end{itemize}
+By incorporating this "straight-through estimator" during backpropagation, the model learns weights that are inherently robust to the precision limits of the hardware.
 
-\subsection{Pruning and Sparsity}
-To further minimize the inference latency, we apply iterative pruning to the neural network weights. By removing non-contributing synaptic connections, we reduce the total number of hardware gates required for implementation, facilitating the sub-15ns inference target discussed in Chapter \ref{ch:architecture}.
+\subsection{Weight Pruning and Sparsity}
+To achieve sub-15ns inference, we apply \textbf{Iterative Magnitude Pruning (IMP)}. We remove the weights with the smallest absolute values, inducing \textbf{structured sparsity} in the network layers:
+\begin{equation}
+    W_{sparse} = W \odot M, \quad M_{i,j} = \begin{cases} 0 & \text{if } |W_{i,j}| < \text{threshold} \\ 1 & \text{otherwise} \end{cases}
+\end{equation}
+where $M$ is a binary mask. This sparsity allows the FPGA to skip redundant multiplications, drastically reducing power consumption and latency.
 
 \section{Conclusion}
-This chapter has detailed the formulation of the adaptive quoting strategy as an RL problem. By synthesizing stochastic control theory with the PPO algorithm and hardware-centric quantization, we create a policy that is both intelligent and execution-ready. The following chapters delineate the hardware-software architecture used to operationalize this policy at wire speed.
+This chapter has detailed the transformation of the market-making task into a robust DRL framework. By synthesizing stochastic control theory with the PPO algorithm and hardware-centric QAT/pruning, we create a policy that is both microstructurally aware and execution-ready. The following chapters delineate the hardware-software architecture used to operationalize this policy at wire speed.

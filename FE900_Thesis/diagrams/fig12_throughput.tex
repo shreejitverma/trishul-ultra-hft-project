@@ -1,1 +1,18 @@
-\begin{center} \resizebox{0.98\textwidth}{!}{ \begin{tikzpicture} \begin{axis}[ ybar, width=0.95\columnwidth, symbolic x coords={Baseline, Optimized}, xtick=data, ylabel={Throughput ($M$ msgs/sec)}, bar width=40pt, ymin=0, ymax=45, nodes near coords, grid=major, grid style={dashed, gray!30}, title={System Throughput Capacity Improvement} ] \addplot[fill=blue!30] coordinates {(Baseline, 1.8) (Optimized, 37.8)}; \end{axis} \end{tikzpicture} } \end{center}
+\begin{center}
+\resizebox{0.98\textheight}{!}{
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    width=0.95\textheight,
+    height=0.8\textwidth,
+    symbolic x coords={Baseline, Optimized},
+    xtick=data,
+    ylabel={Throughput ($M$ msgs/sec)},
+    bar width=40pt,
+    ymin=0,
+    ymax=45,
+    nodes near coords,
+    grid=major,
+    grid style={dashed, gray!30},
+    title={System Throughput Capacity Improvement}
+] \addplot[fill=blue!30] coordinates {(Baseline, 1.8) (Optimized, 37.8)}; \end{axis} \end{tikzpicture} } \end{center}

@@ -1,31 +1,31 @@
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces High Level Design - Part 1}}{3}{figure.1.1}%
-\contentsline {figure}{\numberline {1.2}{\ignorespaces Order Book Management and Event-Driven Propagation}}{4}{figure.1.2}%
-\contentsline {figure}{\numberline {1.3}{\ignorespaces Event-Driven Pipeline and Nanosecond-Precision Timing}}{6}{figure.1.3}%
-\contentsline {figure}{\numberline {1.4}{\ignorespaces FPGA-Accelerated Tick-to-Trade Pipeline}}{8}{figure.1.4}%
-\contentsline {figure}{\numberline {1.5}{\ignorespaces Internal Architecture of the FPGA Acceleration Module}}{10}{figure.1.5}%
-\contentsline {figure}{\numberline {1.6}{\ignorespaces Order Processing and Post-Trade Analytics}}{11}{figure.1.6}%
-\contentsline {figure}{\numberline {1.7}{\ignorespaces System-Wide Monitoring and Metrics Infrastructure}}{13}{figure.1.7}%
-\contentsline {figure}{\numberline {1.8}{\ignorespaces Unified High-Frequency Trading System Architecture}}{15}{figure.1.8}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces High Level Design - Part 1}}{13}{figure.1.1}%
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Order Book Management and Event-Driven Propagation}}{14}{figure.1.2}%
+\contentsline {figure}{\numberline {1.3}{\ignorespaces Event-Driven Pipeline and Nanosecond-Precision Timing}}{15}{figure.1.3}%
+\contentsline {figure}{\numberline {1.4}{\ignorespaces FPGA-Accelerated Tick-to-Trade Pipeline}}{16}{figure.1.4}%
+\contentsline {figure}{\numberline {1.5}{\ignorespaces Internal Architecture of the FPGA Acceleration Module}}{17}{figure.1.5}%
+\contentsline {figure}{\numberline {1.6}{\ignorespaces Order Processing and Post-Trade Analytics}}{18}{figure.1.6}%
+\contentsline {figure}{\numberline {1.7}{\ignorespaces System-Wide Monitoring and Metrics Infrastructure}}{19}{figure.1.7}%
+\contentsline {figure}{\numberline {1.8}{\ignorespaces Unified High-Frequency Trading System Architecture}}{20}{figure.1.8}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Data Flow Architecture of the FPGA Matching Engine}}{38}{figure.6.1}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Data Flow Architecture of the FPGA Matching Engine}}{57}{figure.6.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {8.1}{\ignorespaces UML Component Diagram of the Software Engine}}{46}{figure.8.1}%
+\contentsline {figure}{\numberline {8.1}{\ignorespaces UML Component Diagram of the Software Engine}}{68}{figure.8.1}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {9.1}{\ignorespaces Probability density of T2T latency showing the P99 tail at 1150ns.}}{51}{figure.9.1}%
-\contentsline {figure}{\numberline {9.2}{\ignorespaces Throughput improvement resulting from Lock-Free Ring Buffers and Object Pooling.}}{52}{figure.9.2}%
-\contentsline {figure}{\numberline {9.3}{\ignorespaces Deterministic Latency Profile under Logging Stress}}{54}{figure.9.3}%
+\contentsline {figure}{\numberline {9.1}{\ignorespaces Probability density of T2T latency showing the P99 tail at 1150ns.}}{73}{figure.9.1}%
+\contentsline {figure}{\numberline {9.2}{\ignorespaces Throughput improvement resulting from Lock-Free Ring Buffers and Object Pooling.}}{74}{figure.9.2}%
+\contentsline {figure}{\numberline {9.3}{\ignorespaces Deterministic Latency Profile under Logging Stress}}{75}{figure.9.3}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {10.1}{\ignorespaces Comparative Tail Latency: Project (ULL) vs. Traditional Software Baselines.}}{56}{figure.10.1}%
-\contentsline {figure}{\numberline {10.2}{\ignorespaces Latency Stability as a function of Throughput.}}{56}{figure.10.2}%
-\contentsline {figure}{\numberline {10.3}{\ignorespaces PnL Comparison during a Jump-Diffusion (Flash Crash) event.}}{57}{figure.10.3}%
-\contentsline {figure}{\numberline {10.4}{\ignorespaces Cumulative PnL across multiple volatility regimes, demonstrating the Project's superior capital preservation and risk-adjusted alpha.}}{58}{figure.10.4}%
-\contentsline {figure}{\numberline {10.5}{\ignorespaces Maximum Drawdown analysis. The adaptive ULL system demonstrates superior capital preservation.}}{59}{figure.10.5}%
+\contentsline {figure}{\numberline {10.1}{\ignorespaces Comparative Tail Latency: Project (ULL) vs. Traditional Software Baselines.}}{79}{figure.10.1}%
+\contentsline {figure}{\numberline {10.2}{\ignorespaces Latency Stability as a function of Throughput.}}{80}{figure.10.2}%
+\contentsline {figure}{\numberline {10.3}{\ignorespaces PnL Comparison during a Jump-Diffusion (Flash Crash) event.}}{81}{figure.10.3}%
+\contentsline {figure}{\numberline {10.4}{\ignorespaces Cumulative PnL across multiple volatility regimes, demonstrating the Project's superior capital preservation and risk-adjusted alpha.}}{82}{figure.10.4}%
+\contentsline {figure}{\numberline {10.5}{\ignorespaces Maximum Drawdown analysis. The adaptive ULL system demonstrates superior capital preservation.}}{83}{figure.10.5}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
