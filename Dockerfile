@@ -1,5 +1,5 @@
 # Use an x86-64 (amd64) base image, even on ARM
-FROM --platform=linux/amd64 ubuntu:22.04
+FROM --platform=linux/amd64 ubuntu:24.04
 
 # Set non-interactive for installs
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,7 +12,10 @@ RUN apt-get update && apt-get install -y \
     git \
     libgtest-dev \
     libbenchmark-dev \
-    pkg-config
+    pkg-config \
+    ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set up a working directory
 WORKDIR /app
