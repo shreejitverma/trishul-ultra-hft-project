@@ -48,7 +48,7 @@
       \end{spacing}
       \begin{spacing}{2}
     \MakeUppercase {\thesisdegree}   %% removed \\       
-    \vspace{20mm}
+    \vspace{10mm}
      \end{spacing}
 %       \strut \vfill
   \mbox{ }  \hfill \begin{minipage}{80mm}
@@ -76,7 +76,7 @@
                  	\end{spacing}
 				   \end{minipage}
 %     \vfill \strut				6/2009 -   changed to the following two lines
-    \vspace{35mm}
+    \vspace{20mm}
 	\strut
   \begin{spacing}{1}
    \MakeUppercase {Stevens Institute of Technology}\\
@@ -120,28 +120,22 @@
 \begin{center}
 \MakeUppercase{\thesistitle}
  
-\vspace{12pt}
+\vspace{8pt}
 ABSTRACT
-\vspace{12pt}
+\vspace{8pt}
 \end{center}
 This Master's thesis investigates the integration of artificial intelligence (AI) with field-programmable gate arrays (FPGAs) to develop adaptive market-making strategies tailored for volatile financial environments in a high-frequency trading (HFT) environment. Traditional market-making models often struggle with latency and adaptability during periods of high volatility, leading to increased inventory risk and suboptimal performance. We propose a hybrid system that embeds reinforcement learning (RL) algorithms for dynamic bid-ask spread optimization directly onto FPGA hardware, enabling sub-microsecond inference times while responding to real-time market signals such as order flow imbalances and volatility clusters. Using historical tick-level data from major exchanges and simulated volatile scenarios, the framework is evaluated through metrics including Sharpe ratio, adverse selection mitigation, and latency benchmarks. The expectation is to achieve significant improvements in profitability and risk management compared to software-based RL or standalone FPGA implementations. This work will contribute to a scalable AI-FPGA architecture, highlighting practical deployment challenges, and offering insights for future quant engineering in dynamic markets, with potential applications in NYC's competitive HFT landscape.
 
-\vspace{12pt}
+\vspace{8pt}
 
-
-
-%\begin{flushright}
-%Barbara Arnett
-%\end{flushright}
-
-%\\[6mm]
-% make the author name flush left
 \begin{flushleft}
+\begin{spacing}{1.1}
 Author: \thesisname \\
 Advisor: \thesischairadvisor \\
 Date: \thesisdate \\
 Department: \thesisdepartment \\
 Degree: \thesisdegree \\
+\end{spacing}
 \end{flushleft}
     \newpage}
 
@@ -159,7 +153,11 @@ Degree: \thesisdegree \\
 
     \strut \vspace{2in}
    \begin{center}
-       This thesis is dedicated to my family and mentors for their unwavering support.
+       \textit{This work is dedicated to my father, whose profound sacrifices provided the bedrock for every opportunity I have ever known;} \\
+       \textit{to my mother, for the grace and enduring values she instilled within my character;} \\
+       \textit{and to my soon-to-be wife, Samriddhi Verma, whose steadfast love and support were my guiding light through the most arduous chapters of this journey.} \\
+       \vspace{12pt}
+       \textit{I am, and shall remain, forever grateful.}
     \end{center}
     \vfill \strut
     \newpage}

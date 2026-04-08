@@ -66,21 +66,43 @@
     frame=tb
 }
 
-\lstdefinestyle{bashstyle}{
-    language=Bash,
+\lstdefinestyle{verilogstyle}{
+    language=Verilog,
     backgroundcolor=\color{white},    
-    commentstyle=\color{codegray},
-    keywordstyle=\color{codeblue},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue}\bfseries,
     stringstyle=\color{codered},
     basicstyle=\ttfamily\small,
-    breaklines=true,
-    captionpos=b,
-    keepspaces=true,
-    numbers=left,
-    numbersep=5pt,
+    breakatwhitespace=false,          
+    breaklines=true,                  
+    captionpos=b,                     
+    keepspaces=true,                  
+    numbers=left,                     
+    numbersep=5pt,                    
     numberstyle=\tiny\color{codegray},
+    tabsize=2,
     frame=tb
 }
+
+\lstdefinestyle{vhdlstyle}{
+    language=VHDL,
+    backgroundcolor=\color{white},    
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{codered},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,          
+    breaklines=true,                  
+    captionpos=b,                     
+    keepspaces=true,                  
+    numbers=left,                     
+    numbersep=5pt,                    
+    numberstyle=\tiny\color{codegray},
+    tabsize=2,
+    frame=tb
+}
+
+\lstset{style=verilogstyle} % Default style
 
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning,fit,calc,matrix}
@@ -259,11 +281,11 @@
 \include{Appendix}
 \end{appendix}
 
-\bibliographystyle{plainnat}
+\bibliographystyle{apalike}
 \setlength{\bibsep}{0.0pt}
 
 \newpage
-\addcontentsline{toc}{chapter}{Bibliography}
+\addcontentsline{toc}{chapter}{References}
 \begingroup\singlespacing
 \bibliography{myrefs}
 \endgroup

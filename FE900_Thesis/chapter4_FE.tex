@@ -79,7 +79,12 @@ Variables in the Hawkes Process:
     \item $\beta$: The \textbf{decay rate}, determining how quickly the intensity returns to its base level.
     \item $t_i$: The timestamps of all previous events.
 \end{itemize}
-The ratio $\frac{\alpha}{\beta}$ is the \textbf{branching ratio}; if $\frac{\alpha}{\beta} < 1$, the process is stationary. This model is essential for simulating "order flow toxicity" and the rapid-fire nature of HFT executions.
+
+To generate 100 million trade events adhering to these dynamics, our synthetic data generator (see Appendix \ref{appendix:code}) implements \textbf{Ogata's Thinning Algorithm}. This method treats the Hawkes process as a non-homogeneous Poisson process. For each event arrival, we calculate a local maximum intensity $\lambda_{max}$ and sample prospective arrival times using:
+\begin{equation}
+    \Delta t = -\frac{\ln(U)}{\lambda_{max}}
+\end{equation}
+where $U \sim \mathcal{U}(0,1)$. The prospective time is accepted only if a secondary random sample satisfies $U_2 \leq \frac{\lambda(t_{prosp})}{\lambda_{max}}$. This ensures that the generated event density perfectly mirrors the self-exciting characteristics of real-world order flow, providing a "Godhood" level stress test for the FPGA execution pipeline.
 
 \subsection{Synthesizing Order Book Imbalance (OBI)}
 The generator populates the bid and ask volumes ($V_b, V_a$) at the best price levels to create a realistic state for the RL agent. We model the volumes such that the \textbf{Order Book Imbalance} $\rho_t = \frac{V_b - V_a}{V_b + V_a}$ is a leading indicator of price innovation. Specifically, we set:

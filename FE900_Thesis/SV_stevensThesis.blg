@@ -14,48 +14,48 @@ A level-1 auxiliary file: chapter9_results.aux
 A level-1 auxiliary file: chapter10_benchmarking.aux
 A level-1 auxiliary file: chapter11_conclusion.aux
 A level-1 auxiliary file: Appendix.aux
-The style file: plainnat.bst
+The style file: apalike.bst
 Database file #1: myrefs.bib
 Warning--empty journal in Spooner2020
 You've used 29 entries,
-            2773 wiz_defined-function locations,
-            785 strings with 10558 characters,
-and the built_in function-call counts, 10584 in all, are:
-= -- 964
-> -- 490
+            1935 wiz_defined-function locations,
+            637 strings with 7540 characters,
+and the built_in function-call counts, 8721 in all, are:
+= -- 877
+> -- 320
 < -- 29
-+ -- 177
-- -- 147
-* -- 652
-:= -- 1654
-add.period$ -- 104
++ -- 109
+- -- 98
+* -- 617
+:= -- 1628
+add.period$ -- 76
 call.type$ -- 29
-change.case$ -- 122
+change.case$ -- 180
 chr.to.int$ -- 28
-cite$ -- 59
-duplicate$ -- 509
-empty$ -- 978
-format.name$ -- 194
-if$ -- 2268
+cite$ -- 30
+duplicate$ -- 354
+empty$ -- 578
+format.name$ -- 145
+if$ -- 1673
 int.to.chr$ -- 2
-int.to.str$ -- 1
+int.to.str$ -- 0
 missing$ -- 12
-newline$ -- 170
-num.names$ -- 116
-pop$ -- 301
+newline$ -- 137
+num.names$ -- 87
+pop$ -- 130
 preamble$ -- 1
-purify$ -- 93
+purify$ -- 180
 quote$ -- 0
-skip$ -- 439
+skip$ -- 311
 stack$ -- 0
-substring$ -- 191
-swap$ -- 42
+substring$ -- 491
+swap$ -- 22
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 319
+type$ -- 174
 warning$ -- 1
-while$ -- 95
+while$ -- 66
 width$ -- 0
-write$ -- 396
+write$ -- 335
 (There was 1 warning)

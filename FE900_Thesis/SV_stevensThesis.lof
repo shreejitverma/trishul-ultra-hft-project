@@ -12,20 +12,20 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Data Flow Architecture of the FPGA Matching Engine}}{57}{figure.6.1}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Data Flow Architecture of the FPGA Matching Engine}}{58}{figure.6.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {8.1}{\ignorespaces UML Component Diagram of the Software Engine}}{68}{figure.8.1}%
+\contentsline {figure}{\numberline {8.1}{\ignorespaces UML Component Diagram of the Software Engine}}{74}{figure.8.1}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {9.1}{\ignorespaces Probability density of T2T latency showing the P99 tail at 1150ns.}}{73}{figure.9.1}%
-\contentsline {figure}{\numberline {9.2}{\ignorespaces Throughput improvement resulting from Lock-Free Ring Buffers and Object Pooling.}}{74}{figure.9.2}%
-\contentsline {figure}{\numberline {9.3}{\ignorespaces Deterministic Latency Profile under Logging Stress}}{75}{figure.9.3}%
+\contentsline {figure}{\numberline {9.1}{\ignorespaces Probability density function of the Tick-to-Trade latency, illustrating the deterministic P99 boundary at 1150ns.}}{80}{figure.9.1}%
+\contentsline {figure}{\numberline {9.2}{\ignorespaces Throughput Linearity and Saturation. The system maintains 1:1 processing efficiency up to 7.5 million events per second.}}{81}{figure.9.2}%
+\contentsline {figure}{\numberline {9.3}{\ignorespaces Latency profile stability under high-volume asynchronous logging stress.}}{82}{figure.9.3}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {10.1}{\ignorespaces Comparative Tail Latency: Project (ULL) vs. Traditional Software Baselines.}}{79}{figure.10.1}%
-\contentsline {figure}{\numberline {10.2}{\ignorespaces Latency Stability as a function of Throughput.}}{80}{figure.10.2}%
-\contentsline {figure}{\numberline {10.3}{\ignorespaces PnL Comparison during a Jump-Diffusion (Flash Crash) event.}}{81}{figure.10.3}%
-\contentsline {figure}{\numberline {10.4}{\ignorespaces Cumulative PnL across multiple volatility regimes, demonstrating the Project's superior capital preservation and risk-adjusted alpha.}}{82}{figure.10.4}%
-\contentsline {figure}{\numberline {10.5}{\ignorespaces Maximum Drawdown analysis. The adaptive ULL system demonstrates superior capital preservation.}}{83}{figure.10.5}%
+\contentsline {figure}{\numberline {10.1}{\ignorespaces Comparative Tail Latency: Project (ULL) vs. Traditional Software Baselines.}}{90}{figure.10.1}%
+\contentsline {figure}{\numberline {10.2}{\ignorespaces Latency Stability as a function of Throughput.}}{91}{figure.10.2}%
+\contentsline {figure}{\numberline {10.3}{\ignorespaces PnL Comparison during a Jump-Diffusion (Flash Crash) event.}}{92}{figure.10.3}%
+\contentsline {figure}{\numberline {10.4}{\ignorespaces Cumulative PnL across multiple volatility regimes, demonstrating the Project's superior capital preservation and risk-adjusted alpha.}}{93}{figure.10.4}%
+\contentsline {figure}{\numberline {10.5}{\ignorespaces Maximum Drawdown analysis. The adaptive ULL system demonstrates superior capital preservation.}}{94}{figure.10.5}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

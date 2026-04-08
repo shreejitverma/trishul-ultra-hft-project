@@ -7,33 +7,33 @@ This chapter delineates the rigorous methodological approach and low-level RTL i
 The data path is architected using a "pure-in-gates" philosophy, ensuring that every operation on the critical path, from network ingress to order dispatch, is implemented as a combinatorial or pipelined synchronous logic circuit. This eliminates the non-determinism associated with soft-processor cores or operating system interrupts.
 
 \subsection{Network Ingress: Cycle-Accurate Deterministic Parsing}
-The ingress pipeline minimizes latency by processing network headers in parallel with the data stream arrival. The \texttt{rx\_parser} module implements a hierarchical **Finite State Machine (FSM)** that peels away encapsulation layers at line-rate. The FSM states are synchronized to the 322.26 MHz clock ($T_{cyc} \approx 3.1$ ns):
+The ingress pipeline minimizes latency by processing network headers in parallel with the data stream arrival. The \texttt{rx\_parser} module implements a hierarchical \textbf{Finite State Machine (FSM)} that peels away encapsulation layers at line-rate. The FSM states are synchronized to the 322.26 MHz clock ($T_{cyc} \approx 3.1$ ns):
 \begin{itemize}
     \item \textbf{IDLE/SOF:} The FSM waits for the Start of Frame (SOF) delimiter from the 10GbE MAC.
     \item \textbf{ETH\_EXTRACT (Cycle 0):} Consumes the 14-byte Ethernet header. It utilizes combinatorial comparators to validate the EtherType (0x0800) and the Destination MAC address.
-    \item \textbf{IP\_EXTRACT (Cycle 1):} Extracts the 20-byte IPv4 header. A pipelined **checksum validator** computes the 16-bit one's complement sum in real-time, asserting an \texttt{error\_drop} signal if the integrity check fails.
-    \item \textbf{UDP\_EXTRACT (Cycle 2):} Parses the 8-byte UDP header. The module performs a parallel lookup against a programmable **Port Whitelist** (stored in Registers/LUTs) to filter for specific multicast market data feeds (e.g., NASDAQ ITCH).
-    \item \textbf{PAYLOAD\_STR:} Once validated, the FSM transitions to the payload streaming state, asserting the \texttt{TVALID} signal of the **AXI-Stream (AXI-S)** interface to the decoder.
+    \item \textbf{IP\_EXTRACT (Cycle 1):} Extracts the 20-byte IPv4 header. A pipelined \textbf{checksum validator} computes the 16-bit one's complement sum in real-time, asserting an \texttt{error\_drop} signal if the integrity check fails.
+    \item \textbf{UDP\_EXTRACT (Cycle 2):} Parses the 8-byte UDP header. The module performs a parallel lookup against a programmable \textbf{Port Whitelist} (stored in Registers/LUTs) to filter for specific multicast market data feeds (e.g., NASDAQ ITCH).
+    \item \textbf{PAYLOAD\_STR:} Once validated, the FSM transitions to the payload streaming state, asserting the \texttt{TVALID} signal of the \textbf{AXI-Stream (AXI-S)} interface to the decoder.
 \end{itemize}
 
 \subsection{Feed Handling: Semantic Extraction and Bit-Slicing}
-The \texttt{itch\_decoder} transforms the raw byte stream into structured market events. Due to the unaligned nature of ITCH 5.0 messages across 64-bit AXI-S words, the decoder employs a **512-bit Barrel Shifter**. This logic aligns the message header to the MSB of the internal bus, allowing for single-cycle field extraction:
+The \texttt{itch\_decoder} transforms the raw byte stream into structured market events. Due to the unaligned nature of ITCH 5.0 messages across 64-bit AXI-S words, the decoder employs a \textbf{512-bit Barrel Shifter}. This logic aligns the message header to the MSB of the internal bus, allowing for single-cycle field extraction:
 \begin{equation}
     P_{raw} = \text{DataBus}[47:16], \quad Q_{raw} = \text{DataBus}[15:0]
 \end{equation}
-The decoder performs **Endianness swapping** (Big-to-Little) using a combinatorial wiring transpose, converting the wire-format integers into hardware-native formats for the Order Book.
+The decoder performs \textbf{Endianness swapping} (Big-to-Little) using a combinatorial wiring transpose, converting the wire-format integers into hardware-native formats for the Order Book.
 
 \section{Core Innovation: The RL-Inference Systolic Array}
-The pivotal contribution of this research is the \texttt{strat\_decide} module, which embeds the trained DRL policy (from Chapter \ref{ch:rl_strategy}) directly into the FPGA logic. To meet the 15ns inference target, we architected the neural network as a **fully unrolled systolic array**.
+The pivotal contribution of this research is the \texttt{strat\_decide} module, which embeds the trained DRL policy (from Chapter \ref{ch:rl_strategy}) directly into the FPGA logic. To meet the 15ns inference target, we architected the neural network as a \textbf{fully unrolled systolic array}.
 
 \subsection{DSP-Accelerated MAC Units}
-The inference core utilizes **DSP48 slices** (specialized arithmetic hardware blocks in the FPGA) to perform high-speed Multiply-Accumulate (MAC) operations. For a layer with input vector $x$ and weight matrix $W$, the neuron output $y_i$ is computed as:
+The inference core utilizes \textbf{DSP48 slices} (specialized arithmetic hardware blocks in the FPGA) to perform high-speed Multiply-Accumulate (MAC) operations. For a layer with input vector $x$ and weight matrix $W$, the neuron output $y_i$ is computed as:
 \begin{equation}
     y_i = \sigma \left( \sum_{j=1}^{N} w_{i,j} \cdot x_j + b_i \right)
 \end{equation}
 Variables in the hardware MAC:
 \begin{itemize}
-    \item $w_{i,j}, b_i$: **Quantized 16-bit fixed-point** weights and biases, loaded into the FPGA during the configuration phase via the Control Plane.
+    \item $w_{i,j}, b_i$: \textbf{Quantized 16-bit fixed-point} weights and biases, loaded into the FPGA during the configuration phase via the Control Plane.
     \item $\sigma$: The \textbf{Activation Function}, implemented as a Piecewise Linear (PWL) approximation of the ReLU or Sigmoid function using LUTs (Look-Up Tables).
 \end{itemize}
 
@@ -55,14 +55,35 @@ To mitigate the risks of "hallucination" in probabilistic RL models, the outputs
 \end{itemize}
 
 \section{Hardware-Software Co-Design via PCIe Gen4}
-The system utilizes a **PCIe Gen4 x16** interface (throughput $\approx 31.5$ GB/s) to bridge the FPGA with the software management layer.
+The system utilizes a \textbf{PCIe Gen4 x16} interface (throughput $\approx 31.5$ GB/s) to bridge the FPGA with the software management layer.
 \begin{itemize}
-    \item \textbf{AXI-Lite Control Interface:} The software uses memory-mapped I/O (MMIO) to write model weights and risk parameters into the FPGA's configuration registers. This allows for **Hot-Swapping** of the RL policy without stopping the hardware pipeline.
-    \item \textbf{AXI-Memory Mapped (AXI-MM) Telemetry:} The FPGA writes high-resolution timestamps ($1$ ns precision) and execution logs into a shared DMA region in the host's **Huge-Page RAM**. This provides the "Godhood" level observability needed for performance validation.
+    \item \textbf{AXI-Lite Control Interface:} The software uses memory-mapped I/O (MMIO) to write model weights and risk parameters into the FPGA's configuration registers. This allows for \textbf{Hot-Swapping} of the RL policy without stopping the hardware pipeline.
+    \item \textbf{AXI-Memory Mapped (AXI-MM) Telemetry:} The FPGA writes high-resolution timestamps ($1$ ns precision) and execution logs into a shared DMA region in the host's \textbf{Huge-Page RAM}. This provides the "Godhood" level observability needed for performance validation.
 \end{itemize}
 
 \section{Timing Closure and Physical Constraints}
-Achieving timing closure at 322.26 MHz on a modern Kintex UltraScale+ FPGA requires rigorous physical constraints. We utilize **Floorplanning** (P-blocks) to co-locate the MAC units and the Order Book logic, minimizing the wire delay ($T_{prop}$) between features and inference. The design is verified to have a **Positive Slack** of $> 0.2$ ns across all PVT (Process, Voltage, Temperature) corners, ensuring operational stability in high-density data centers.
+Achieving timing closure at 322.26 MHz on a modern Kintex UltraScale+ FPGA requires rigorous physical constraints. We utilize \textbf{Floorplanning} (P-blocks) to co-locate the MAC units and the Order Book logic, minimizing the wire delay ($T_{prop}$) between features and inference. The design is verified to have a \textbf{Positive Slack} of $> 0.2$ ns across all PVT (Process, Voltage, Temperature) corners, ensuring operational stability in high-density data centers.
+
+\section{Deterministic Compliance and Regulatory Gating}
+In the domain of high-frequency trading, the speed of execution must be balanced by the absolute certainty of regulatory compliance. The proposed architecture incorporates a hardware-level compliance engine, implemented as a serial gate at the end of the Egress pipeline. This ensures that every order transmitted to the exchange complies with **SEC Rule 15c3-5 (Market Access Rule)** without adding non-deterministic software latency.
+
+\subsection{Wire-Speed Risk Checks}
+The compliance engine enforces three primary constraints in a single clock cycle:
+\begin{enumerate}
+    \item \textbf{Credit Limit Monitoring:} The system maintains a running total of the gross notional exposure. If an order would cause the aggregate exposure to exceed the pre-defined capital limit for the sub-account, the order is dropped in hardware, and a "Kill Switch" signal is sent to the software control plane.
+    \item \textbf{Fat-Finger Suppression:} A combinatorial comparator checks the order quantity and price against historical volatility bands. This prevents the transmission of anomalous orders caused by model divergence or sensor noise.
+    \item \textbf{Duplicate Order Detection:} Using a high-speed Bloom Filter implemented in LUTs, the system identifies and suppresses repeated "Enter Order" messages that occur within a sub-microsecond window, a common signature of algorithmic "runaway" loops.
+\end{enumerate}
+
+\section{Verification Methodology: Bit-Accurate Synchrony}
+The transition from a high-level Python/C++ reinforcement learning model to a fixed-point hardware implementation introduces the risk of numerical divergence. To mitigate this, we employ a **Bit-Accurate Verification Lifecycle**.
+
+\subsection{Universal Verification Methodology (UVM) and Formal Checks}
+We utilize a UVM-based testbench to subject the RTL modules to millions of constrained-random market scenarios.
+\begin{itemize}
+    \item \textbf{Golden Model Comparison:} The output of the FPGA's systolic array is compared cycle-by-cycle against a "Golden Reference" model implemented in software. Any discrepancy in the least significant bit (LSB) of the inference output triggers a verification failure.
+    \item \textbf{Formal Property Verification (FPV):} We use formal tools to mathematically prove that the \texttt{risk\_gate} can never be bypassed. By defining safety properties in **SystemVerilog Assertions (SVA)**, we ensure that the execution logic is logically tied to the compliance gate, rendering it physically impossible to send an un-checked order.
+\end{itemize}
 
 \section{Conclusion}
 The FPGA implementation detailed in this chapter represents a paradigm shift in HFT architecture. By synthesizing the speed of deterministic RTL with the intelligence of pipelined RL inference, we create a system capable of adapting to market toxicity at wire speed. The following chapters detail the software stack and the empirical results of this hardware-accelerated approach.

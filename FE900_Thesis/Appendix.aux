@@ -1,61 +1,43 @@
 \relax 
 \providecommand\hyper@newdestlabel[2]{}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}FPGA Code Explanation and Module Overview}{87}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}FPGA Code Explanation and Module Overview}{100}{appendix.A}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{sec:codeexplain}{{A}{87}{FPGA Code Explanation and Module Overview}{appendix.A}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.0.1}Network Ingress Modules}{87}{subsection.A.0.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.0.2}Feed Handler Modules}{87}{subsection.A.0.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.0.3}Strategy and Decision Logic}{87}{subsection.A.0.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.0.4}Order Transmission Modules}{88}{subsection.A.0.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.0.5}Control Plane and Integration}{88}{subsection.A.0.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {B}Source Code Listings}{89}{appendix.B}\protected@file@percent }
+\newlabel{sec:codeexplain}{{A}{100}{FPGA Code Explanation and Module Overview}{appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.1}Core Hardware Modules (FPGA Domain)}{100}{section.A.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1.1}Network Ingress and Parsing}{100}{subsection.A.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1.2}Market Data Handling}{100}{subsection.A.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1.3}Adaptive Strategy Logic}{101}{subsection.A.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1.4}Order Execution and Safety}{101}{subsection.A.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A.2}Core Software Modules (CPU Domain)}{101}{section.A.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2.1}Asynchronous Telemetry}{101}{subsection.A.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2.2}Performance Optimization}{102}{subsection.A.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {B}Source Code Listings}{103}{appendix.B}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{appendix:code}{{B}{89}{Source Code Listings}{appendix.B}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B.1}Hardware Domain: FPGA RTL Implementation (Verilog \& VHDL)}{89}{section.B.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.1}1. Network Ingress: Parser}{89}{subsection.B.1.1}\protected@file@percent }
-\newlabel{lst:parser}{{B.1}{89}{Minimal RX L2/L3/L4 parser for UDP market data}{lstlisting.B.1}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.1}Minimal RX L2/L3/L4 parser for UDP market data}{89}{lstlisting.B.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.2}2. Network Ingress: Multicast Gate}{91}{subsection.B.1.2}\protected@file@percent }
-\newlabel{lst:gate}{{B.2}{91}{VHDL multicast port/IP gating (simple allowlist)}{lstlisting.B.2}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.2}VHDL multicast port/IP gating (simple allowlist)}{91}{lstlisting.B.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.3}3. Feed Handler: Frame Extractor}{92}{subsection.B.1.3}\protected@file@percent }
-\newlabel{lst:frame}{{B.3}{92}{Frame extractor for fixed-width records}{lstlisting.B.3}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.3}Frame extractor for fixed-width records}{92}{lstlisting.B.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.4}4. Feed Handler: Order Book Update}{94}{subsection.B.1.4}\protected@file@percent }
-\newlabel{lst:book}{{B.4}{94}{Two-level book update}{lstlisting.B.4}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.4}Two-level book update}{94}{lstlisting.B.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.5}5. Strategy Logic: Decision Block}{95}{subsection.B.1.5}\protected@file@percent }
-\newlabel{lst:strategy}{{B.5}{95}{Hardware-synthesized policy inference}{lstlisting.B.5}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.5}Hardware-synthesized policy inference}{95}{lstlisting.B.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.6}6. Hardware Pre-Trade Risk Gate}{96}{subsection.B.1.6}\protected@file@percent }
-\newlabel{lst:risk}{{B.6}{97}{Risk gate with notional and message-rate limits}{lstlisting.B.6}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.6}Risk gate with notional and message-rate limits}{97}{lstlisting.B.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.7}7. Order Encoder}{98}{subsection.B.1.7}\protected@file@percent }
-\newlabel{lst:encoder}{{B.7}{98}{Minimal OUCH 5.0 order encoder}{lstlisting.B.7}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.7}Minimal OUCH 5.0 order encoder}{98}{lstlisting.B.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.8}8. Order Egress: TX Bridge}{99}{subsection.B.1.8}\protected@file@percent }
-\newlabel{lst:tx}{{B.8}{99}{VHDL bridge to MAC TX stream}{lstlisting.B.8}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.8}VHDL bridge to MAC TX stream}{99}{lstlisting.B.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.9}9. Control Plane: AXI-Lite Registers}{100}{subsection.B.1.9}\protected@file@percent }
-\newlabel{lst:axi}{{B.9}{100}{AXI-Lite register file for controls/telemetry}{lstlisting.B.9}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.9}AXI-Lite register file for controls/telemetry}{100}{lstlisting.B.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.10}10. Top-Level Integration}{102}{subsection.B.1.10}\protected@file@percent }
-\newlabel{lst:top}{{B.10}{102}{Top-level glue for T2T pipeline}{lstlisting.B.10}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.10}Top-level glue for T2T pipeline}{102}{lstlisting.B.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {B.2}Appendix: C++ ULL Software Baseline Code Listings}{104}{section.B.2}\protected@file@percent }
-\newlabel{appendix:code_cpp}{{B.2}{104}{Appendix: C++ ULL Software Baseline Code Listings}{section.B.2}{}}
-\newlabel{lst:rdtsc}{{B.11}{104}{RDTSC High-Precision Clock Implementation}{lstlisting.B.11}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.11}RDTSC High-Precision Clock Implementation}{104}{lstlisting.B.11}\protected@file@percent }
-\newlabel{lst:cpp_parser}{{B.12}{105}{Zero-Copy Ethernet/IP/UDP Parser}{lstlisting.B.12}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.12}Zero-Copy Ethernet/IP/UDP Parser}{105}{lstlisting.B.12}\protected@file@percent }
-\newlabel{lst:l2book}{{B.13}{107}{Array-Based L2 Order Book Snippet}{lstlisting.B.13}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.13}Array-Based L2 Order Book Snippet}{107}{lstlisting.B.13}\protected@file@percent }
-\newlabel{lst:tuning}{{B.14}{108}{System Performance Tuning (Linux)}{lstlisting.B.14}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.14}System Performance Tuning (Linux)}{108}{lstlisting.B.14}\protected@file@percent }
+\newlabel{appendix:code}{{B}{103}{Source Code Listings}{appendix.B}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.1}Hardware Domain: FPGA RTL Implementation}{103}{section.B.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.1}Minimal RX Parser (Verilog)}{103}{subsection.B.1.1}\protected@file@percent }
+\newlabel{lst:parser}{{B.1}{103}{Minimal RX L2/L3/L4 parser for UDP market data}{lstlisting.B.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.1}Minimal RX L2/L3/L4 parser for UDP market data}{103}{lstlisting.B.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.2}Level-1 Order Book (VHDL)}{105}{subsection.B.1.2}\protected@file@percent }
+\newlabel{lst:book}{{B.2}{105}{Two-level book update logic}{lstlisting.B.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.2}Two-level book update logic}{105}{lstlisting.B.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.3}RL Strategy Inference Core (Verilog)}{106}{subsection.B.1.3}\protected@file@percent }
+\newlabel{lst:strategy}{{B.3}{106}{Systolic array for AI policy inference}{lstlisting.B.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.3}Systolic array for AI policy inference}{106}{lstlisting.B.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1.4}Pre-Trade Risk Gate (Verilog)}{107}{subsection.B.1.4}\protected@file@percent }
+\newlabel{lst:risk}{{B.4}{107}{Deterministic risk management module}{lstlisting.B.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.4}Deterministic risk management module}{107}{lstlisting.B.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B.2}Software Domain: C++ ULL Baseline Code}{109}{section.B.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.1}Zero-Copy Multicast Receiver}{109}{subsection.B.2.1}\protected@file@percent }
+\newlabel{lst:cpp_receiver}{{B.5}{109}{Zero-copy buffer management}{lstlisting.B.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.5}Zero-copy buffer management}{109}{lstlisting.B.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.2}SIMD Signal Engine (AVX2)}{110}{subsection.B.2.2}\protected@file@percent }
+\newlabel{lst:simd}{{B.6}{110}{Vectorized mid-price calculation}{lstlisting.B.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.6}Vectorized mid-price calculation}{110}{lstlisting.B.6}\protected@file@percent }
 \@setckpt{Appendix}{
-\setcounter{page}{109}
+\setcounter{page}{111}
 \setcounter{equation}{0}
 \setcounter{enumi}{3}
 \setcounter{enumii}{0}
@@ -66,7 +48,7 @@
 \setcounter{part}{0}
 \setcounter{chapter}{2}
 \setcounter{section}{2}
-\setcounter{subsection}{0}
+\setcounter{subsection}{2}
 \setcounter{subsubsection}{0}
 \setcounter{paragraph}{0}
 \setcounter{subparagraph}{0}
@@ -75,19 +57,19 @@
 \setcounter{cp@cntr}{0}
 \setcounter{r@tfl@t}{18}
 \setcounter{float@type}{8}
-\setcounter{lstnumber}{8}
+\setcounter{lstnumber}{20}
 \setcounter{@pps}{0}
 \setcounter{@ppsavesec}{0}
 \setcounter{@ppsaveapp}{0}
 \setcounter{NAT@ctr}{0}
-\setcounter{section@level}{1}
-\setcounter{Item}{33}
+\setcounter{section@level}{2}
+\setcounter{Item}{32}
 \setcounter{Hfootnote}{0}
-\setcounter{bookmark@seq@number}{131}
+\setcounter{bookmark@seq@number}{148}
 \setcounter{parentequation}{0}
 \setcounter{thm}{0}
 \setcounter{defn}{0}
 \setcounter{rem}{0}
 \setcounter{example}{0}
-\setcounter{lstlisting}{14}
+\setcounter{lstlisting}{6}
 }

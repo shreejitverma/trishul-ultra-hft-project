@@ -226,6 +226,11 @@ add_executable(throughput_bench
 )
 target_link_libraries(throughput_bench ultra_hft)
 
+add_executable(throughput_stress_test
+    benchmarks/throughput/stress_test.cpp
+)
+target_link_libraries(throughput_stress_test ultra_hft)
+
 # ============================================================================
 # TESTS
 # ============================================================================

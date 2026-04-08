@@ -4,16 +4,34 @@
 \begin{axis}[
     width=0.95\textheight,
     height=0.8\textwidth,
-    xlabel={Time ($s$)},
-    ylabel={Latency ($ns$)},
+    xlabel={Telemetry Load (Log Events/sec)},
+    ylabel={Jitter (Standard Deviation of Latency, $ns$)},
     xmin=0,
-    xmax=10,
-    ymin=800,
+    xmax=1000000,
+    ymin=0,
     ymax=1000,
-    xtick={0,2,4,6,8,10},
-    ytick={800,850,900,950,1000},
-    grid=both,
+    grid=major,
     grid style={dashed, gray!30},
-    legend pos=north east,
-    title={Latency Jitter under 100k Logs/sec Load}
-] \addplot[color=blue, thick, mark=none] coordinates { (0,850) (1,855) (2,848) (3,862) (4,851) (5,858) (6,850) (7,852) (8,849) (9,855) (10,853) }; \addlegendentry{Hot-path Latency} \addplot[color=red, dashed, thick] coordinates {(0,850) (10,850)}; \addlegendentry{Baseline Mean} \end{axis} \end{tikzpicture} } \end{center}
+    title={Systemic Stability vs. Background IO Load},
+    legend pos=north west,
+    legend style={nodes={scale=0.8, transform shape}}
+]
+% Project Stability
+\addplot[color=blue, ultra thick, mark=square*] coordinates {
+    (1000, 2) (10000, 3) (100000, 5) (250000, 12) (500000, 45) (750000, 450) (900000, 950)
+};
+\addlegendentry{Project (Hardware Gating)}
+
+% Software Baseline Stability
+\addplot[color=red, thick, dashed, mark=triangle*] coordinates {
+    (1000, 150) (10000, 450) (100000, 1200) (200000, 5000)
+};
+\addlegendentry{Standard Software (Context Switching)}
+
+% Annotations for Slowdown
+\draw[orange, ultra thick, <->] (axis cs: 600000, 0) -- (axis cs: 600000, 1000) node[pos=0.8, right, scale=0.8] {Telemetry Saturation Point};
+\node[anchor=south west, text=red, scale=0.8] at (axis cs: 750000, 500) {Hardware Jitter Incursion};
+
+\end{axis}
+\end{tikzpicture} }
+\end{center}

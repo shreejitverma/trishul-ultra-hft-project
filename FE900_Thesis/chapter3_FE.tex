@@ -29,7 +29,20 @@ To model the stochastic evolution of the LOB, we represent the arrival of events
 \begin{equation}
     \lambda_t^k = \lim_{dt \rightarrow 0} \frac{\mathbf{P}(N_{t+dt}^k - N_t^k = 1 | \mathcal{F}_t)}{dt}
 \end{equation}
-where $\mathcal{F}_t$ is the filtration representing the history of the LOB up to time $t$. In simple models, $\lambda_t^k$ is assumed to be a constant Poisson intensity. However, in high-frequency regimes, these intensities are often \textit{self-exciting} (Hawkes processes) or dependent on the current state of the book (e.g., the depth of the bid-ask spread).
+where $\mathcal{F}_t$ is the filtration representing the history of the LOB up to time $t$. 
+
+In this research, we move beyond the assumption of constant Poisson intensity and implement a \textbf{Self-Exciting Hawkes Process}. In high-frequency regimes, the arrival of one order increases the probability of subsequent arrivals, capturing the "clustering" behavior of market participants. The instantaneous intensity $\lambda(t)$ is modeled as:
+\begin{equation}
+    \lambda(t) = \lambda_0 + \sum_{t_i < t} \alpha e^{-\beta(t - t_i)}
+\end{equation}
+Variables in the Hawkes intensity function:
+\begin{itemize}
+    \item $\lambda_0$: The \textbf{base intensity} or background rate, representing the exogenous arrival of information.
+    \item $\alpha$: The \textbf{jump size} or self-excitation factor, which determines the immediate increase in intensity upon an event arrival at time $t_i$.
+    \item $\beta$: The \textbf{decay rate}, which controls how quickly the intensity returns to the base level $\lambda_0$.
+    \item $t_i$: The historical arrival times of all previous events.
+\end{itemize}
+The ratio $\frac{\alpha}{\beta}$ represents the **branching ratio** (the expected number of child events triggered by a parent event). Our implementation ensures $\frac{\alpha}{\beta} < 1$ to maintain process stationarity. This model provides a high-fidelity representation of "order flow toxicity" and liquidity bursts common in ultra-HFT environments.
 
 \section{The Avellaneda and Stoikov Optimal Control Framework}
 The core financial engineering problem for a market maker is to determine the optimal bid-ask offsets that maximize terminal utility while managing inventory risk. We build upon the seminal stochastic control framework developed by \citet{Avellaneda2008}, which extends the Ho and Stoll model to the high-frequency domain.
