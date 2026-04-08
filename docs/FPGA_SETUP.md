@@ -1,39 +1,33 @@
 # FPGA Setup Guide: Hybrid High-Frequency Trading
 
 This guide details how to set up the hardware acceleration path for the **Trishul Ultra-HFT Platform**.
-The goal is to move the **Strategy Inference** and **Risk Checks** from the C++ Software path to an FPGA, communicating via PCIe.
+The goal is to move the **Strategy Inference**, **Risk Checks**, and **Regulatory Compliance** from the C++ Software path to an FPGA, communicating via PCIe Gen4.
 
 ---
 
-## 1. Hardware Selection (Under $600 Budget)
+## 1. Hardware Selection (Production Performance)
 
-For an ultra-low-latency HFT lab setup under $600, we recommend **Xilinx Artix-7** based boards with **PCIe Gen2/Gen3** connectivity. These chips are supported by the **free Vivado WebPACK** license.
+To achieve the **< 200 ns** latency verified in our 100M event benchmarks, we recommend **Xilinx UltraScale+** based boards with **PCIe Gen4 x16** and **10GbE SFP+** connectivity.
 
-### Recommended Board: **QMTECH Artix-7 XC7A100T PCIe**
-*   **Chip:** Xilinx Artix-7 XC7A100T-2FGG484I
-*   **Interface:** PCIe Gen2 x4
-*   **Memory:** DDR3 256MB/512MB
-*   **Approx. Cost:** $120 - $160
-*   **Availability:** AliExpress / Amazon / eBay
+### Recommended Board: **Alveo U50 / U250**
+*   **Chip:** UltraScale+ (Architecture used in Thesis)
+*   **Interface:** PCIe Gen4 x16
+*   **Network:** 1x / 2x 100GbE (Rate-limited to 10GbE for ITCH/OUCH)
+*   **Approx. Cost:** $1,500 - $3,000 (New) / ~$600 (Used)
 
-### Alternative: **RHS Research Nitefury II (M.2 Form Factor)**
-*   **Chip:** Xilinx Artix-7 XC7A200T
-*   **Interface:** PCIe Gen2 x4 (M.2 Key M)
-*   **Form Factor:** Fits in a standard NVMe slot (Laptop/Desktop)
-*   **Approx. Cost:** ~$250
-*   **Note:** Requires custom cooling in some setups.
+### Budget Entry: **QMTECH Artix-7 XC7A100T PCIe**
+*   **Note:** Limited to 1GbE/PCIe Gen2. Suitable for initial logic verification but will hit the **Breaking Point** at < 1M events/sec.
 
 ---
 
 ## 2. Software Prerequisites
 
-### A. Xilinx Vivado Design Suite (WebPACK Edition)
-1.  Download **Vivado ML Standard Edition** (Free) from [AMD/Xilinx](https://www.xilinx.com/support/download.html).
-2.  Select **Artix-7** device support during installation.
-3.  Install into `/tools/Xilinx`.
+### A. Xilinx Vivado Design Suite
+1.  Download **Vivado ML Standard Edition** from [AMD/Xilinx](https://www.xilinx.com/support/download.html).
+2.  Select **UltraScale+** device support during installation.
 
-### B. Xilinx XDMA Drivers
-We use the Xilinx DMA (XDMA) IP core for high-performance host-to-card communication.
+### B. Xilinx XDMA / QDMA Drivers
+We use the **XDMA** IP core for deterministic host-to-card communication.
 ```bash
 git clone https://github.com/Xilinx/dma_ip_drivers.git
 cd dma_ip_drivers/XDMA/linux-kernel/
@@ -43,91 +37,39 @@ sudo modprobe xdma
 
 ---
 
-## 3. RL Core Integration (`strat_decide.v`)
+## 3. Core Logic Integration
 
-The repository includes a hardware implementation of the Reinforcement Learning policy in `fpga/rtl/strategy/strat_decide.v`. This module implements a 4-stage pipeline:
+### A. RL Inference Systolic Array (`strat_decide.v`)
+Add `fpga/rtl/strategy/strat_decide.v` to your project. This module implements the fully unrolled PPO policy using **DSP48** slices.
 
-1.  **Feature Extraction:** Computes Spread, Inventory Imbalance, and Volatility.
-2.  **DSP MAC:** Uses DSP48 slices to compute dot-products of features against stored weights.
-3.  **Activation:** Implements a hardware-efficient ReLU.
-4.  **Decision:** Comparator logic to trigger Buy/Sell signals.
-
-### Integration Steps
-1.  Add `fpga/rtl/strategy/strat_decide.v` to your Vivado project sources.
-2.  Connect the **AXI-Stream** interface from the XDMA (Host) to the `strat_decide` input registers.
-3.  Map the output signals (`buy`, `sell`) to the **OUCH Encoder** module (also in `fpga/rtl`).
+### B. Compliance Gates (SEC Rule 15c3-5)
+The `risk_gate.v` module must be placed in series with the **OUCH Encoder**.
+1.  **Credit Limit:** Map `BAR0 + 0x10` to the max notional register.
+2.  **Duplicate Detection:** Enables the hardware Bloom Filter to prevent runaway loops.
 
 ---
 
-## 4. Step-by-Step Setup Instruction
+## 4. Physical Deployment & Sync
 
-### Step 1: Hardware Installation
-1.  Power off the Host PC.
-2.  Insert the FPGA board into the PCIe slot (or M.2 slot).
-    *   *Warning:* Ensure PCIe power cables are connected if the board requires external power (6-pin).
-3.  Connect the JTAG Programmer to the board and the PC's USB port.
-4.  Power on the PC.
+### Precision Time Protocol (PTP) Setup
+To achieve nanosecond-scale timestamping:
+1.  Connect your FPGA's SMA clock input to a **Grandmaster Clock** (GPS disciplined).
+2.  Instantiate the **PTP Servo Core** in Vivado.
+3.  The `FPGADriver` will automatically read the `PTP_OFFSET` register at `BAR0 + 0x40`.
 
-### Step 2: Build the FPGA Bitstream (Hardware Persona)
-1.  Open Vivado.
-2.  Create a project for your part (e.g., `xc7a100tfgg484-2`).
-3.  Add the **XDMA (DMA/Bridge Subsystem for PCI Express)** IP.
-    *   Config: PCIe Gen2 x4, AXI4-Lite Master Interface (for Registers), AXI4-Stream (for Data).
-4.  Instantiate `strat_decide.v` in your top-level wrapper.
-5.  Map the AXI4-Lite interface to **BAR0** (Base Address Register) for parameter updates.
-6.  Generate Bitstream (`.bit`).
-7.  Open **Hardware Manager** in Vivado and Program Device.
+---
 
-### Step 3: Verify PCIe Link
-Once programmed, restart the PC (warm reboot) so the BIOS enumerates the PCIe device.
-```bash
-lspci -vd 10ee:
-```
-You should see a Xilinx device. The XDMA driver should auto-load:
-```bash
-ls /dev/xdma*
-# Should see: /dev/xdma0_user, /dev/xdma0_h2c_0, /dev/xdma0_c2h_0
-```
+## 5. Verification: Bit-Accurate Verification
 
-### Step 4: Connect Software Driver
-Update the C++ `FPGADriver` to map the real hardware device instead of the simulation vector.
-
-**File:** `src/fpga/driver/fpga_driver.cpp`
-
-**Change `init()` to:**
-```cpp
-#include <fcntl.h>
-#include <sys/mman.h>
-
-bool FPGADriver::init() {
-    int fd = open("/dev/xdma0_user", O_RDWR); // BAR0 Access
-    if (fd < 0) {
-        perror("Failed to open FPGA BAR0");
-        return false;
-    }
-    
-    // Map 4KB of Control Registers
-    void* map_ptr = mmap(0, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (map_ptr == MAP_FAILED) {
-        perror("mmap failed");
-        return false;
-    }
-    
-    regs_ = reinterpret_cast<ControlRegisters*>(map_ptr);
-    return true;
-}
-```
-
-### Step 5: Run the Engine
-```bash
-sudo ./apps/live-engine/live_engine
-```
-The application will now write Strategy Parameters directly to the FPGA's AXI-Lite registers via PCIe.
+Prior to live trading, execute the UVM-based verification:
+1.  Generate Hawkes data: `./build/data_generator market_data_uvm.bin 1000000`
+2.  Run the C++ "Golden Model": `./build/strategy_backtester market_data_uvm.bin`
+3.  Load the hardware simulation and verify that the `strat_decide` outputs match the software model exactly (Bit-for-Bit parity).
 
 ---
 
 ## Troubleshooting
 
-*   **PC doesn't see FPGA:** Try a warm reboot after programming via JTAG. PCIe devices mostly enumerate only at boot.
-*   **Permission Denied:** Use `sudo` or add your user to `dialout`/`root` groups for `/dev/xdma*` access.
-*   **Latency Spikes:** Ensure `isolcpus` is set in your Linux kernel boot args to isolate the cores used by `live_engine`.
+*   **PCIe Link Training Failure:** Check the physical PCIe slot version. UltraScale+ requires Gen4 for the **7.5M msgs/sec** throughput target.
+*   **Buffer Overflows:** If you observe "BUFFER SATURATION" in the `throughput_stress_test`, increase the `BURST_BUFFER_DEPTH` parameter in your Vivado project.
+*   **SEC Compliance Triggered:** If the hardware "Kill Switch" is active, check the `notional_limit` register value via MMIO.

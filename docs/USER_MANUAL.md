@@ -1,19 +1,19 @@
-# User Manual
+# User Manual (v0.4.0)
 
 Welcome to the **Trishul Ultra-HFT** platform. This manual guides you through building, configuring, and running the system.
 
 ## 1. System Requirements
 
-*   **OS:** Linux (Ubuntu 20.04/22.04 recommended) or macOS (Apple Silicon supported).
-*   **Compiler:** GCC 10+ or Clang 12+ (C++20 support required).
+*   **OS:** Linux (Ubuntu 24.04 LTS highly recommended) or macOS (Apple Silicon supported).
+*   **Compiler:** GCC 11+ or Clang 14+ (C++20 support required).
 *   **Hardware:**
-    *   CPU: Modern multi-core processor (AVX2 support recommended).
-    *   RAM: 4GB minimum.
-    *   FPGA (Optional): Xilinx Artix-7/UltraScale+ for hardware offload features.
+    *   CPU: Modern multi-core processor (AVX2 support required for signal vectorization).
+    *   RAM: 8GB minimum (16GB recommended for 100M event sessions).
+    *   FPGA (Optional): Xilinx UltraScale+ for hardware offload features.
 
 ## 2. Building the Project
 
-The project uses CMake.
+The project uses CMake and requires specific pinned dependencies for security.
 
 ```bash
 mkdir build
@@ -23,96 +23,82 @@ make -j$(nproc)
 ```
 
 ### Run Tests
-To verify the build integrity:
+To verify the build integrity and security hardening:
 ```bash
 ctest --output-on-failure
 ```
 
-### Build Artifacts
-Binaries are typically located in the `build/` directory (or subdirectories if configured):
-*   `live_engine`: The main trading application.
-*   `strategy_backtester`: The vectorized backtesting engine.
-*   `data_generator`: Tool to create synthetic market data.
-*   `latency_bench`: Micro-benchmark for hot-path components.
-*   `throughput_bench`: Benchmark for system capacity.
-
 ---
 
-## 3. RL Model Training (New)
+## 3. RL Model Training
 
 The system supports training Reinforcement Learning models using Python and Gymnasium.
 
 ### Prerequisites
-Install the required Python packages:
+Install the audited Python packages:
 ```bash
 pip install -r tools/rl_trainer/requirements.txt
 ```
 
 ### Training a Model
-To train a PPO agent against the simulated Limit Order Book environment:
-
 ```bash
 python3 tools/rl_trainer/train.py
 ```
 
-This will:
-1.  Initialize the `MarketMakingEnv`.
-2.  Train a PPO policy for 10,000 timesteps.
-3.  Save the model to `models/ppo_market_maker.zip`.
-
-*Note: Future versions will support exporting this model to ONNX for C++ inference.*
-
 ---
 
-## 4. Running Simulations
+## 4. Running Microstructure Simulations
 
-### Step 1: Generate Market Data
-Before backtesting, you need data. Generate a synthetic dataset (10 Million trades) with realistic volatility (GBM).
+### Step 1: Generate Hawkes Market Data
+Generate a synthetic dataset (100 Million trades) with self-exciting microstructure clustering using the **Hawkes Process**.
 
 ```bash
-./build/data_generator market_data_large.bin 10000000
+./build/data_generator market_data_100m.bin 100000000
 ```
 
 ### Step 2: Run Vectorized Backtest
-Run the backtester against the generated data. This will output a performance report (Sharpe, Returns, etc.).
+Run the backtester against the generated data to evaluate the adaptive RL policy.
 
 ```bash
-./build/strategy_backtester market_data_large.bin
-```
-
-**Output Example:**
-```
-=== PERFORMANCE REPORT ===
-Total Return  : 12.50%
-CAGR          : 12.50%
-Sharpe Ratio  : 1.8520
-Sortino Ratio : 2.1050
-Max Drawdown  : 4.20%
-Win Rate      : 55.30%
-Total Trades  : 9523813
-==========================
+./build/strategy_backtester market_data_100m.bin
 ```
 
 ---
 
-## 5. Running the Live Engine
+## 5. Benchmarking and System Limits
 
-The `live_engine` can run in **Simulation Mode** (internal data loop) or **Live Mode** (UDP Multicast).
+Trishul provides advanced tools to identify the physical boundaries of your hardware.
+
+### Latency Benchmark
+Measures the deterministic path latency.
+```bash
+./build/latency_bench market_data_100m.bin
+```
+
+### Throughput Stress Test (Slowdown Analysis)
+Empirically identifies the **Slowdown Point** and **Breaking Point** by simulating PCIe/DMA saturation.
+```bash
+./build/throughput_stress_test
+```
+
+**Expected Result:**
+- **Optimal Zone:** < 7.5M msgs/sec
+- **Saturation Point:** 7.5M - 8.5M msgs/sec
+- **Breaking Point:** > 8.5M msgs/sec (Latency spikes to 400us+)
+
+---
+
+## 6. Running the Live Engine
 
 ### Simulation Mode (Default)
-Simply run the executable. It will simulate market data and order matching internally using the `MatchingEngine`.
-
 ```bash
 sudo ./build/live_engine
 ```
-*Note: `sudo` is recommended on Linux to enable thread pinning and real-time scheduling.*
+*Note: `sudo` is required to enable real-time CPU isolation and thread pinning.*
 
 ### Live Mode (UDP Ingestion)
-To connect to a real multicast feed (e.g., a local replay or exchange feed):
-
-1.  Edit `apps/live-engine/engine.cpp` to set your Multicast IP/Port.
-2.  Run with the environment variable:
-
+1.  Configure the Multicast IP/Port in `apps/live-engine/engine.cpp`.
+2.  Launch with live mode enabled:
 ```bash
 export ULTRA_LIVE_MODE=1
 sudo ./build/live_engine
@@ -120,28 +106,8 @@ sudo ./build/live_engine
 
 ---
 
-## 6. Benchmarking
+## 7. FPGA Hardware Integration
 
-Validate the system performance on your hardware.
-
-### Latency Benchmark
-Measures `RDTSC`, `Decoding`, and `Book Update` latency in nanoseconds/ticks.
-
-```bash
-./build/latency_bench
-```
-
-### Throughput Benchmark
-Measures how many millions of messages per second the system can process.
-
-```bash
-./build/throughput_bench market_data_large.bin
-```
-
----
-
-## 7. FPGA Integration
-
-If you have a supported FPGA board:
-1.  Follow the [FPGA Setup Guide](FPGA_SETUP.md) to install drivers and program the `strat_decide.v` core.
-2.  The `live_engine` will automatically detect the PCIe device (`/dev/xdma0_user`) and switch the driver from simulation to MMIO mode.
+1.  Follow the [FPGA Setup Guide](FPGA_SETUP.md).
+2.  The engine will attempt to map the FPGA BAR via the `vfio-pci` driver.
+3.  If detected, the **compliance gates** (SEC Rule 15c3-5) will be active at wire-speed.

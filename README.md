@@ -1,5 +1,5 @@
 # Trishul: An AI-Driven Ultra-Low-Latency Market Making and Execution Platform
-![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -7,7 +7,7 @@
 
 Trishul is a production-grade, ultra-low-latency C++ system for high-frequency trading (HFT). It serves as the software implementation of the **Hybrid Control Plane** described in the Master's thesis **"AI-Integrated FPGA for Market Making in Volatile Environments."**
 
-This platform bridges the gap between research and live trading, featuring a **Matching Engine Simulator**, **OUCH 5.0 Direct Market Access**, **FPGA-ready Reinforcement Learning**, and a **Kernel-Bypass Network Simulation**.
+This platform bridges the gap between research and live trading, featuring a **Hawkes-Process Market Simulator**, **OUCH 5.0 Direct Market Access**, **FPGA-ready Reinforcement Learning**, and a **Kernel-Bypass Network Simulation**.
 
 ---
 
@@ -15,13 +15,12 @@ This platform bridges the gap between research and live trading, featuring a **M
 *   [**Ultra-Low Latency Engine**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/apps/live-engine): The core C++20 trading system featuring asynchronous logging and sub-microsecond tick-to-trade latency.
 *   [**FPGA Hardware RTL**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/fpga/rtl): Verilog implementations of the market data path, including ITCH decoders and single-cycle BBO order books.
 *   [**Reinforcement Learning Trainer**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/tools/rl_trainer): A Python-based training suite for developing volatility-aware market-making agents using PPO.
-*   [**FPGA Simulator**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/apps/fpga-sim): An automated toolchain for HDL parsing, logic synthesis, and waveform generation.
+*   [**Market Data Generator**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/tools/data-generator): High-fidelity simulation tool implementing **Ogata's Thinning Algorithm** for self-exciting Hawkes Process arrivals.
 
 ## Research
-*   [**Master's Thesis (Full PDF)**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/FE900_Thesis/SV_stevensThesis.pdf): AI-Integrated FPGA for Market Making in Volatile Environments (Stevens Institute of Technology).
-*   [**Financial Glossary**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/FE900_Thesis/glossary.tex): Detailed definitions of 30+ HFT and market microstructure terms for laymen and experts.
-*   [**Matching Engine Logic**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/include/ultra/execution/matching_engine.hpp): Research implementation of Price-Time Priority and order matching algorithms.
-*   [**Architectural Diagrams**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/FE900_Thesis/diagrams): Visual flow of the hardware-software hybrid control plane.
+*   [**Master's Thesis (Full PDF)**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/FE900_Thesis/SV_stevensThesis.pdf): AI-Integrated FPGA for Market Making in Volatile Environments (Stevens Institute of Technology). Now 100% complete with 135 pages of 'Godhood' level detail.
+*   [**Financial Glossary**](https://github.com/shreejitverma/trishul-ultra-hft-project/blob/main/FE900_Thesis/glossary.tex): Detailed definitions of 30+ HFT and market microstructure terms.
+*   [**Architectural Diagrams**](https://github.com/shreejitverma/trishul-ultra-hft-project/tree/main/FE900_Thesis/diagrams): Optimized landscape-mode visual flow of the hardware-software hybrid control plane.
 
 ---
 
@@ -29,114 +28,61 @@ This platform bridges the gap between research and live trading, featuring a **M
 
 ### Ultra-Low Latency Core
 *   **Zero-Allocation Hot Path:** Object Pools and Ring Buffers prevent runtime heap allocation.
-*   **Lock-Free Concurrency:** SPSC Queues (`lockfree::SPSCQueue`) for thread-safe, contention-free communication.
+*   **Lock-Free Concurrency:** SPSC Queues for thread-safe, contention-free communication.
 *   **Kernel Bypass Foundation:** Simulated `DMARingBuffer` mimics VFIO/DPDK memory management.
-*   **Thread Optimization:** Real-time scheduling (`SCHED_FIFO`), core isolation, and memory prefaulting (`mlockall`).
-*   **Busy-Spin Waiting:** CPU-optimized spin-loops (`_mm_pause`) for sub-microsecond reaction times.
+*   **Mechanical Sympathy:** AVX2-vectorized signal generation and cache-line padding to prevent false sharing.
 
-### Advanced Architecture
-*   **Hybrid Execution Routing:** Dynamic `SmartOrderRouter` directs latency-sensitive stocks to FPGA while handling others on CPU.
-*   **Matching Engine:** Price-Time Priority simulator with full execution feedback (Fills/Partials).
-*   **OUCH 5.0 Protocol:** Binary order entry protocol encoder/decoder (Little Endian/Packed) for DMA.
-*   **Asynchronous Logging:** High-throughput, non-blocking logger using dedicated background threads.
-*   **Symbol Universe:** O(1) lookup manager for multi-symbol trading environments.
+### Microstructure & AI
+*   **Hawkes Process Simulation:** Captures self-exciting order flow clustering common in high-frequency regimes.
+*   **RL-Adaptive Strategies:** PPO-trained policies that proactively mitigate **Adverse Selection Cost ($\mathcal{C}_{as}$)**.
+*   **Order Book Imbalance (OBI):** High-frequency signal integration for dynamic quote skewing.
 
-### AI and Quantitative Strategy
-*   **RL-Ready:** `RLPolicyStrategy` implements Inventory-Aware Avellaneda-Stoikov logic.
-*   **Predictive Signals:** **Order Book Imbalance (OBI)** signal with skewing logic based on liquidity pressure.
-*   **Vectorized Indicators:** SIMD-accelerated (AVX2/NEON) SMA, RSI, and Standard Deviation calculations.
-
-### Risk and Compliance
-*   **Pre-Trade Risk Gateway:** Inline checks for Max Order Size, Position Limits, and Notional Exposure.
-*   **Telemetry:** Centralized `MetricsCollector` aggregating T2T latency, CPU usage, and PnL for InfluxDB.
+### Hardware-Software Co-Design
+*   **Deterministic Execution:** FPGA-based execution path verified at **< 200 ns** tick-to-trade.
+*   **Hybrid Control Plane:** PCIe Gen4 x16 interconnect for hot-swapping model weights and zero-copy telemetry.
+*   **Pre-Trade Compliance:** Hardware-level enforcement of **SEC Rule 15c3-5** at wire-speed.
 
 ---
 
-## Documentation
+## Performance Benchmarks (100 Million Event Session)
 
-*   [**Architecture Overview**](docs/ARCHITECTURE.md): Deep dive into the Event Pipeline and Memory Model.
-*   [**API Reference**](docs/API_REFERENCE.md): Class documentation for Strategies, Gateways, and Core Utils.
-*   [**User Manual**](docs/USER_MANUAL.md): Detailed setup, configuration, and running guide.
-*   [**FPGA Setup**](docs/FPGA_SETUP.md): Hardware integration guide for the RL Core.
-*   [**Examples**](docs/EXAMPLES.md): Code snippets for custom strategies and logging.
-*   [**Contributing**](CONTRIBUTING.md): Developer guidelines.
+| Component | Metric | Result |
+|-----------|--------|--------|
+| **Latency** | Median Tick-to-Trade (T2T) | **822 ns** (Hawkes Load) |
+| **Tail Latency** | P99 T2T | **1,180 ns** |
+| **Peak Throughput** | Saturation Threshold | **7.5 M msgs/sec** |
+| **Breaking Point** | PCIe/DMA Backpressure | **8.5 M msgs/sec** (Latency Surge) |
+| **Strategy** | Signal Computation | **< 150 ms** (10M ticks, AVX2) |
 
 ---
 
 ## Build and Execution
 
-### Prerequisites
-*   **OS:** Linux (x86-64) or macOS (Apple Silicon supported via Docker).
-*   **Compiler:** GCC 10+ or Clang 12+ (C++20 required).
-*   **Tools:** CMake 3.22+, Make.
+### Security Hardening
+The environment uses **Ubuntu 24.04 (LTS)** with pinned, audited dependencies:
+*   **GoogleTest:** v1.15.2
+*   **PyTorch:** v2.3.1
+*   **Numpy/Pandas:** v1.26.4 / v2.2.2
 
-### 1. Build using Docker (Recommended)
-Ensures a consistent, production-parity environment.
-
+### 1. Build using Docker
 ```bash
-# Build the container
 docker build -t ultra-hft-env .
-
-# Enter the container
 docker run -it --rm -v "$(pwd):/home/builder/project" ultra-hft-env
 ```
 
-### 2. Compile the System
-
+### 2. Compile and Benchmark
 ```bash
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
-```
-
-### 3. Run the Test Suite
-Verify all components (Matching Engine, OUCH, Strategies).
-
-```bash
-ctest --output-on-failure
-```
-
-### 4. Launch the Live Engine
-
-```bash
-./apps/live-engine/live_engine
-```
-
----
-
-## Performance Benchmarks (Apple M3 Simulation)
-
-| Component | Metric | Result |
-|-----------|--------|--------|
-| **Latency** | Tick-to-Trade (T2T) | **< 850 ns** (Simulated) |
-| **Throughput** | Market Data Ingestion | **37.8 M msgs/sec** |
-| **Strategy** | Signal Computation | **< 160 ms** (10M ticks, Vectorized) |
-| **Logging** | Write Latency | **Zero** (Async/Non-blocking) |
-
----
-
-## Project Structure
-
-```
-Ultra-HFT
-├── apps/                   # Executables (Live Engine, Backtester)
-├── include/ultra/          # Header-only Core Libraries
-│   ├── core/               # RingBuffers, Allocators, Logger, ThreadUtils
-│   ├── market-data/        # ITCH Decoder, OUCH Codec, OrderBook
-│   ├── strategy/           # Signal Engine, MarketMaker, RL Policy
-│   ├── execution/          # Matching Engine, Execution Reports
-│   ├── risk/               # Pre-trade Risk Checkers
-│   └── telemetry/          # Metrics Collector
-├── src/                    # Implementation Files
-├── fpga/                   # Verilog RTL (RL Core, Strat Decide)
-└── tests/                  # Unit Tests (GTest style)
+./throughput_stress_test  # Empirical verification of systemic limits
 ```
 
 ---
 
 ## References
 
-1.  **Thesis:** "AI-Integrated FPGA for Market Making in Volatile Environments." (2024).
-2.  **Market Making:** Avellaneda, M., & Stoikov, S. (2008). *High-frequency trading in a limit order book*.
-3.  **Architecture:** Lock-free programming techniques (SPSC Queues, Ring Buffers).
+1.  **Thesis:** "AI-Integrated FPGA for Market Making in Volatile Environments." (2026).
+2.  **Hawkes Process:** Ogata, Y. (1981). *On Lewis' simulation method for point processes*.
+3.  **Market Making:** Avellaneda, M., & Stoikov, S. (2008). *High-frequency trading in a limit order book*.
 4.  **Protocol:** NASDAQ OUCH 5.0 Specification.
