@@ -586,6 +586,9 @@ INPUT diagrams/fig11_latency_hist.tex
 INPUT ./diagrams/fig12_throughput.tex
 INPUT ./diagrams/fig12_throughput.tex
 INPUT diagrams/fig12_throughput.tex
+INPUT ./diagrams/fig19_metric_distribution.tex
+INPUT ./diagrams/fig19_metric_distribution.tex
+INPUT diagrams/fig19_metric_distribution.tex
 INPUT ./diagrams/fig13_stability.tex
 INPUT ./diagrams/fig13_stability.tex
 INPUT diagrams/fig13_stability.tex
@@ -607,6 +610,8 @@ INPUT diagrams/fig17_spread_efficacy.tex
 INPUT ./diagrams/fig14_comparative_pnl.tex
 INPUT ./diagrams/fig14_comparative_pnl.tex
 INPUT diagrams/fig14_comparative_pnl.tex
+INPUT pnl_comparison.csv
+INPUT pnl_comparison.csv
 INPUT pnl_comparison.csv
 INPUT pnl_comparison.csv
 INPUT pnl_comparison.csv

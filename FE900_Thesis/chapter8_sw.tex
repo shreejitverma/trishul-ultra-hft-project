@@ -13,18 +13,28 @@ In a standard multi-threaded environment, the operating system scheduler dynamic
 \subsection{Modular Decomposition and Inter-Thread Communication}
 The system is decomposed into a series of decoupled, highly specialized modules. These modules do not utilize mutexes or semaphores for synchronization, as these primitives involve kernel-mode transitions that introduce millisecond-scale latency spikes. Instead, communication is performed via \textbf{Lock-Free Single-Producer Single-Consumer (SPSC) queues}, as visualized in the UML component diagram in Figure \ref{fig:sw_class_diagram}.
 
+The choice of the SPSC pattern is driven by the unidirectional flow of the trading pipeline. By strictly limiting each queue to a single producer and a single consumer, we eliminate the need for complex multi-writer arbitration or hardware-level atomic CAS (Compare-And-Swap) loops. The SPSC queue utilized in this project (see Appendix \ref{sec:codeexplain}) operates using \textbf{memory barriers} and \textbf{C++20 atomic memory ordering} (\texttt{std::memory\_order\_acquire}/\texttt{release}), which ensures that data produced by one core is visible to the consumer on another core with minimal CPU-cycle overhead.
+
+Key technical advantages of this SPSC implementation include:
+\begin{itemize}
+    \item \textbf{Contention-Free Design:} Since only one thread modifies the head pointer and another modifies the tail, there is zero resource contention at the hardware level.
+    \item \textbf{Cache-Line Padding:} To prevent \textbf{False Sharing}, the head and tail pointers are separated by 64 bytes (the standard x86\_64/ARM cache-line size), ensuring they reside in different cache lines.
+    \item \textbf{Determinism:} Without locks, the worst-case execution time of a "push" or "pop" operation is constant and predictable, a non-negotiable requirement for high-frequency trading.
+\end{itemize}
+
 \begin{sidewaysfigure}[h!]
     \centering
     \caption{UML Component Diagram of the Software Engine}
     \label{fig:sw_class_diagram}
     \input{diagrams/fig10_sw_components.tex}
 \end{sidewaysfigure}
+\clearpage
 
 \section{The Deterministic Event Processing Pipeline}
 The software engine processes market events through a six-stage pipeline, where each stage is optimized for minimal instruction-path length.
 
 \subsection{High-Performance Ingestion and Kernel Bypass}
-The first stage, implemented by the \texttt{MulticastReceiver}, is responsible for ingesting raw UDP packets from the exchange multicast feed. Traditional socket programming via the \texttt{recv()} system call is avoided because it involves a data copy from the kernel network buffer to user-space memory. We simulate a hardware-based kernel bypass (similar to Solarflare's OpenOnload or DPDK) using a \texttt{DMARingBuffer}.
+The first stage, implemented by the \texttt{MulticastReceiver}, is engineered for the ingestion of raw UDP packets from real-world exchange multicast feeds. \datamethodology\ We simulate a hardware-based kernel bypass (similar to Solarflare's OpenOnload or DPDK) using a \texttt{DMARingBuffer}.
 
 The buffer is allocated using \textbf{Huge Pages (2MB or 1GB sizes)} to minimize the number of entries in the \textbf{Translation Lookaside Buffer (TLB)}. This reduces the probability of a TLB miss, which would otherwise trigger a costly hardware page-table walk. The ingestion logic operates with \textbf{Zero-Copy Semantics}, defined by the following pointer arithmetic:
 \begin{equation}
@@ -74,8 +84,7 @@ To support the computational load of processing millions of ticks for RL trainin
 \begin{equation}
     \vec{V}_{\text{mid}} = (\vec{V}_{\text{bid}} + \vec{V}_{\text{ask}}) \times 0.5
 \end{equation}
-This vectorization provides a theoretical 8x speedup over scalar C++ code, allowing the system to recalculate model features across a full day of NASDAQ data in less than 200 milliseconds.
-
+This vectorization provides a theoretical 8x speedup over scalar C++ code, allowing the system to recalculate model features across a full day of exchange data in less than 200 milliseconds. \datamethodology
 \subsection{Smart Order Router (SOR) and Hybrid Steering}
 The \texttt{SmartOrderRouter} provides the logic for steering orders between the hardware and software execution paths. The routing decision is based on the \textbf{Adverse Selection Sensitivity} ($\Xi$), which is a weighted metric of liquidity and volatility:
 \begin{equation}

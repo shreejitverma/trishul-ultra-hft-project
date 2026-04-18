@@ -14,10 +14,10 @@ Avellaneda, M. and Stoikov, S. (2008).
 \newblock High-frequency trading in a limit order book.
 \newblock {\em Quantitative Finance}, 8(3):217--224.
 
-\bibitem[Briere, 2025]{Briere2025}
-Briere, J. (2025).
-\newblock Advances in meta-reinforcement learning for financial markets.
-\newblock Preprint.
+\bibitem[Easley et~al., 2012]{Easley2012}
+Easley, D., de~Prado, M. M.~L., and O'Hara, M. (2012).
+\newblock The volume-synchronized probability of informed trading (vpin).
+\newblock {\em The Journal of Derivatives}, 19(4):33--43.
 
 \bibitem[Fund, 2024]{IMF2024}
 Fund, I.~M. (2024).
@@ -31,11 +31,6 @@ Gupta, D. et~al. (2024).
 \bibitem[Jiang et~al., 2025]{Jiang2025}
 Jiang, B. et~al. (2025).
 \newblock Resolving latency and inventory risk in market making with reinforcement learning.
-
-\bibitem[Joshua et~al., 2025]{Joshua2025}
-Joshua, C., Safaei, L.~K., Bargh, H.~G., Beshel, J.~A., and Motahar, S. (2025).
-\newblock Architecting low-latency interconnects for high-frequency trading using fpgas and rdma.
-\newblock {\em ResearchGate}.
 
 \bibitem[Kumar et~al., 2023]{Kumar2023}
 Kumar, S. et~al. (2023).
@@ -56,10 +51,6 @@ Lee, S. et~al. (2023).
 Li, H. et~al. (2025).
 \newblock A multi-objective reinforcement learning approach with pareto fronts.
 \newblock {\em Expert Systems with Applications}, 262:125484.
-
-\bibitem[Litz et~al., nd]{LitzND}
-Litz, H. et~al. (n.d.).
-\newblock High frequency trading acceleration using fpgas.
 
 \bibitem[Lockwood and Gupte, 2012]{Lockwood2012}
 Lockwood, J.~W. and Gupte, N. (2012).
@@ -83,6 +74,11 @@ MDPI (2024).
 Napatech (n.d.).
 \newblock Ai inference acceleration for trading with xelera.
 
+\bibitem[Ogata, 1981]{Ogata1981}
+Ogata, Y. (1981).
+\newblock On lewis' simulation method for point processes.
+\newblock {\em IEEE Transactions on Information Theory}, 27(1):23--31.
+
 \bibitem[Patel et~al., 2022]{Patel2022}
 Patel, J. et~al. (2022).
 \newblock A reinforcement learning approach to improve the performance of the avellaneda-stoikov market-making algorithm.
@@ -91,16 +87,11 @@ Patel, J. et~al. (2022).
 \bibitem[Ragel, 2025]{Ragel2025}
 Ragel, N. (2025).
 \newblock Reinforcement learning for systematic market making strategies.
-\newblock Doctoral dissertation.
+\newblock Doctoral thesis.
 
 \bibitem[Review, 2025]{GlobalBanking2025}
 Review, G. B. .~F. (2025).
 \newblock Why more trading firms are moving to fpga for low-latency gains.
-
-\bibitem[Schneider, 2023]{Schneider2023}
-Schneider, M. (2023).
-\newblock Low-latency neural networks on fpga.
-\newblock Technical Report.
 
 \bibitem[Semiconductor, 2025]{Lattice2025}
 Semiconductor, L. (2025).
@@ -128,10 +119,5 @@ Systems, F. (2024).
 Vakkilainen, A. (2023).
 \newblock Further optimizing market making with deep reinforcement learning.
 \newblock Master's thesis, Aalto University.
-
-\bibitem[Zhang et~al., 2024]{Zhang2024}
-Zhang, Y. et~al. (2024).
-\newblock Hardware-efficient ai for edge computing.
-\newblock IEEE Conference.
 
 \end{thebibliography}

@@ -1,26 +1,5 @@
-\chapter{Literature Review}
-\label{sec:literature_review}
-
-\section{Introduction}
-The purpose of this literature review is to critically synthesize the existing body of work on the intersection of artificial intelligence (AI), reinforcement learning (RL), and field-programmable gate arrays (FPGAs) within the context of algorithmic and high-frequency trading (HFT). In financial markets characterized by millisecond-level decision horizons, the ability to combine adaptive intelligence with deterministic execution speed has become the defining edge of next-generation trading systems. This review aims to trace the theoretical foundations, examine contemporary advancements, identify research gaps, and contextualize how this thesis, titled "AI-Integrated FPGA for Market Making in Volatile Environments," builds upon and extends prior research.
-
-The review follows a thematic structure. Section~\ref{sec:theory_background} outlines foundational theories in market microstructure, stochastic control, and learning-based decision models. Section~\ref{sec:existing_research} surveys empirical and technical progress in RL-based market making, hardware acceleration, and AI-on-FPGA integration. Section~\ref{sec:critical_evaluation} provides a comparative critique of these works, highlighting methodological divergences and limitations. Section~\ref{sec:research_gaps} identifies underexplored areas and unresolved challenges. Finally, Sections~\ref{sec:relevance} and~\ref{sec:framework} connect these insights to the present research and present its conceptual framework, before concluding with a summary and transition toward the methodology.
-
-\section{Theoretical Background}
-\label{sec:theory_background}
-Market making forms the backbone of modern \textbf{market microstructure}, which is the study of the "plumbing" of financial markets, or how the specific rules of a trading platform affect the buying and selling of assets. This facilitates \textbf{liquidity}, defined as the ease with which an asset can be sold quickly without significantly impacting its price. The classical theoretical foundation stems from the Avellaneda and Stoikov framework, which uses \textbf{stochastic control}. In simple terms, stochastic control is a mathematical way of making the best possible decisions when the future is unpredictable and follows random "rolls of the dice."
- Although powerful, such models rely on simplifying assumptions, such as log-normal price processes, constant volatility, and linear inventory costs, which often break down under real-world conditions, particularly during volatility spikes or liquidity crises.
-
-Reinforcement learning (RL) emerged as a data-driven paradigm capable of addressing these non-stationary conditions. Unlike traditional optimization methods that require an explicit model of the market, RL learns from interaction, adapting to changing price dynamics, order-flow imbalances, and microstructural patterns. Deep RL architectures such as Deep Q-Networks (DQN) and Proximal Policy Optimization (PPO) allow the agent to optimize long-term profitability while managing risk exposure dynamically \citep{Spooner2020,Patel2022,Kumar2023,Vakkilainen2023,Ragel2025,Su2025,Jiang2025}. 
-
-Simultaneously, the evolution of computing hardware has redefined what is possible in trading systems. FPGAs, which are reconfigurable silicon chips capable of executing logic directly in hardware, enable deterministic, parallel, and ultra-low-latency computation. In HFT systems, where microseconds translate into millions of dollars in profit or loss, such deterministic processing has become invaluable \citep{Lockwood2012,LitzND,Gupta2024,AlAhmed2024}. The convergence of RL’s adaptability with FPGA’s speed forms the conceptual foundation for this thesis.
-
-Key concepts relevant to this study include:
-\begin{itemize}
-    \item \textbf{Latency determinism:} The guarantee that trading actions execute within predictable, constant time bounds.
-    \item \textbf{Dynamic inventory control:} Continuous adaptation of bid–ask strategies to manage position risk and mitigate adverse selection.
-    \item \textbf{Hardware–software co-design:} A methodology that unites algorithmic intelligence and hardware implementation for optimal throughput, power efficiency, and scalability.
-\end{itemize}
+\chapter{Literature Review and State of the Art}
+\label{ch:literature_review}
 
 \section{Overview of Existing Research}
 \label{sec:existing_research}
@@ -31,7 +10,7 @@ Early models in market making prioritized analytical tractability, assuming that
 Recent advancements in multi-objective RL introduced Pareto front optimization, enabling agents to balance competing objectives such as profitability, inventory variance, and latency sensitivity \citep{Li2025}. This marked a methodological shift from static profit-maximization to adaptive control strategies that align with the real-world trade-offs of automated market making. Methodological inconsistencies further fragment the field, with differences in \textbf{reward shaping}, the process of designing the agent's reward function to encourage desirable behavior, making it difficult to generalize findings.
 
 \subsection{Hardware Acceleration and FPGA Design in HFT}
-Latency has always been the ultimate bottleneck in algorithmic trading. Traditional CPU and GPU systems, while powerful for batch processing, suffer from OS-induced jitter and memory bottlenecks. FPGAs eliminate these inefficiencies by processing market data streams at line rate, using deeply pipelined architectures and custom network stacks. Lockwood and Gupte \citep{Lockwood2012} demonstrated one of the earliest FPGA trading libraries capable of sub-microsecond processing. Later works extended these architectures to integrate order-book construction, feed handling, and risk management directly in hardware \citep{Gupta2024,AlAhmed2024}. 
+Latency has always been the ultimate bottleneck in algorithmic trading. Traditional CPU and GPU systems, while powerful for batch processing, suffer from OS-induced jitter and memory bottlenecks. FPGAs eliminate these inefficiencies by processing market data streams at line rate, using deeply pipelined architectures and custom network stacks. \datamethodology\ Lockwood and Gupte \citep{Lockwood2012} demonstrated one of the earliest FPGA trading libraries capable of sub-microsecond processing. Later works extended these architectures to integrate order-book construction, feed handling, and risk management directly in hardware \citep{Gupta2024,AlAhmed2024}. 
 
 Comparative research consistently shows that FPGAs outperform GPUs in latency-critical tasks, achieving predictable and energy-efficient performance even under peak market load \citep{Shams2024}. Industrial reports underscore this transition, noting that leading trading firms are migrating core strategy components to FPGA fabrics for deterministic performance \citep{GlobalBanking2025}. At a macroeconomic level, the IMF cautions that while AI can improve market efficiency, it can also exacerbate volatility; consequently, this makes low-latency, adaptive control even more essential \citep{IMF2024}.
 
@@ -48,28 +27,4 @@ While the literature reflects significant progress, several limitations persist.
 Methodological inconsistencies further fragment the field. Differences in reward shaping, data sampling frequency, and training horizons make results difficult to generalize across studies \citep{Ragel2025,Su2025,Jiang2025}. Additionally, while some works address risk control and inventory management, few incorporate comprehensive compliance, cross-venue scalability, or dynamic volatility modeling. In short, RL offers intelligence without speed; FPGAs offer speed without intelligence.
 
 \section{Identification of Gaps}
-\label{sec:research_gaps}
-The synthesis of prior research reveals several key gaps:
-\begin{enumerate}
-    \item \textbf{RL–FPGA co-optimization:} Current studies rarely co-design RL models and FPGA architectures to balance accuracy, resource utilization, and latency.
-    \item \textbf{Volatility robustness:} Few frameworks evaluate strategy stability under extreme market conditions or flash-crash scenarios.
-    \item \textbf{Scalability:} Most FPGA implementations remain limited to single-asset trading, lacking generalization to multi-asset or multi-venue systems.
-    \item \textbf{Real-time compliance:} Dynamic enforcement of regulatory constraints in hardware remains an open challenge.
-\end{enumerate}
-Emerging works in meta-reinforcement learning \citep{Briere2025} and hardware-efficient AI \citep{Zhang2024,Schneider2023} offer promising directions but have yet to be translated into deployable trading architectures.
-
-\section{Relevance to the Present Research}
-\label{sec:relevance}
-This thesis directly addresses these limitations by unifying adaptive learning and deterministic execution. It builds upon prior reinforcement learning research \citep{Spooner2020,Patel2022,Kumar2023,Vakkilainen2023,Ragel2025,Su2025,Jiang2025,Li2025} and state-of-the-art FPGA design techniques \citep{Lockwood2012,Gupta2024,Joshua2025,AlAhmed2024,Shams2024}. The proposed system synthesizes a trained RL policy as a quantized inference core embedded within an FPGA pipeline, enabling real-time market making with nanosecond response times. Using fixed-point computation, partial reconfiguration, and hardware-software co-design, the framework ensures that adaptive intelligence can operate at the speed of hardware, bridging the fundamental divide between flexibility and latency.
-
-\section{Conceptual Framework}
-\label{sec:framework}
-The conceptual framework underpinning this research is built on two interdependent layers:
-\begin{enumerate}
-    \item \textbf{Adaptive Learning Layer:} Implements deep RL agents capable of learning robust, volatility-aware market-making policies.
-    \item \textbf{Deterministic Execution Layer:} Deploys these policies onto FPGA hardware for wire-speed inference, ensuring predictable and low-latency behavior.
-\end{enumerate}
-This co-design framework represents a symbiosis of intelligence and performance, which allows learned behavior to be operationalized within deterministic, latency-critical infrastructures.
-
-\section{Summary and Transition}
-This literature review has charted the evolution of market-making methodologies from classical stochastic control to reinforcement learning and, finally, to hardware-accelerated AI systems. While RL frameworks introduce unprecedented adaptability, their computational overhead constrains real-world viability. Conversely, FPGA systems deliver unmatched speed but remain rigid and model-agnostic. The integration of RL inference into FPGA architectures, which are capable of nanosecond decision-making, represents a promising frontier that this thesis aims to explore. The subsequent section transitions into the research methodology, outlining the architectural design, FPGA implementation, and experimental evaluation strategies employed to realize this vision.
+Recent developments highlight a major gap in existing literature: the lack of systems that seamlessly integrate AI's predictive power with FPGA's deterministic execution for market making under extreme volatility. Most studies focus on either purely algorithmic improvements or hardware-level optimizations, but few explore the end-to-end integration and systemic resilience required for production-grade HFT. This thesis addresses these gaps by proposing an AI-integrated FPGA framework designed for high-volatility environments. 

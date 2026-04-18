@@ -4,7 +4,8 @@
 \tikzset{
     block/.style={rectangle, draw, fill=red!10, text width=9em, text centered, rounded corners, minimum height=4.5em},
     input/.style={rectangle, draw, fill=gray!10, text width=8em, text centered, minimum height=3em},
-    line/.style={draw, -latex', line width=1.5pt}
+    line/.style={draw, -latex', line width=1.5pt},
+    biline/.style={draw, <->, line width=1.5pt}
 }
 
 \node [input] (mkt) {Market Data \\ (ITCH 5.0)};
@@ -24,6 +25,11 @@
 \path [line] (ts) -- (mm);
 \path [line] (ord) -- (tick);
 \path [line] (tick) -- (mm);
+\path [line] (tick) |- (quote.west);
+
+\path [biline] (mm) -- (arb);
+\path [biline] (mm) -- (quote);
+
 \path [line] (arb) -- (dec);
 \path [line] (mm) -- (dec);
 \path [line] (quote) -- (dec);

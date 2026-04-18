@@ -12,7 +12,7 @@ The ingress pipeline minimizes latency by processing network headers in parallel
     \item \textbf{IDLE/SOF:} The FSM waits for the Start of Frame (SOF) delimiter from the 10GbE MAC.
     \item \textbf{ETH\_EXTRACT (Cycle 0):} Consumes the 14-byte Ethernet header. It utilizes combinatorial comparators to validate the EtherType (0x0800) and the Destination MAC address.
     \item \textbf{IP\_EXTRACT (Cycle 1):} Extracts the 20-byte IPv4 header. A pipelined \textbf{checksum validator} computes the 16-bit one's complement sum in real-time, asserting an \texttt{error\_drop} signal if the integrity check fails.
-    \item \textbf{UDP\_EXTRACT (Cycle 2):} Parses the 8-byte UDP header. The module performs a parallel lookup against a programmable \textbf{Port Whitelist} (stored in Registers/LUTs) to filter for specific multicast market data feeds (e.g., NASDAQ ITCH).
+    \item \textbf{UDP\_EXTRACT (Cycle 2):} Parses the 8-byte UDP header. The module performs a parallel lookup against a programmable \textbf{Port Whitelist} (stored in Registers/LUTs) to filter for specific multicast market data feeds (e.g., NASDAQ ITCH). \datamethodology
     \item \textbf{PAYLOAD\_STR:} Once validated, the FSM transitions to the payload streaming state, asserting the \texttt{TVALID} signal of the \textbf{AXI-Stream (AXI-S)} interface to the decoder.
 \end{itemize}
 
@@ -43,7 +43,14 @@ To maximize throughput, the RL Core is decomposed into a 4-stage pipeline:
     \item \textbf{Stage 1: Feature Normalization.} The raw BBO and OBI signals are scaled to the range $[-1, 1]$ using a bit-shift operator (dividing by powers of 2 for efficiency).
     \item \textbf{Stage 2: Hidden Layer 1.} Performs the first set of parallel MAC operations across 32 DSP slices.
     \item \textbf{Stage 3: Hidden Layer 2.} Processes the intermediate activations through a second, pruned weight matrix.
-    \item \textbf{Stage 4: Softmax/Thresholding.} The final output layer determines the optimal action $a^*$. If $a^* > \text{threshold}$, a trade signal is emitted to the OUCH encoder.
+    \item \textbf{Stage 4: Softmax/Thresholding and Strategy Execution.} The final output layer computes the action probabilities. The agent selects the action $a^*$ with the highest probability. This \textbf{trade signal} corresponds to a specific market-making strategy:
+    \begin{itemize}
+        \item \textbf{Quote Skewing:} If the signal indicates a high probability of upward mid-price movement (positive OBI), the hardware skews the quotes higher, narrowing the ask offset and widening the bid offset to proactively capture the momentum.
+        \item \textbf{Spread Optimization:} Under high-volatility regimes (Hawkes burst detection), the signal triggers an expansion of the symmetric spread $\psi^*$ to maximize the \textbf{Liquidity Risk Premium} and protect against adverse selection.
+        \item \textbf{Inventory Rebalancing:} If current inventory $q_t$ approaches the limits, the signal prioritizes "passive liquidation" by only quoting on the side that reduces the position.
+    \end{itemize}
+    If the confidence level of $a^*$ exceeds the programmable threshold, the corresponding order parameters are emitted to the OUCH encoder.
+
 \end{enumerate}
 
 \section{Hardware Risk Management: Pre-Trade Gating}

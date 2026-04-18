@@ -80,7 +80,7 @@ Variables in the Hawkes Process:
     \item $t_i$: The timestamps of all previous events.
 \end{itemize}
 
-To generate 100 million trade events adhering to these dynamics, our synthetic data generator (see Appendix \ref{appendix:code}) implements \textbf{Ogata's Thinning Algorithm}. This method treats the Hawkes process as a non-homogeneous Poisson process. For each event arrival, we calculate a local maximum intensity $\lambda_{max}$ and sample prospective arrival times using:
+To generate 100 million trade events adhering to these dynamics, our synthetic data generator (see Appendix B) implements \textbf{Ogata’s Thinning Algorithm} \citep{Ogata1981}. This method treats the Hawkes process as a non-homogeneous Poisson process. For each event arrival, we calculate a local maximum intensity $\lambda_{max}$ and sample prospective arrival times using:
 \begin{equation}
     \Delta t = -\frac{\ln(U)}{\lambda_{max}}
 \end{equation}
@@ -94,7 +94,8 @@ The generator populates the bid and ask volumes ($V_b, V_a$) at the best price l
 where $f$ is a non-linear mapping (e.g., a sigmoid function). This ensuring that the RL agent can learn to exploit the \textbf{lead-lag relationship} between imbalance and the next mid-price tick.
 
 \section{Summary of Generated Data Profiles}
-Table \ref{tab:vol_profiles_final} summarizes the parameters used to generate the evaluation datasets.
+
+The parameters selected for our synthetic evaluation environments are designed to span the full spectrum of market microstructure behavior, from "Business-as-Usual" (BAU) regimes to extreme "Flash-Crash" scenarios. Table \ref{tab:vol_profiles_final} summarizes the parameters used to generate these evaluation datasets.
 
 \begin{table}[h!]
     \centering
@@ -112,5 +113,28 @@ Table \ref{tab:vol_profiles_final} summarizes the parameters used to generate th
     \label{tab:vol_profiles_final}
 \end{table}
 
+\subsection{Parameter Selection Rationale and Market Mapping}
+The selection of these specific numerical values is grounded in empirical market observations and the need to rigorously stress-test the hardware-software synthesis:
+
+\begin{itemize}
+    \item \textbf{Volatility ($\sigma$):} The range from 0.15 to 1.25 corresponds to annualized volatility levels. $\sigma=0.15$ represents a standard calm trading day in large-cap equities (e.g., S\&P 500 components), while $\sigma=1.25$ represents an environment of extreme panic, where price swings of several percentage points occur within seconds.
+    \item \textbf{Jump Intensity ($\lambda$):} We increment $\lambda$ to simulate the increasing frequency of price discontinuities. In the "Extreme Stress" profile, $\lambda=20$ creates a regime where news-driven shocks are nearly continuous, forcing the RL agent to learn defensive "Reservation Price" skews to avoid inventory accumulation during rapid one-way moves.
+    \item \textbf{Hawkes Excitement ($\alpha$):} This is the most critical parameter for hardware validation. As $\alpha$ approaches the stability bound of 1.0 (set at 0.9 for "Extreme Stress"), the order flow becomes hyper-clustered. This creates "micro-bursts" of market data that exceed the sustained processing throughput of software-based stacks, allowing us to quantify the deterministic advantage of the FPGA's pipelined architecture.
+\end{itemize}
+
+\subsection{Importance for Strategy and Hardware Evaluation}
+The progression through these four profiles serves a dual purpose. For the \textbf{Financial Engineering} component, it evaluates the RL agent's ability to minimize \textbf{Adverse Selection Cost} by widening spreads before a jump occurs. For the \textbf{Systems Architecture} component, the transition from Poisson to "Toxic Hawkes" flow tests the FPGA's 10GbE MAC and internal Tick Queues under non-uniform load, ensuring that the nanosecond-level Tick-to-Trade latency remains invariant even as the message arrival rate spikes toward line-rate saturation.
+
+\section{Model Calibration and Synthetic Data Philosophy}
+The calibration of our stochastic models is a multi-stage process that ensures the generated data is both statistically representative of real-world markets and architecturally demanding. We calibrate the base parameters ($\mu, \sigma, \lambda_0$) using Maximum Likelihood Estimation (MLE) on historical tick-level data from the NASDAQ ITCH-5.0 feed. However, the core philosophy of this project deviates from a purely historical approach.
+
+While the HFT system is engineered to integrate seamlessly with live exchange data, we have deliberately utilized high-fidelity simulated data for the primary evaluation of the AI-FPGA framework. \datamethodology\ The rationale is grounded in the need for \textbf{resilience and adaptability} to the complex, multi-regime nature of modern financial markets:
+
+\begin{enumerate}
+    \item \textbf{Scenario Coverage:} Historical data represents a single, fixed sequence of events—a "single realized path" of the market. It is inherently limited by the specific scenarios that happened to occur during that window. By using simulated data, we can explore the "wide spectrum of possible scenarios" that \textit{could} happen, including rare but catastrophic events like synchronized liquidity voids or hyper-clustered Hawkes bursts that may not be present in a given year of historical logs.
+    \item \textbf{Generalization vs. Overfitting:} Training the RL agent on a diverse set of synthetic regimes prevents the model from overfitting to the specific microstructural idiosyncraticies of a single historical period. This ensures that the learned quoting policy is robust across different volatility states.
+    \item \textbf{Hardware Stress Testing:} Synthetic generation allows us to push the FPGA execution pipeline to its theoretical limits by simulating sustained bursts at line-rate (10 Gbps), a condition that is rare in historical data but critical for verifying the system's deterministic "Godhood" performance.
+\end{enumerate}
+
 \section{Conclusion}
-The rigorous data generation methodology detailed in this chapter ensures that the system's performance results are a reflection of its ability to adapt to the complex, multi-regime nature of modern financial markets. By synthesizing both the macro-level price dynamics (Heston, Merton) and the micro-level event clustering (Hawkes), we provide a "Godhood" level environment for the training and validation of the ultra-HFT framework.
+The rigorous data generation and calibration methodology detailed in this chapter ensures that the system's performance results are a reflection of its ability to adapt to the multi-regime nature of modern financial markets. By synthesizing both macro-level price dynamics and micro-level event clustering, we provide a robust environment for the validation of the ultra-HFT framework, ensuring it remains performant even in scenarios that have yet to be realized in historical records.

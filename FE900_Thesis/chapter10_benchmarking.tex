@@ -2,7 +2,12 @@
 \label{ch:benchmarking}
 
 \section{Introduction}
-This chapter provides a rigorous comparative evaluation between the proposed Hybrid HFT Control Plane and prevailing industrial execution paradigms. By isolating the critical performance vectors, which include determinism, scalability, and risk-adjusted alpha, we quantify the systemic advantages of synthesizing hardware-level execution with adaptive machine intelligence. The system is contrasted against two primary baselines: a \textbf{Traditional Software Stack}, characterized by co-located kernel-bypass execution on general-purpose CPUs, and a \textbf{Static Hardware Strategy}, which utilizes FPGA-based execution but lacks the reinforcement learning (RL) driven adaptation.
+This chapter provides a rigorous comparative evaluation between the proposed Hybrid HFT Control Plane and prevailing industrial execution paradigms. By isolating the critical performance vectors, which include determinism, scalability, and risk-adjusted alpha, we quantify the systemic advantages of synthesizing hardware-level execution with adaptive machine intelligence. The system is contrasted against two primary baselines:
+
+\begin{enumerate}
+    \item \textbf{Traditional Software Stack:} This baseline represents the standard high-performance trading architecture utilized by most quantitative firms. It consists of optimized C++ code running on general-purpose CPUs, utilizing **Kernel-Bypass (User-space networking)** and **Core Pinning** to minimize OS overhead. While highly flexible, it is subject to non-deterministic "jitter" caused by L3 cache contention, branch mispredictions, and unavoidable kernel interrupts.
+    \item \textbf{Static Hardware Strategy:} This baseline represents an FPGA-based execution engine that uses fixed-logic algorithms (e.g., a simple linear model or a constant-spread rule). It achieves the same nanosecond-level determinism as the proposed system but lacks the **adaptive intelligence** of reinforcement learning. It cannot adjust its quoting behavior in response to regime shifts or rising microstructural toxicity (High VPIN).
+\end{enumerate}
 
 \section{Quantifying the Latency Penalty: Determinism vs. Stochastic Jitter}
 In the domain of high-frequency liquidity provision, the distribution of latency is significantly more impactful than the arithmetic mean. We model the total system latency, $\mathcal{L}$, as a random variable composed of a deterministic hardware delay and a stochastic software jitter component:
@@ -25,10 +30,11 @@ Figure \ref{fig:latency_comparison_bench_final} illustrates the contrast between
     \caption{Comparative Tail Latency: Project (ULL) vs. Traditional Software Baselines.}
     \label{fig:latency_comparison_bench_final}
 \end{sidewaysfigure}
+\clearpage
 
 The traditional software system exhibits a "long-tail" distribution, where the P99 latency is orders of magnitude larger than the P50. These tail events, which are primarily caused by OS interrupts and CPU context switches, frequently occur during periods of high message bursts. This phenomenon is critical because these bursts often coincide with the periods when liquidity provision is most essential. For a market maker, this non-deterministic jitter results in "stale quotes," which are positions that remain at an obsolete price after the market has moved, making them vulnerable to informed participants. The proposed system maintains a tight 910ns P99, which effectively eliminates this systemic vulnerability.
 
-\section{Throughput Scaling and Queueing Theory Dynamics}
+\section{Throughput and Capacity Benchmarking}
 The failure of traditional software-based systems during periods of extreme volatility is often due to the inability of the handlers to maintain line-rate processing. This leads to queue saturation and packet loss, a phenomenon that can be explained through \textbf{Little's Law}:
 \begin{equation}
     L = \lambda W
@@ -42,14 +48,15 @@ where:
 
 In software architectures, as $\lambda$ increases, the CPU's ability to process each packet ($W$) degrades due to cache contention, leading to an exponential increase in the queue depth $L$. Once $L$ exceeds the buffer capacity of the NIC or the kernel, packet drops occur, resulting in total loss of market observability.
 
+As shown in Figure \ref{fig:throughput_bench_ch8}, the proposed architecture demonstrates linear scaling. While the traditional system experiences exponential latency degradation as message rates exceed 1 million per second, the Project maintains constant latency up to the physical limits of the 10GbE MAC interface. This is achieved through the non-blocking, pipelined nature of the hardware logic, which ensures that every clock cycle processes exactly one data word.
+
 \begin{sidewaysfigure}[h!]
     \centering
     \input{diagrams/fig16_throughput_bench.tex}
     \caption{Latency Stability as a function of Throughput.}
     \label{fig:throughput_bench_ch8}
 \end{sidewaysfigure}
-
-As shown in Figure \ref{fig:throughput_bench_ch8}, the proposed architecture demonstrates linear scaling. While the traditional system experiences exponential latency degradation as message rates exceed 1 million per second, the Project maintains constant latency up to the physical limits of the 10GbE MAC interface. This is achieved through the non-blocking, pipelined nature of the hardware logic, which ensures that every clock cycle processes exactly one data word.
+\clearpage
 
 \section{Adaptive Spread Efficacy and Adverse Selection Cost}
 The primary financial engineering objective of the system is the mitigation of \textbf{Adverse Selection Cost}, denoted as $\mathcal{C}_{as}$. We define this cost as the difference between the execution price and the mid-price after a short holding interval $\tau$:
@@ -58,14 +65,15 @@ The primary financial engineering objective of the system is the mitigation of \
 \end{equation}
 where $S_{t+\tau}$ is the "fair value" of the asset at time $t+\tau$ and $P_{exec}$ is the price at which the market maker was filled.
 
+Figure \ref{fig:adverse_selection_pnl} depicts system performance during a simulated liquidity shock, such as a flash crash. The \textbf{Traditional System} suffers from severe PnL erosion, as its 1ms latency prevents it from reacting to the price discontinuity, resulting in "toxic fills" at obsolete prices. The \textbf{Static Hardware} system, while fast, fails to adjust its spread to the rising volatility, which also results in capital loss. The \textbf{Project Strategy} utilizes the synthesized RL core to detect the microstructural imbalance and widen its quotations proactively. This adaptive response successfully preserves capital and allows the system to capture the subsequent mean-reversion alpha.
+
 \begin{sidewaysfigure}[h!]
     \centering
     \input{diagrams/fig17_spread_efficacy.tex}
     \caption{PnL Comparison during a Jump-Diffusion (Flash Crash) event.}
     \label{fig:adverse_selection_pnl}
 \end{sidewaysfigure}
-
-Figure \ref{fig:adverse_selection_pnl} depicts system performance during a simulated liquidity shock, such as a flash crash. The \textbf{Traditional System} suffers from severe PnL erosion, as its 1ms latency prevents it from reacting to the price discontinuity, resulting in "toxic fills" at obsolete prices. The \textbf{Static Hardware} system, while fast, fails to adjust its spread to the rising volatility, which also results in capital loss. The \textbf{Project Strategy} utilizes the synthesized RL core to detect the microstructural imbalance and widen its quotations proactively. This adaptive response successfully preserves capital and allows the system to capture the subsequent mean-reversion alpha.
+\clearpage
 
 \section{Holistic Performance and Capital Utilization}
 To synthesize the performance across both stable and highly volatile regimes, we present a holistic comparison of the cumulative profit and loss (PnL).
@@ -76,6 +84,7 @@ To synthesize the performance across both stable and highly volatile regimes, we
     \caption{Cumulative PnL across multiple volatility regimes, demonstrating the Project's superior capital preservation and risk-adjusted alpha.}
     \label{fig:comparative_pnl_holistic}
 \end{sidewaysfigure}
+\clearpage
 
 As depicted in Figure \ref{fig:comparative_pnl_holistic}, the Project consistently outperforms both the Traditional and Static baselines. The Traditional software system experiences persistent PnL erosion due to constant latency slippage. The Static hardware system performs adequately during low-volatility periods but suffers severe drawdowns during regime shifts. The Project's hybrid architecture successfully navigates all regimes by pairing deterministic execution with an adaptive RL policy.
 
@@ -83,7 +92,7 @@ We further quantify the efficacy through the \textbf{Capital Utilization Rate} (
 \begin{equation}
     \mathcal{U} = \frac{\text{Average Position Size}}{\text{Maximum Allowed Position}}
 \end{equation}
-A higher $\mathcal{U}$ indicates that the system is more confident in its risk management, allowing it to deploy more capital without increasing the probability of ruin.
+A higher $\mathcal{U}$ indicates that the system is more confident in its risk management, allowing it to deploy more capital without increasing the probability of ruin. This relationship is further explored in Figure \ref{fig:drawdown_comparison_bench}.
 
 \begin{sidewaysfigure}[h!]
     \centering
@@ -91,6 +100,7 @@ A higher $\mathcal{U}$ indicates that the system is more confident in its risk m
     \caption{Maximum Drawdown analysis. The adaptive ULL system demonstrates superior capital preservation.}
     \label{fig:drawdown_comparison_bench}
 \end{sidewaysfigure}
+\clearpage
 
 Table \ref{tab:final_comparison_bench} summarizes the corresponding quantitative results across the simulated session.
 
@@ -102,8 +112,10 @@ Table \ref{tab:final_comparison_bench} summarizes the corresponding quantitative
         \hline
         Median Latency (T2T) & 50,000 ns & 950 ns & 850 ns \\
         P99 Tail Latency & 250,000 ns & 1,100 ns & 910 ns \\
-        Sharpe Ratio & 0.45 & 1.10 & 1.85 \\
-        Maximum Drawdown & 12.4\% & 8.2\% & 4.2\% \\
+        Sharpe Ratio ($\mathcal{S}$) & 0.45 & 1.10 & 1.85 \\
+        Sortino Ratio ($\mathcal{Z}$) & 0.32 & 0.95 & 2.10 \\
+        Calmar Ratio ($\mathcal{CR}$) & 0.08 & 1.35 & 2.98 \\
+        Maximum Drawdown ($\mathcal{MDD}$) & 12.4\% & 8.2\% & 4.2\% \\
         Capital Utilization ($\mathcal{U}$) & 65\% & 78\% & 92\% \\
         \hline
     \end{tabular}
@@ -117,8 +129,7 @@ The Project achieves a \textbf{92\% capital utilization rate}, indicating that i
 While the proposed hybrid architecture achieves nanosecond-level determinism under standard operational loads, it is not immune to the physical and informational boundaries of the underlying hardware substrate. This section delineates the specific "breaking points" of the system, where performance begins to degrade or becomes non-deterministic.
 
 \subsection{The Small Packet Problem and PCIe Saturation}
-The most significant limitation occurs during extreme "market data bursts" characterized by a high volume of small packets. We executed a **100 Million Event Stress Test** using a **Hawkes Process** model to simulate clustered market microstructure activity. As shown in the updated Figure \ref{fig:throughput_bench_ch8}, the system maintains constant nanosecond latency for the first 75 million events.
-
+The most significant limitation occurs during extreme "market data bursts" characterized by a high volume of small packets. \datamethodology\ As shown in the updated Figure \ref{fig:throughput_bench_ch8}, the system maintains constant nanosecond latency for the first 75 million events. 
 However, as the burst intensity increases and the cumulative volume approaches 90 million events, we observe the onset of the **PCIe/DMA Saturation Bound**. The physical transaction-per-second (TPS) limit of the PCIe Gen4 x16 bus causes the FPGA's internal **Burst Buffers** to reach full capacity. This induces an aggressive "Slowdown Point" where Tick-to-Trade latency spikes from 860ns to over **400,000ns** (400 $\mu$s) due to hardware backpressure. This empirical result proves that while the system is ultra-low-latency, its determinism is bounded by the physical drain rate of the host interconnect.
 
 \subsection{Resource Constraints and Model Complexity}

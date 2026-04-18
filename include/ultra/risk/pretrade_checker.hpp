@@ -11,31 +11,30 @@ namespace ultra::risk {
 class PretradeChecker {
 public:
     struct Config {
-        Quantity max_position_shares = 10000; ///< int variable representing max_position_shares.
-        Price max_notional_usd = 10000000; ///< int variable representing max_notional_usd.
-        Quantity max_order_size = 1000; ///< int variable representing max_order_size.
-        uint32_t max_orders_per_second = 10000; ///< int variable representing max_orders_per_second.
+        Quantity max_position_shares = 10000;
+        Price max_notional_usd = 10000000;
+        Quantity max_order_size = 1000;
+        uint32_t max_orders_per_second = 10000;
+        Price max_price = 5000 * PRICE_SCALE; // $5000
+        Price min_price = 1 * PRICE_SCALE;    // $1
+        uint64_t duplicate_window_ns = 1000;   // 1us
     };
 
-             /**
-              * @brief Auto-generated description for PretradeChecker.
-              * @param config Parameter description.
-              */
     explicit PretradeChecker(const Config& config);
 
-    // Check a new order request
-    // Returns true if the order is safe, false if it's rejected
     ULTRA_HOT bool check_order(const strategy::StrategyOrder& order) noexcept;
 
-    // Update internal state from an execution
     void on_execution(const exec::ExecutionReport& report) noexcept;
 
 private:
-    Config config_; ///< Config variable representing config_.
+    Config config_;
     
-    // Current state
-    Quantity current_position_{0}; ///< int variable representing current_position_.
-    // (Add tracking for order rate, etc.)
+    Quantity current_position_{0};
+    Price total_notional_exposure_{0};
+    
+    // Duplicate Detection State
+    uint64_t last_order_hash_{0};
+    uint64_t last_order_time_ns_{0};
 };
 
 } // namespace ultra::risk

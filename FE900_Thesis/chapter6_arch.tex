@@ -9,14 +9,14 @@ The design of an ultra-high-frequency trading (ultra-HFT) system is predicated o
     \label{fig:matching_engine_arch}
     \input{diagrams/fig9_matching_engine.tex}
 \end{sidewaysfigure}
+\clearpage
 
 \section{Modular Design and Functional Decomposition}
 
 The system architecture employs a \textbf{deeply pipelined design pattern}, where each stage performs a discrete transformation on the data stream within a fixed number of clock cycles. This allows the system to achieve a high operating frequency ($f_{clk} \geq 322.26$ MHz for 10GbE) and ensures that the \textbf{Worst-Case Execution Time (WCET)} is identical to the average-case execution time.
 
 \subsection{Ingress and Protocol Parsing}
-The ingress stage consumes raw Ethernet frames at line-rate (10 Gbps) with zero packet loss.
-
+The ingress stage is engineered to consume raw Ethernet frames at line-rate (10 Gbps) with zero packet loss. \datamethodology
 \begin{description}
     \item[RX Parser (\texttt{rx\_parser}):] This module is implemented as a high-performance \textbf{Finite State Machine (FSM)}. It inspects the 64-bit data bus from the MAC interface. The FSM transitions through states to peel away the encapsulation layers:
     \begin{itemize}
@@ -61,7 +61,7 @@ Upon a trade signal, the egress stage generates and transmits the response packe
 \end{description}
 
 \section{Latency Decomposition and Determinism}
-The total \textbf{Tick-to-Trade (T2T)} latency, $\mathcal{L}_{total}$, is the sum of the latencies of each constituent module. Because the design is synchronous and non-blocking, the total latency is constant:
+The total \textbf{Tick-to-Trade (T2T)} latency, $\mathcal{L}_{total}$, is the sum of the latencies of each constituent module. Because the design is synchronous and non-blocking, the total latency is theoretically constant:
 \begin{equation}
     \mathcal{L}_{total} = \sum_{i \in \text{modules}} \frac{C_i}{f_{clk}} + \mathcal{L}_{PHY}
 \end{equation}
@@ -72,6 +72,13 @@ where:
     \item $\mathcal{L}_{PHY}$: The fixed latency of the Physical Medium Attachment (PMA) and Physical Coding Sublayer (PCS), typically $\approx 100$ ns.
 \end{itemize}
 In this architecture, $C_{parser}=4$, $C_{decoder}=6$, $C_{book}=2$, $C_{RL}=12$, and $C_{encoder}=5$, resulting in an internal logic latency of $\approx 90$ ns. Including the PHY, the end-to-end T2T latency is verified at \textbf{$< 200$ ns}.
+
+\subsection{Empirical Analysis via Hardware Timestamping}
+To verify this theoretical determinism and analyze the real-world latency distribution, we utilize high-precision hardware timestamps captured at the ingress and egress points of the FPGA fabric. By recording the nanosecond-precision time of arrival ($T_{ingress}$) and departure ($T_{egress}$) for each transaction, we derive the empirical latency:
+\begin{equation}
+    \Delta T = T_{egress} - T_{ingress}
+\end{equation}
+This timestamp-based approach allows us to construct a \textbf{Probability Density Function (PDF)} of the latency. Unlike software-based systems that exhibit significant "jitter" (variance) due to OS interrupts and cache misses, our timestamp analysis confirms that the latency distribution is tightly clustered around the mean, with a standard deviation approaching zero. This empirical validation proves that the system's performance remains invariant even under peak market load (see Chapter \ref{ch:results} for detailed benchmarks).
 
 \section{Software Support and Hybrid Co-Design}
 While the critical path is in hardware, the system relies on a high-performance software stack for management and observability.

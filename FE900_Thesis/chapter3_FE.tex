@@ -17,7 +17,8 @@ where $p_i \in \mathbb{R}^+$ is the price, $q_i \in \mathbb{Z}^+$ is the quantit
 \end{enumerate}
 
 \subsection{Price-Time Priority and Execution Mechanics}
-Execution at major electronic venues (e.g., NASDAQ, NYSE) is governed by \textbf{Price-Time Priority}. This deterministic matching algorithm ensures that orders at more aggressive prices are filled first. For orders at the same price, the order with the earlier arrival timestamp $\tau$ is prioritized. Formally, an order $O(p, q, \tau, s)$ is executed only if:
+Execution at major electronic venues (e.g., NASDAQ, NYSE) is governed by \textbf{Price-Time Priority}. \datamethodology\ This deterministic matching algorithm ensures that orders at more aggressive prices are filled first. 
+ For orders at the same price, the order with the earlier arrival timestamp $\tau$ is prioritized. Formally, an order $O(p, q, \tau, s)$ is executed only if:
 \begin{enumerate}
     \item \textbf{Price Condition:} There exists an aggressive market order at price $p'$ such that $p' \geq p$ (for sell orders) or $p' \leq p$ (for buy orders).
     \item \textbf{Time Priority (Queue Position):} No other order $O'$ exists in $L_t$ with price $p$ and arrival time $\tau' < \tau$.
@@ -91,7 +92,10 @@ Terms in the objective function:
 
 To solve this stochastic optimal control problem, we define the \textbf{Value Function} $u(s, x, q, t)$ as the maximum expected utility from time $t$ to $T$, given the current state $(S_t=s, X_t=x, q_t=q)$. This function satisfies the \textbf{Hamilton-Jacobi-Bellman (HJB)} equation:
 \begin{equation}
-    \frac{\partial u}{\partial t} + \frac{1}{2} \sigma^2 \frac{\partial^2 u}{\partial s^2} + \max_{\delta^b} \lambda^b(\delta^b) [u(s, x-s+\delta^b, q+1, t) - u] + \max_{\delta^a} \lambda^a(\delta^a) [u(s, x+s+\delta^a, q-1, t) - u] = 0
+    \begin{split}
+        \frac{\partial u}{\partial t} + \frac{1}{2} \sigma^2 \frac{\partial^2 u}{\partial s^2} &+ \max_{\delta^b} \lambda^b(\delta^b) [u(s, x-s+\delta^b, q+1, t) - u] \\
+        &+ \max_{\delta^a} \lambda^a(\delta^a) [u(s, x+s+\delta^a, q-1, t) - u] = 0
+    \end{split}
 \end{equation}
 The HJB equation components:
 \begin{itemize}
@@ -152,7 +156,7 @@ The interpretation of $\rho_t$ is as follows:
 In our adaptive system, $\rho_t$ is used to adjust the reservation price $r$ beyond the inventory-based skew. If $\rho_t > 0.8$, the system anticipates a price increase and shifts the reservation price \textit{upward}, even if inventory is balanced, to avoid being "picked off" by aggressive buyers.
 
 \subsection{Volume Toxicity and VPIN}
-To quantify the "toxicity" of the incoming order flow, we incorporate concepts from the \textbf{Volume-Synchronized Probability of Informed Trading (VPIN)} framework. Flow toxicity occurs when market orders are consistently lopsided, suggesting that traders possess private information or superior predictive models.
+To quantify the "toxicity" of the incoming order flow, we incorporate concepts from the \textbf{Volume-Synchronized Probability of Informed Trading (VPIN)} framework \citep{Easley2012}. Flow toxicity occurs when market orders are consistently lopsided, suggesting that traders possess private information or superior predictive models.
 \begin{equation}
     \text{Toxicity}_t \approx \frac{|E[V_t^b] - E[V_t^a]|}{V_{total}}
 \end{equation}

@@ -2,16 +2,16 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Parameters for Synthetic Dataset Generation Across Volatility Regimes.}}{45}{table.4.1}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Parameters for Synthetic Dataset Generation Across Volatility Regimes.}}{46}{table.4.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {9.1}{\ignorespaces Detailed Breakdown of Tick-to-Trade Latency within the Software Pipeline under Hawkes Load.}}{76}{table.9.1}%
-\contentsline {table}{\numberline {9.2}{\ignorespaces Summary of Strategy Financial Performance across the Synthetic Benchmark.}}{78}{table.9.2}%
+\contentsline {table}{\numberline {9.1}{\ignorespaces Detailed Breakdown of Tick-to-Trade Latency within the Software Pipeline under Hawkes Load.}}{86}{table.9.1}%
+\contentsline {table}{\numberline {9.2}{\ignorespaces Ensemble Financial Performance across 50 Independent Runs.}}{92}{table.9.2}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {10.1}{\ignorespaces Consolidated Comparative Benchmark Results.}}{87}{table.10.1}%
+\contentsline {table}{\numberline {10.1}{\ignorespaces Consolidated Comparative Benchmark Results.}}{110}{table.10.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

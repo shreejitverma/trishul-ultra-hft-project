@@ -8,7 +8,7 @@ This appendix provides a detailed overview of the core hardware and software mod
 The FPGA implementation is responsible for the performance-critical path, executing everything from network packet ingestion to order generation in hardware gates.
 
 \subsection{Network Ingress and Parsing}
-\textbf{Parser (\texttt{rx\_parser}):} This module acts as the entry point for market data. It uses a Finite State Machine (FSM) to strip Ethernet, IPv4, and UDP headers in a single pass. By validating checksums and filtering ports at line-rate, it ensures that only relevant ITCH messages reach the internal logic.
+\textbf{Parser (\texttt{rx\_parser}):} This module acts as the entry point for market data. \datamethodology\ It uses a Finite State Machine (FSM) to strip headers in a single pass. By validating checksums and filtering ports at line-rate, it ensures that only relevant ITCH messages reach the internal logic.
 
 \subsection{Market Data Handling}
 \textbf{Order Book (\texttt{book2}):} This module maintains the instantaneous state of the best bid and offer (BBO). It performs $O(1)$ updates by mapping price levels directly to internal registers, allowing the strategy to react to the latest market state without the overhead of memory lookups.
@@ -29,7 +29,7 @@ The software layer provides the management, training, and simulation environment
 \textbf{Async Logger:} To avoid blocking the high-frequency trading threads, logging is performed asynchronously. Diagnostic data is written to a lock-free ring buffer and consumed by a background thread for disk I/O.
 
 \subsection{Performance Optimization}
-\textbf{Vectorized Signal Engine:} Utilizes Intel AVX2 SIMD instructions to process market data in batches. This allows for rapid feature calculation and model training across millions of historical ticks.
+\textbf{Vectorized Signal Engine:} Utilizes Intel AVX2 SIMD instructions to process market data in batches. \datamethodology
 
 \chapter{Source Code Listings}
 \label{appendix:code}
@@ -234,4 +234,346 @@ void calculate_mid_prices(const float* bids, const float* asks,
         _mm256_store_ps(&out[i], mid);
     }
 }
+\end{lstlisting}
+
+\subsection{Ogata's Thinning Algorithm for Hawkes Processes (Python)}
+This script implements the simulation of self-exciting point processes used to generate 100 million trade events for stress testing.
+
+\begin{lstlisting}[style=cppstyle, caption={Simulation of a Hawkes process via Ogata's Thinning Algorithm}, label={lst:ogata}]
+import numpy as np
+
+def simulate_hawkes(lambda0, alpha, beta, T):
+    """
+    Simulates a Hawkes process using Ogata's Thinning algorithm.
+    lambda(t) = lambda0 + sum_{ti < t} alpha * exp(-beta * (t - ti))
+    """
+    t = 0
+    history = []
+    # Initial maximum intensity
+    lambda_max = lambda0
+
+    while t < T:
+        # Sample from a homogeneous Poisson process with rate lambda_max
+        U = np.random.uniform(0, 1)
+        dt = -np.log(U) / lambda_max
+        t = t + dt
+        
+        if t > T:
+            break
+
+        # Calculate the actual intensity at the prospective time t
+        # lambda(t) = lambda0 + sum(alpha * exp(-beta * (t - ti)))
+        intensity_t = lambda0
+        for ti in history:
+            intensity_t += alpha * np.exp(-beta * (t - ti))
+
+        # Thinning step: Accept the event with probability intensity_t / lambda_max
+        U2 = np.random.uniform(0, 1)
+        if U2 <= intensity_t / lambda_max:
+            history.append(t)
+            # After an event, the intensity jumps by alpha
+            lambda_max = intensity_t + alpha
+        else:
+            # If rejected, lambda_max stays the same (or we can refine it)
+            # Re-calculating lambda_max is safer for complex kernels
+            pass
+
+    return np.array(history)
+\end{lstlisting}
+
+\section{Regulatory Compliance and Risk Management (SEC 15c3-5)}
+This section provides the implementation details for the wire-speed risk engine mentioned in Chapter 7.
+
+\subsection{FPGA Risk Gate (Verilog)}
+The following RTL module implements Credit Limit Monitoring, Fat-Finger suppression, and Duplicate Detection in a single clock cycle.
+
+\begin{lstlisting}[style=cppstyle, caption={Wire-speed risk gate implementation}, label={lst:riskgate}]
+// Module: risk_gate
+// Implements SEC Rule 15c3-5 Compliance in Hardware
+module risk_gate #(
+    parameter PRICE_W = 64,
+    parameter QTY_W   = 32,
+    parameter LIMIT_NOTIONAL = 64'd1000000000 
+) (
+    input  wire                 clk, rst_n,
+    input  wire [PRICE_W-1:0]   in_order_price,
+    input  wire [QTY_W-1:0]     in_order_qty,
+    input  wire [63:0]          in_order_hash,
+    input  wire                 in_order_valid,
+    
+    output reg  [PRICE_W-1:0]   out_order_price,
+    output reg  [QTY_W-1:0]     out_order_qty,
+    output reg                  out_order_valid,
+    
+    output reg                  risk_violation_credit,
+    output reg                  risk_violation_fat_finger,
+    output reg                  risk_violation_duplicate
+);
+    reg [PRICE_W-1:0] total_exposure;
+    wire [PRICE_W+QTY_W-1:0] order_notional = in_order_price * in_order_qty;
+    
+    reg [63:0] last_order_hash;
+    reg [31:0] timestamp_counter;
+
+    wire check_credit     = (total_exposure + order_notional <= LIMIT_NOTIONAL);
+    wire check_fat_finger = (in_order_price <= cfg_max_price) && (in_order_qty <= cfg_max_qty);
+    wire check_duplicate  = (in_order_hash != last_order_hash) || (timestamp_counter > 32'd322);
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            total_exposure <= 0;
+            out_order_valid <= 0;
+        end else begin
+            timestamp_counter <= timestamp_counter + 1;
+            if (in_order_valid && check_credit && check_fat_finger && check_duplicate) begin
+                out_order_valid <= 1;
+                total_exposure  <= total_exposure + order_notional;
+                last_order_hash <= in_order_hash;
+                timestamp_counter <= 0;
+            end else begin
+                out_order_valid <= 0;
+            end
+        end
+    end
+endmodule
+\end{lstlisting}
+
+\subsection{Software Pre-Trade Checker (C++)}
+The software control plane maintains a synchronized mirror of the hardware risk state for observability and complex validation.
+
+\begin{lstlisting}[style=cppstyle, caption={Software Pre-Trade Risk Validation}, label={lst:swrisk}]
+bool PretradeChecker::check_order(const strategy::StrategyOrder& order) noexcept {
+    uint64_t now_ns = core::RDTSCCLock::nanoseconds();
+
+    // Check 1: Fat-Finger Suppression
+    if (order.quantity > config_.max_order_size || 
+        order.price > config_.max_price || order.price < config_.min_price) {
+        return false;
+    }
+
+    // Check 2: Credit Limit Monitoring (Notional)
+    Price order_notional = order.price * order.quantity;
+    if (total_notional_exposure_ + order_notional > config_.max_notional_usd) {
+        return false;
+    }
+
+    // Check 3: Duplicate Order Detection (sub-us window)
+    uint64_t current_hash = hash_order(order);
+    if (current_hash == last_order_hash_ && (now_ns - last_order_time_ns_ < 1000)) {
+        return false;
+    }
+    
+    return true;
+}
+\end{lstlisting}
+
+\section{Core Synchronisation Primitives}
+\subsection{Lock-Free Single-Producer Single-Consumer (SPSC) Queue (C++)}
+The following implementation provides a deterministic, thread-safe communication channel between CPU cores without using mutexes.
+
+\begin{lstlisting}[style=cppstyle, caption={Lock-free SPSC Ring Buffer}, label={lst:spsc}]
+template<typename T, size_t Capacity>
+class SPSCQueue {
+    static_assert((Capacity & (Capacity - 1)) == 0, "Power of 2 only");
+public:
+    bool push(const T& item) noexcept {
+        const size_t head = head_.load(std::memory_order_relaxed);
+        const size_t next = (head + 1) & (Capacity - 1);
+        if (next == tail_.load(std::memory_order_acquire)) return false;
+        buffer_[head] = item;
+        head_.store(next, std::memory_order_release);
+        return true;
+    }
+
+    bool pop(T& item) noexcept {
+        const size_t tail = tail_.load(std::memory_order_relaxed);
+        if (tail == head_.load(std::memory_order_acquire)) return false;
+        item = buffer_[tail];
+        tail_.store((tail + 1) & (Capacity - 1), std::memory_order_release);
+        return true;
+    }
+private:
+    std::array<T, Capacity> buffer_;
+    alignas(64) std::atomic<size_t> head_{0};
+    alignas(64) std::atomic<size_t> tail_{0};
+};
+\end{lstlisting}
+
+\section{Low-Level Protocol Parsing}
+\subsection{ITCH 5.0 Binary Decoder (Verilog)}
+This module demonstrates the hardware-level field extraction from raw binary exchange messages.
+
+\begin{lstlisting}[style=verilogstyle, caption={Hardware ITCH field extraction}, label={lst:itch_hw}]
+module itch_decoder (
+    input wire clk, rst,
+    input wire [63:0] s_axis_tdata,
+    input wire s_axis_tvalid,
+    output reg tick_valid,
+    output reg [63:0] tick_oid,
+    output reg [31:0] tick_qty, tick_price
+);
+    reg [511:0] buffer; // Shift register
+    always @(posedge clk) begin
+        if (s_axis_tvalid) buffer <= {buffer[447:0], s_axis_tdata};
+        
+        // Extract 'Add Order' (Type 'A') fields at fixed offsets
+        if (buffer[511:504] == 8'h41) begin
+            tick_valid <= 1'b1;
+            tick_oid   <= buffer[423:384]; // 8 bytes ref
+            tick_side  <= buffer[359];     // 1 byte B/S
+            tick_qty   <= buffer[351:328]; // 4 bytes
+            tick_price <= buffer[327:296]; // 4 bytes
+        end
+    end
+endmodule
+\end{lstlisting}
+
+\section{Extended Signal Generation}
+\subsection{AVX2 Vectorized Relative Strength Index (RSI)}
+Implementation of a complex signal using SIMD to process 8 data points in parallel.
+
+\begin{lstlisting}[style=cppstyle, caption={Vectorized RSI computation}, label={lst:simd_rsi}]
+void compute_rsi_avx2(const float* gains, const float* losses, 
+                      float* rsi_out, size_t n) {
+    __m256 v_100 = _mm256_set1_ps(100.0f);
+    __m256 v_1   = _mm256_set1_ps(1.0f);
+    
+    for (size_t i = 0; i < n; i += 8) {
+        __m256 g = _mm256_loadu_ps(&gains[i]);
+        __m256 l = _mm256_loadu_ps(&losses[i]);
+        
+        // RS = AvgGain / AvgLoss
+        __m256 rs = _mm256_div_ps(g, l);
+        
+        // RSI = 100 - (100 / (1 + RS))
+        __m256 den = _mm256_add_ps(v_1, rs);
+        __m256 frac = _mm256_div_ps(v_100, den);
+        __m256 res = _mm256_sub_ps(v_100, frac);
+        
+        _mm256_storeu_ps(&rsi_out[i], res);
+    }
+}
+\end{lstlisting}
+
+\section{Stochastic Volatility and Jump Dynamics}
+\subsection{Merton Jump-Diffusion Simulation (C++)}
+The following snippet demonstrates how discrete jumps are integrated into the price process for stress testing.
+
+\begin{lstlisting}[style=cppstyle, caption={Merton Jump-Diffusion implementation}, label={lst:merton}]
+double simulate_merton(double S, double mu, double sigma, double lambda, 
+                       double m_j, double v_j, double dt, std::mt19937& rng) {
+    std::normal_distribution<double> norm(0, 1);
+    std::poisson_distribution<int> poiss(lambda * dt);
+    
+    // Brownian Component
+    double dW = norm(rng) * std::sqrt(dt);
+    double continuous = (mu - 0.5*sigma*sigma)*dt + sigma*dW;
+    
+    // Jump Component (Poisson arrivals)
+    int num_jumps = poiss(rng);
+    double jump_sum = 0;
+    for(int i=0; i<num_jumps; ++i) {
+        jump_sum += (m_j + v_j * norm(rng)); // log-normal jump
+    }
+    
+    return S * std::exp(continuous + jump_sum);
+}
+\end{lstlisting}
+
+\subsection{Heston Stochastic Volatility (Python)}
+Implementation of the mean-reverting volatility process.
+
+\begin{lstlisting}[style=cppstyle, caption={Heston Model paths}, label={lst:heston}]
+def heston_step(S, v, kappa, theta, sigma, rho, dt):
+    dW1 = np.random.normal(0, np.sqrt(dt))
+    dW2 = rho*dW1 + np.sqrt(1 - rho**2)*np.random.normal(0, np.sqrt(dt))
+    
+    # Update variance (CIR process)
+    dv = kappa * (theta - v) * dt + sigma * np.sqrt(v) * dW2
+    v_next = max(v + dv, 0) # Feller condition / Truncation
+    
+    # Update price
+    dS = S * np.sqrt(v) * dW1
+    return S + dS, v_next
+\end{lstlisting}
+
+\section{Reinforcement Learning Training Pipeline}
+\subsection{Proximal Policy Optimisation (PPO) Training Loop}
+This script (using Stable Baselines3) implements the training regime for the adaptive market-making agent.
+
+\begin{lstlisting}[style=cppstyle, caption={PPO training for quoting agent}, label={lst:ppo}]
+def train_market_maker(total_timesteps=100000):
+    env = MarketMakingEnv()
+    model = PPO(
+        "MlpPolicy", 
+        env, 
+        learning_rate=3e-4,
+        n_steps=2048,
+        batch_size=64,
+        gamma=0.99
+    )
+    
+    # Train the policy
+    model.learn(total_timesteps=total_timesteps)
+    
+    # Export for hardware synthesis
+    model.save("ppo_market_maker")
+\end{lstlisting}
+
+\section{Backtesting and Performance Attribution}
+\subsection{Ensemble Performance Evaluation Script (Python)}
+This script manages the multi-run Monte-Carlo backtesting process and calculates the risk-adjusted metrics (Sharpe, Sortino, Calmar) used in Chapter 9.
+
+\begin{lstlisting}[style=cppstyle, caption={Ensemble performance evaluation and metric distribution}, label={lst:ensemble_eval}]
+import numpy as np
+import pandas as pd
+
+def run_ensemble_backtest(policy, env_params, num_runs=50):
+    results = []
+    
+    for seed in range(num_runs):
+        # Initialize environment with unique seed
+        env = MarketMakingEnv(params=env_params, seed=seed)
+        obs = env.reset()
+        
+        daily_returns = []
+        done = False
+        while not done:
+            action = policy.predict(obs)
+            obs, reward, done, info = env.step(action)
+            if info['is_day_end']:
+                daily_returns.append(info['day_return'])
+        
+        # Calculate Risk-Adjusted Metrics
+        returns = np.array(daily_returns)
+        cagr = np.mean(returns) * 252
+        vol = np.std(returns) * np.sqrt(252)
+        rf = 0.0425
+        
+        sharpe = (cagr - rf) / vol
+        
+        # Sortino: Only downside deviation
+        downside_returns = returns[returns < 0]
+        downside_vol = np.std(downside_returns) * np.sqrt(252)
+        sortino = (cagr - rf) / downside_vol
+        
+        # Calmar: CAGR / Max Drawdown
+        mdd = calculate_max_drawdown(returns)
+        calmar = cagr / abs(mdd)
+        
+        results.append({
+            'sharpe': sharpe,
+            'sortino': sortino,
+            'calmar': calmar,
+            'mdd': mdd,
+            'cagr': cagr
+        })
+        
+    return pd.DataFrame(results)
+
+def calculate_max_drawdown(returns):
+    cumulative = np.cumsum(returns)
+    running_max = np.maximum.accumulate(cumulative)
+    drawdown = running_max - cumulative
+    return np.max(drawdown)
 \end{lstlisting}

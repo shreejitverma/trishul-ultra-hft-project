@@ -3,7 +3,7 @@
 
 \section{Introduction}
 The inherent non-stationarity of financial markets, characterized by shifting volatility regimes, transient liquidity droughts, and non-linear microstructural dependencies, necessitates a quoting strategy that possesses high \textbf{adaptive capacity}. While the stochastic control framework derived in Chapter \ref{ch:microstructure} provides a theoretical benchmark, its reliance on simplifying assumptions (e.g., constant parameters, independent Poisson arrivals) limits its efficacy in fragmented, toxic environments.
- This chapter details the formulation of a \textbf{Deep Reinforcement Learning (DRL)} framework used to optimize market-making policies. We transform the continuous quoting problem into a discrete-time \textbf{Markov Decision Process (MDP)} and delineate the architectural and algorithmic innovations required to derive robust, hardware-accelerated execution policies.
+ This chapter details the formulation of a \textbf{Deep Reinforcement Learning (DRL)} framework used to optimize market-making policies. \datamethodology\ We transform the continuous quoting problem into a discrete-time \textbf{Markov Decision Process (MDP)} and delineate the architectural and algorithmic innovations required to derive robust, hardware-accelerated execution policies.
 
 \section{Markov Decision Process (MDP) Formulation}
 We model the market-making task as a discrete-time MDP defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$. The agent (the market maker) interacts with the environment (the Limit Order Book) by observing the state $s_t$, taking an action $a_t$, and receiving a reward $r_t$ and a next state $s_{t+1}$.
@@ -21,7 +21,7 @@ Variables and features in the state vector:
     \item $\psi_{t-1}$: The \textbf{previous spread} utilized by the agent, allowing the model to incorporate "quoting inertia" and avoid jitter.
     \item $\Delta S_t$: The \textbf{mid-price innovation}, defined as $S_t - S_{t-1}$, capturing short-term momentum.
     \item $\tau_t$: The \textbf{time-to-horizon} parameter, $T-t$, which informs the agent about the remaining duration of the trading session.
-    \item $\text{vpin}_t$: A proxy for \textbf{Order Flow Toxicity}, calculated using volume-synchronized probability of informed trading metrics.
+    \item $\text{vpin}_t$: A proxy for \textbf{Order Flow Toxicity}, calculated using volume-synchronized probability of informed trading metrics \citep{Easley2012}.
 \end{itemize}
 
 \subsection{Action Space and Quoting Policy ($\mathcal{A}$)}

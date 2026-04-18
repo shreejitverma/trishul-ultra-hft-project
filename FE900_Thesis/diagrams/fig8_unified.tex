@@ -1,5 +1,5 @@
 \begin{center}
-\resizebox{0.98\textheight}{!}{
+\resizebox{0.95\textheight}{!}{
 \begin{tikzpicture}[node distance=2.5cm, auto, >=latex', thick]
 \tikzset{
     domain_style/.style={rectangle, draw, dashed, fill=white, minimum width=18cm, minimum height=4cm},
@@ -33,9 +33,9 @@
 \path [draw, <->, line width=1pt, dashed, blue] (train) -- (pcie);
 \path [draw, <->, line width=1pt, dashed, blue] (shm) -- (pcie);
 
-\path [line] (sim) -- (train);
-\path [line] (train) -- (shm);
-\path [line] (shm) -- (log);
+\path [line] (sim) -- (shm);
+\path [line] (shm) -- (train);
+\path [line] (sim) -- (log);
 
 \end{tikzpicture}
 }
