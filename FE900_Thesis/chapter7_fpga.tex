@@ -78,7 +78,7 @@ In the domain of high-frequency trading, the speed of execution must be balanced
 The compliance engine enforces three primary constraints in a single clock cycle:
 \begin{enumerate}
     \item \textbf{Credit Limit Monitoring:} The system maintains a running total of the gross notional exposure. If an order would cause the aggregate exposure to exceed the pre-defined capital limit for the sub-account, the order is dropped in hardware, and a "Kill Switch" signal is sent to the software control plane.
-    \item \textbf{Fat-Finger Suppression:} A combinatorial comparator checks the order quantity and price against historical volatility bands. This prevents the transmission of anomalous orders caused by model divergence or sensor noise.
+    \item \textbf{Fat-Finger Suppression:} A combinatorial comparator checks the order quantity and price against baseline volatility bands. This prevents the transmission of anomalous orders caused by model divergence or sensor noise.
     \item \textbf{Duplicate Order Detection:} Using a high-speed Bloom Filter implemented in LUTs, the system identifies and suppresses repeated "Enter Order" messages that occur within a sub-microsecond window, a common signature of algorithmic "runaway" loops.
 \end{enumerate}
 

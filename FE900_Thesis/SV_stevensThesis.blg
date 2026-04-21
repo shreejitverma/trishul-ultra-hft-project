@@ -17,45 +17,45 @@ A level-1 auxiliary file: Appendix.aux
 The style file: apalike.bst
 Database file #1: myrefs.bib
 Warning--empty journal in Spooner2020
-You've used 26 entries,
+You've used 32 entries,
             1935 wiz_defined-function locations,
-            630 strings with 7320 characters,
-and the built_in function-call counts, 8040 in all, are:
-= -- 809
-> -- 277
-< -- 26
-+ -- 97
-- -- 84
-* -- 582
-:= -- 1478
-add.period$ -- 68
-call.type$ -- 26
-change.case$ -- 160
-chr.to.int$ -- 25
-cite$ -- 27
-duplicate$ -- 329
-empty$ -- 554
-format.name$ -- 126
-if$ -- 1552
+            659 strings with 7980 characters,
+and the built_in function-call counts, 9867 in all, are:
+= -- 994
+> -- 358
+< -- 31
++ -- 123
+- -- 110
+* -- 720
+:= -- 1826
+add.period$ -- 85
+call.type$ -- 32
+change.case$ -- 201
+chr.to.int$ -- 31
+cite$ -- 33
+duplicate$ -- 396
+empty$ -- 662
+format.name$ -- 162
+if$ -- 1893
 int.to.chr$ -- 2
 int.to.str$ -- 0
-missing$ -- 13
-newline$ -- 123
-num.names$ -- 78
-pop$ -- 116
+missing$ -- 15
+newline$ -- 152
+num.names$ -- 96
+pop$ -- 143
 preamble$ -- 1
-purify$ -- 160
+purify$ -- 201
 quote$ -- 0
-skip$ -- 284
+skip$ -- 343
 stack$ -- 0
-substring$ -- 495
-swap$ -- 23
+substring$ -- 586
+swap$ -- 25
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 156
+type$ -- 192
 warning$ -- 1
-while$ -- 64
+while$ -- 78
 width$ -- 0
-write$ -- 303
+write$ -- 374
 (There was 1 warning)

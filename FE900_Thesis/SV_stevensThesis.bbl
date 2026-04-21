@@ -14,6 +14,11 @@ Avellaneda, M. and Stoikov, S. (2008).
 \newblock High-frequency trading in a limit order book.
 \newblock {\em Quantitative Finance}, 8(3):217--224.
 
+\bibitem[Briere, 2025]{Briere2025}
+Briere, J. (2025).
+\newblock Advances in meta-reinforcement learning for financial markets.
+\newblock Preprint.
+
 \bibitem[Easley et~al., 2012]{Easley2012}
 Easley, D., de~Prado, M. M.~L., and O'Hara, M. (2012).
 \newblock The volume-synchronized probability of informed trading (vpin).
@@ -28,9 +33,19 @@ Gupta, D. et~al. (2024).
 \newblock Fpga for high-frequency trading: Reducing latency in financial systems.
 \newblock {\em IEEE Xplore}.
 
+\bibitem[Ho and Stoll, 1981]{Ho1981}
+Ho, T. and Stoll, H.~R. (1981).
+\newblock Optimal dealer pricing under transactions and return uncertainty.
+\newblock {\em Journal of Financial Economics}, 9(1):47--73.
+
 \bibitem[Jiang et~al., 2025]{Jiang2025}
 Jiang, B. et~al. (2025).
 \newblock Resolving latency and inventory risk in market making with reinforcement learning.
+
+\bibitem[Joshua et~al., 2025]{Joshua2025}
+Joshua, C., Safaei, L.~K., Bargh, H.~G., Beshel, J.~A., and Motahar, S. (2025).
+\newblock Architecting low-latency interconnects for high-frequency trading using fpgas and rdma.
+\newblock {\em ResearchGate}.
 
 \bibitem[Kumar et~al., 2023]{Kumar2023}
 Kumar, S. et~al. (2023).
@@ -51,6 +66,10 @@ Lee, S. et~al. (2023).
 Li, H. et~al. (2025).
 \newblock A multi-objective reinforcement learning approach with pareto fronts.
 \newblock {\em Expert Systems with Applications}, 262:125484.
+
+\bibitem[Litz et~al., nd]{LitzND}
+Litz, H. et~al. (n.d.).
+\newblock High frequency trading acceleration using fpgas.
 
 \bibitem[Lockwood and Gupte, 2012]{Lockwood2012}
 Lockwood, J.~W. and Gupte, N. (2012).
@@ -93,6 +112,11 @@ Ragel, N. (2025).
 Review, G. B. .~F. (2025).
 \newblock Why more trading firms are moving to fpga for low-latency gains.
 
+\bibitem[Schneider, 2023]{Schneider2023}
+Schneider, M. (2023).
+\newblock Low-latency neural networks on fpga.
+\newblock Technical Report.
+
 \bibitem[Semiconductor, 2025]{Lattice2025}
 Semiconductor, L. (2025).
 \newblock Contextual ai: Enhancing edge intelligence with fpga technology.
@@ -119,5 +143,10 @@ Systems, F. (2024).
 Vakkilainen, A. (2023).
 \newblock Further optimizing market making with deep reinforcement learning.
 \newblock Master's thesis, Aalto University.
+
+\bibitem[Zhang et~al., 2024]{Zhang2024}
+Zhang, Y. et~al. (2024).
+\newblock Hardware-efficient ai for edge computing.
+\newblock IEEE Conference.
 
 \end{thebibliography}

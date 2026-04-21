@@ -3,7 +3,7 @@
 
 The design of an ultra-high-frequency trading (ultra-HFT) system is predicated on the dual mandates of \textbf{nanosecond-level determinism} and \textbf{minimal jitter}. Unlike software-based architectures that rely on general-purpose CPUs with non-deterministic branch prediction and cache hierarchies, an FPGA-based matching engine is architected as a hardware-level pipeline. This chapter details the high-level architecture of the proposed system, decomposing it into a series of specialized, heterogeneous logic modules implemented in Register-Transfer Level (RTL). Figure \ref{fig:matching_engine_arch} illustrates the unidirectional, data-path-optimized flow from network ingress to trade execution.
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \caption{Data Flow Architecture of the FPGA Matching Engine}
     \label{fig:matching_engine_arch}

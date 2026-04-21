@@ -647,6 +647,16 @@ INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstlang
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstmisc.sty
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstmisc.sty
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstmisc.sty
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/tfm/public/latex-fonts/lasy10.tfm
 INPUT ./SV_stevensThesis.bbl
 INPUT ./SV_stevensThesis.bbl
 INPUT SV_stevensThesis.bbl
@@ -696,6 +706,7 @@ INPUT /Users/shreejitverma/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
+INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb
 INPUT /Users/shreejitverma/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb

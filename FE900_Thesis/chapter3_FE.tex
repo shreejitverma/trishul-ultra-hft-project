@@ -41,12 +41,12 @@ Variables in the Hawkes intensity function:
     \item $\lambda_0$: The \textbf{base intensity} or background rate, representing the exogenous arrival of information.
     \item $\alpha$: The \textbf{jump size} or self-excitation factor, which determines the immediate increase in intensity upon an event arrival at time $t_i$.
     \item $\beta$: The \textbf{decay rate}, which controls how quickly the intensity returns to the base level $\lambda_0$.
-    \item $t_i$: The historical arrival times of all previous events.
+    \item $t_i$: The captured arrival times of all previous events.
 \end{itemize}
 The ratio $\frac{\alpha}{\beta}$ represents the **branching ratio** (the expected number of child events triggered by a parent event). Our implementation ensures $\frac{\alpha}{\beta} < 1$ to maintain process stationarity. This model provides a high-fidelity representation of "order flow toxicity" and liquidity bursts common in ultra-HFT environments.
 
 \section{The Avellaneda and Stoikov Optimal Control Framework}
-The core financial engineering problem for a market maker is to determine the optimal bid-ask offsets that maximize terminal utility while managing inventory risk. We build upon the seminal stochastic control framework developed by \citet{Avellaneda2008}, which extends the Ho and Stoll model to the high-frequency domain.
+The core financial engineering problem for a market maker is to determine the optimal bid-ask offsets that maximize terminal utility while managing inventory risk. We build upon the seminal stochastic control framework developed by \citet{Avellaneda2008}, which extends the \citet{Ho1981} model to the high-frequency domain.
 
 \subsection{Asset Price and Wealth Dynamics}
 We model the mid-price $S_t$ of the asset as a \textbf{Wiener Process} (Arithmetic Brownian Motion):

@@ -102,4 +102,12 @@ To achieve sub-15ns inference, we apply \textbf{Iterative Magnitude Pruning (IMP
 where $M$ is a binary mask. This sparsity allows the FPGA to skip redundant multiplications, drastically reducing power consumption and latency.
 
 \section{Conclusion}
-This chapter has detailed the transformation of the market-making task into a robust DRL framework. By synthesizing stochastic control theory with the PPO algorithm and hardware-centric QAT/pruning, we create a policy that is both microstructurally aware and execution-ready. The following chapters delineate the hardware-software architecture used to operationalize this policy at wire speed.
+The formulation and optimization of the reinforcement learning strategy presented in this chapter represent the "intelligence layer" of the proposed ultra-HFT system. By transitioning from the static assumptions of classical stochastic control to the dynamic, data-driven paradigm of Proximal Policy Optimization (PPO), we have developed an agent capable of navigating the complexities of modern, non-stationary market microstructure.
+
+The significance of this chapter lies in the dual optimization of the policy:
+\begin{itemize}
+    \item \textbf{Algorithmic Robustness:} The MDP formulation ensures that the agent is aware of critical microstructural signals, such as flow toxicity (VPIN) and order book imbalance, allowing it to adapt its quoting behavior to different volatility regimes.
+    \item \textbf{Hardware Compatibility:} Through the application of Quantization-Aware Training (QAT) and Iterative Magnitude Pruning, the deep learning model is transformed from a computationally expensive software artifact into a lean, fixed-point hardware core. This process ensures that the "intelligence" of the RL agent does not come at the cost of unacceptable latency.
+\end{itemize}
+
+In conclusion, this methodology provides a scalable framework for bridging the gap between sophisticated financial engineering and deterministic hardware execution. The resulting policy is not only microstructurally aware but is also mathematically prepared for the nanosecond-level constraints of the FPGA fabric. The subsequent chapters will detail the architectural implementation and the physical hardware-software interface required to operationalize these learned policies at wire speed.

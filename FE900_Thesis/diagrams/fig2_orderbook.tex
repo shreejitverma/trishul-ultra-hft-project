@@ -2,29 +2,66 @@
 \resizebox{0.95\textheight}{!}{
 \begin{tikzpicture}[node distance=2.5cm, auto, >=latex', thick]
 \tikzset{
-    process/.style={rectangle, draw, fill=green!10, text width=8em, text centered, rounded corners, minimum height=4em},
-    memory/.style={rectangle, draw, fill=yellow!10, text width=8em, text centered, minimum height=4em},
-    stream/.style={draw, -latex', line width=1.5pt}
+    % Nodes
+    process/.style={rectangle, draw=green!50!black, fill=white, text width=12em, text centered, rounded corners, minimum height=5em, line width=1.5pt, inner sep=0.3cm},
+    memory/.style={rectangle, draw=orange!70!black, fill=white, text width=12em, text centered, rounded corners, minimum height=5em, line width=1.5pt, inner sep=0.3cm},
+    % Containers
+    cluster_style/.style={draw=blue!70!black, ultra thick, dashed, inner sep=1.8cm},
+    replica_style/.style={draw=black!60, thick, dotted, inner sep=1.0cm},
+    % Lines
+    stream/.style={draw, -latex', line width=2.2pt},
+    sync/.style={draw, <->, line width=2.8pt, dashed, red!80!black}
 }
 
-\node [process] (feed) {Normalized \\ Tick Stream};
-\node [process, right=of feed] (logic) {Book Update \\ Logic};
-\node [memory, above=of logic, yshift=0.5cm] (map) {Order ID Map \\ (HashMap)};
-\node [memory, below=of logic, yshift=-0.5cm] (levels) {Price Levels \\ (Flat Array)};
+% 1. Input Feed
+\node [process, fill=green!5] (feed) at (0,0) {\textbf{Normalized} \\ \textbf{Tick Stream}};
 
-\node [process, right=of logic] (diff) {Diff Generator};
-\node [process, right=of diff] (pub) {Event \\ Publisher};
+% 2. Replica A (Top)
+\node [process] (logicA) at (12, 7) {\textbf{Book Update} \\ \textbf{Logic (A)}};
+\node [memory] (mapA) at (12, 13) {Order ID Map (A)};
+\node [memory] (levelsA) at (12, 1) {Price Levels (A)};
 
-\node [process, above right=of pub, yshift=-0.5cm] (strat) {Strategy \\ Engine};
-\node [process, below right=of pub, yshift=0.5cm] (risk) {Risk \\ Monitor};
+\path [draw, <->, line width=1.5pt] (logicA.north) -- (mapA.south);
+\path [draw, <->, line width=1.5pt] (logicA.south) -- (levelsA.north);
 
-\path [stream] (feed) -- (logic);
-\path [stream, <->] (logic) -- (map);
-\path [stream, <->] (logic) -- (levels);
-\path [stream] (logic) -- node[above, midway] {Delta} (diff);
-\path [stream] (diff) -- (pub);
-\path [stream] (pub) -- (strat);
-\path [stream] (pub) -- (risk);
+\node [replica_style, fit=(mapA) (logicA) (levelsA), label={[text=black!80, font=\huge\bfseries]above:Replica A}] (repA) {};
+
+% 3. Replica B (Bottom)
+\node [process] (logicB) at (12, -7) {\textbf{Book Update} \\ \textbf{Logic (B)}};
+\node [memory] (mapB) at (12, -1) {Order ID Map (B)};
+\node [memory] (levelsB) at (12, -13) {Price Levels (B)};
+
+\path [draw, <->, line width=1.5pt] (logicB.north) -- (mapB.south);
+\path [draw, <->, line width=1.5pt] (logicB.south) -- (levelsB.north);
+
+\node [replica_style, fit=(mapB) (logicB) (levelsB), label={[text=black!80, font=\huge\bfseries]below:Replica B}] (repB) {};
+
+% 4. Cluster Container
+\node [cluster_style, fit=(repA) (repB), label={[text=blue!70!black, font=\huge\bfseries]above:Order Book Cluster}] (cluster) {};
+
+% 5. Feed Connections
+\path [stream] (feed.east) -- ++(3cm, 0) |- (logicA.west);
+\path [stream] (feed.east) -- ++(3cm, 0) |- (logicB.west);
+
+% 6. Replication Sync Link - Explicitly routed far right (other side)
+\path [sync] (repA.east) -- ++(4cm, 0) -- node[right, midway, scale=1.8, text=red!80!black, font=\bfseries, align=center, xshift=1cm] {High-Speed \\ In-Memory \\ Replication} ++(0, -14cm) -- (repB.east);
+
+% 7. Downstream (Positioned further right to avoid the sync line)
+\node [process] (diff) at (36, 0) {\textbf{Diff Generator}};
+\node [process] (pub) at (44, 0) {\textbf{Event Publisher}};
+
+\node [process] (strat) at (54, 5) {Strategy Engine};
+\node [process] (risk) at (54, -5) {Risk Monitor};
+
+% 8. Output path (Routing around the sync line)
+\path [stream] (logicA.east) -- ++(5.5cm, 0) |- (diff.west);
+\path [stream] (logicB.east) -- ++(5.5cm, 0) |- (diff.west);
+
+\path [stream] (diff.east) -- (pub.west);
+
+% Fan out from Publisher
+\path [stream] (pub.east) -- ++(2.5cm, 0) |- (strat.west);
+\path [stream] (pub.east) -- ++(2.5cm, 0) |- (risk.west);
 
 \end{tikzpicture}
 }

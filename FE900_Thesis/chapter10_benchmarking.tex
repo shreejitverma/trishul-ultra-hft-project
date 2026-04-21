@@ -24,7 +24,7 @@ Variables in the latency model:
 
 Figure \ref{fig:latency_comparison_bench_final} illustrates the contrast between the Project's deterministic profile and a traditional software-centric stack.
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \input{diagrams/fig15_latency_comp.tex}
     \caption{Comparative Tail Latency: Project (ULL) vs. Traditional Software Baselines.}
@@ -50,7 +50,7 @@ In software architectures, as $\lambda$ increases, the CPU's ability to process 
 
 As shown in Figure \ref{fig:throughput_bench_ch8}, the proposed architecture demonstrates linear scaling. While the traditional system experiences exponential latency degradation as message rates exceed 1 million per second, the Project maintains constant latency up to the physical limits of the 10GbE MAC interface. This is achieved through the non-blocking, pipelined nature of the hardware logic, which ensures that every clock cycle processes exactly one data word.
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \input{diagrams/fig16_throughput_bench.tex}
     \caption{Latency Stability as a function of Throughput.}
@@ -67,7 +67,7 @@ where $S_{t+\tau}$ is the "fair value" of the asset at time $t+\tau$ and $P_{exe
 
 Figure \ref{fig:adverse_selection_pnl} depicts system performance during a simulated liquidity shock, such as a flash crash. The \textbf{Traditional System} suffers from severe PnL erosion, as its 1ms latency prevents it from reacting to the price discontinuity, resulting in "toxic fills" at obsolete prices. The \textbf{Static Hardware} system, while fast, fails to adjust its spread to the rising volatility, which also results in capital loss. The \textbf{Project Strategy} utilizes the synthesized RL core to detect the microstructural imbalance and widen its quotations proactively. This adaptive response successfully preserves capital and allows the system to capture the subsequent mean-reversion alpha.
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \input{diagrams/fig17_spread_efficacy.tex}
     \caption{PnL Comparison during a Jump-Diffusion (Flash Crash) event.}
@@ -78,7 +78,7 @@ Figure \ref{fig:adverse_selection_pnl} depicts system performance during a simul
 \section{Holistic Performance and Capital Utilization}
 To synthesize the performance across both stable and highly volatile regimes, we present a holistic comparison of the cumulative profit and loss (PnL).
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \input{diagrams/fig14_comparative_pnl.tex}
     \caption{Cumulative PnL across multiple volatility regimes, demonstrating the Project's superior capital preservation and risk-adjusted alpha.}
@@ -94,7 +94,7 @@ We further quantify the efficacy through the \textbf{Capital Utilization Rate} (
 \end{equation}
 A higher $\mathcal{U}$ indicates that the system is more confident in its risk management, allowing it to deploy more capital without increasing the probability of ruin. This relationship is further explored in Figure \ref{fig:drawdown_comparison_bench}.
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \input{diagrams/fig18_drawdown_comp.tex}
     \caption{Maximum Drawdown analysis. The adaptive ULL system demonstrates superior capital preservation.}

@@ -10,38 +10,7 @@ The FPGA implementation is responsible for the performance-critical path, execut
 \subsection{Network Ingress and Parsing}
 \textbf{Parser (\texttt{rx\_parser}):} This module acts as the entry point for market data. \datamethodology\ It uses a Finite State Machine (FSM) to strip headers in a single pass. By validating checksums and filtering ports at line-rate, it ensures that only relevant ITCH messages reach the internal logic.
 
-\subsection{Market Data Handling}
-\textbf{Order Book (\texttt{book2}):} This module maintains the instantaneous state of the best bid and offer (BBO). It performs $O(1)$ updates by mapping price levels directly to internal registers, allowing the strategy to react to the latest market state without the overhead of memory lookups.
-
-\subsection{Adaptive Strategy Logic}
-\textbf{Strategy Core (\texttt{strat\_decide}):} This is the brain of the system. It implements the hardware-synthesized reinforcement learning policy. It computes features like Order Book Imbalance (OBI) and uses a pipelined systolic array to perform neural network inference in less than 15 nanoseconds.
-
-\subsection{Order Execution and Safety}
-\textbf{Risk Gate (\texttt{risk\_gate}):} A mandatory safety layer that checks every outgoing order against hard limits (Max Notional and Message Rate). It ensures that the probabilistic nature of the AI model does not lead to "fat-finger" errors or regulatory violations.
-
-\textbf{OUCH Encoder (\texttt{order\_encode}):} Translates the internal trade signal into a binary NASDAQ OUCH 5.0 packet. It handles field packing and Big-to-Little Endian conversion in hardware.
-
-\section{Core Software Modules (CPU Domain)}
-
-The software layer provides the management, training, and simulation environment necessary for the hybrid system.
-
-\subsection{Asynchronous Telemetry}
-\textbf{Async Logger:} To avoid blocking the high-frequency trading threads, logging is performed asynchronously. Diagnostic data is written to a lock-free ring buffer and consumed by a background thread for disk I/O.
-
-\subsection{Performance Optimization}
-\textbf{Vectorized Signal Engine:} Utilizes Intel AVX2 SIMD instructions to process market data in batches. \datamethodology
-
-\chapter{Source Code Listings}
-\label{appendix:code}
-
-This section contains the full Register-Transfer Level (RTL) and C++ source code for the components described above. All code is formatted to adhere to strict margin constraints and includes inline documentation.
-
-\section{Hardware Domain: FPGA RTL Implementation}
-
-\subsection{Minimal RX Parser (Verilog)}
-This module extracts payloads from raw 10GbE AXI-Stream words.
-
-\begin{lstlisting}[style=verilogstyle, caption={Minimal RX L2/L3/L4 parser for UDP market data}, label={lst:parser}]
+\begin{lstlisting}[style=verilogstyle, caption={Minimal RX L2/L3/L4 parser for UDP market data}, label={lst:parser_a}]
 module rx_parser #(
     parameter DATA_W = 64
 ) (
@@ -90,10 +59,10 @@ module rx_parser #(
 endmodule
 \end{lstlisting}
 
-\subsection{Level-1 Order Book (VHDL)}
-Maintains the Best Bid and Offer state using hardware registers.
+\subsection{Market Data Handling}
+\textbf{Order Book (\texttt{book2}):} This module maintains the instantaneous state of the best bid and offer (BBO). It performs $O(1)$ updates by mapping price levels directly to internal registers, allowing the strategy to react to the latest market state without the overhead of memory lookups.
 
-\begin{lstlisting}[style=vhdlstyle, caption={Two-level book update logic}, label={lst:book}]
+\begin{lstlisting}[style=vhdlstyle, caption={Two-level book update logic}, label={lst:book_a}]
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -127,10 +96,10 @@ begin
 end architecture;
 \end{lstlisting}
 
-\subsection{RL Strategy Inference Core (Verilog)}
-Hardware implementation of the neural network policy.
+\subsection{Adaptive Strategy Logic}
+\textbf{Strategy Core (\texttt{strat\_decide}):} This is the brain of the system. It implements the hardware-synthesized reinforcement learning policy. It computes features like Order Book Imbalance (OBI) and uses a pipelined systolic array to perform neural network inference in less than 15 nanoseconds.
 
-\begin{lstlisting}[style=verilogstyle, caption={Systolic array for AI policy inference}, label={lst:strategy}]
+\begin{lstlisting}[style=verilogstyle, caption={Systolic array for AI policy inference}, label={lst:strategy_a}]
 module strat_decide #(
     parameter W = 32, FEAT_DIM = 4
 ) (
@@ -158,10 +127,10 @@ module strat_decide #(
 endmodule
 \end{lstlisting}
 
-\subsection{Pre-Trade Risk Gate (Verilog)}
-Enforces hard safety constraints on order flow.
+\subsection{Order Execution and Safety}
+\textbf{Risk Gate (\texttt{risk\_gate}):} A mandatory safety layer that checks every outgoing order against hard limits (Max Notional and Message Rate). It ensures that the probabilistic nature of the AI model does not lead to "fat-finger" errors or regulatory violations.
 
-\begin{lstlisting}[style=verilogstyle, caption={Deterministic risk management module}, label={lst:risk}]
+\begin{lstlisting}[style=verilogstyle, caption={Deterministic risk management module}, label={lst:risk_a}]
 module risk_gate (
     input  wire clk, rst, enable,
     input  wire [63:0] notional_limit,
@@ -189,6 +158,103 @@ module risk_gate (
 endmodule
 \end{lstlisting}
 
+\textbf{OUCH Encoder (\texttt{order\_encode}):} Translates the internal trade signal into a binary NASDAQ OUCH 5.0 packet. It handles field packing and Big-to-Little Endian conversion in hardware.
+
+\begin{lstlisting}[style=verilogstyle, caption={Binary OUCH order encoder}, label={lst:encoder_a}]
+module order_encode #(
+    parameter DATA_W = 64
+) (
+    input wire clk, rst,
+    input wire in_valid, in_buy,
+    input wire [31:0] in_px, in_qty,
+    output reg [DATA_W-1:0] m_axis_tdata,
+    output reg m_axis_tvalid, m_axis_tlast,
+    input wire m_axis_tready
+);
+    localparam ST_IDLE = 1'b0, ST_SEND = 1'b1;
+    reg state;
+    always @(posedge clk) begin
+        if (rst) begin
+            state <= ST_IDLE; m_axis_tvalid <= 1'b0;
+        end else begin
+            m_axis_tvalid <= 1'b0; m_axis_tlast <= 1'b0;
+            case(state)
+                ST_IDLE: if (in_valid && m_axis_tready) begin
+                    m_axis_tdata <= { (in_buy ? 8'h42 : 8'h53), in_qty, 24'h0 }; 
+                    m_axis_tvalid <= 1'b1; state <= ST_SEND;
+                end
+                ST_SEND: if (m_axis_tready) begin
+                    m_axis_tdata <= { in_px, 32'hEEEE_EEEE };
+                    m_axis_tvalid <= 1'b1; m_axis_tlast <= 1'b1;
+                    state <= ST_IDLE;
+                end
+            endcase
+        end
+    end
+endmodule
+\end{lstlisting}
+
+\section{Core Software Modules (CPU Domain)}
+
+The software layer provides the management, training, and simulation environment necessary for the hybrid system.
+
+\subsection{Asynchronous Telemetry}
+\textbf{Async Logger:} To avoid blocking the high-frequency trading threads, logging is performed asynchronously. Diagnostic data is written to a lock-free ring buffer and consumed by a background thread for disk I/O.
+
+\begin{lstlisting}[style=cppstyle, caption={High-performance asynchronous logger interface}, label={lst:logger_a}]
+class AsyncLogger {
+public:
+    static AsyncLogger& instance() {
+        static AsyncLogger instance;
+        return instance;
+    }
+    void start(const std::string& filename, bool json_mode = false);
+    void log(LogLevel level, const char* fmt, ...);
+private:
+    SPSCQueue<LogEntry, 65536> queue_;
+    std::thread flush_thread_;
+};
+\end{lstlisting}
+
+\subsection{Performance Optimization}
+\textbf{Vectorized Signal Engine:} Utilizes Intel AVX2 SIMD instructions to process market data in batches. \datamethodology
+
+\begin{lstlisting}[style=cppstyle, caption={AVX2 Mid-price calculation}, label={lst:simd_a}]
+void calculate_mid_prices(const float* bids, const float* asks, 
+                          float* out, size_t n) {
+    for (size_t i = 0; i < n; i += 8) {
+        __m256 b = _mm256_load_ps(&bids[i]);
+        __m256 a = _mm256_load_ps(&asks[i]);
+        __m256 sum = _mm256_add_ps(b, a);
+        __m256 mid = _mm256_mul_ps(sum, _mm256_set1_ps(0.5f));
+        _mm256_store_ps(&out[i], mid);
+    }
+}
+\end{lstlisting}
+
+\chapter{Source Code Listings}
+\label{appendix:code}
+
+This section contains the full Register-Transfer Level (RTL) and C++ source code for the components described above. All code is formatted to adhere to strict margin constraints and includes inline documentation.
+
+\section{Hardware Domain: FPGA RTL Implementation}
+
+\subsection{Minimal RX Parser (Verilog)}
+This module extracts payloads from raw 10GbE AXI-Stream words.
+(See Listing~\ref{lst:parser_a} in Appendix A)
+
+\subsection{Level-1 Order Book (VHDL)}
+Maintains the Best Bid and Offer state using hardware registers.
+(See Listing~\ref{lst:book_a} in Appendix A)
+
+\subsection{RL Strategy Inference Core (Verilog)}
+Hardware implementation of the neural network policy.
+(See Listing~\ref{lst:strategy_a} in Appendix A)
+
+\subsection{Pre-Trade Risk Gate (Verilog)}
+Enforces hard safety constraints on order flow.
+(See Listing~\ref{lst:risk_a} in Appendix A)
+
 \section{Software Domain: C++ ULL Baseline Code}
 
 \subsection{Zero-Copy Multicast Receiver}
@@ -213,39 +279,18 @@ public:
 
 \subsection{SIMD Signal Engine (AVX2)}
 Optimized vectorized signal generation.
-
-\begin{lstlisting}[style=cppstyle, caption={Vectorized mid-price calculation}, label={lst:simd}]
-#include <immintrin.h>
-
-void calculate_mid_prices(const float* bids, const float* asks, 
-                          float* out, size_t n) {
-    for (size_t i = 0; i < n; i += 8) {
-        // Load 8 float values into 256-bit YMM registers
-        __m256 b = _mm256_load_ps(&bids[i]);
-        __m256 a = _mm256_load_ps(&asks[i]);
-        
-        // Parallel Addition: (bid + ask)
-        __m256 sum = _mm256_add_ps(b, a);
-        
-        // Parallel Division by 2.0
-        __m256 mid = _mm256_mul_ps(sum, _mm256_set1_ps(0.5f));
-        
-        // Store result back to memory
-        _mm256_store_ps(&out[i], mid);
-    }
-}
-\end{lstlisting}
+(See Listing~\ref{lst:simd_a} in Appendix A)
 
 \subsection{Ogata's Thinning Algorithm for Hawkes Processes (Python)}
 This script implements the simulation of self-exciting point processes used to generate 100 million trade events for stress testing.
 
-\begin{lstlisting}[style=cppstyle, caption={Simulation of a Hawkes process via Ogata's Thinning Algorithm}, label={lst:ogata}]
+\begin{lstlisting}[style=pythonstyle, caption={Simulation of a Hawkes process via Ogata's Thinning Algorithm}, label={lst:ogata}]
 import numpy as np
 
 def simulate_hawkes(lambda0, alpha, beta, T):
     """
     Simulates a Hawkes process using Ogata's Thinning algorithm.
-    lambda(t) = lambda0 + sum_{ti < t} alpha * exp(-beta * (t - ti))
+    $\lambda(t) = \lambda_0 + \sum_{t_i < t} \alpha \cdot \exp(-\beta \cdot (t - t_i))$
     """
     t = 0
     history = []
@@ -261,8 +306,8 @@ def simulate_hawkes(lambda0, alpha, beta, T):
         if t > T:
             break
 
-        # Calculate the actual intensity at the prospective time t
-        # lambda(t) = lambda0 + sum(alpha * exp(-beta * (t - ti)))
+        # Calculate the actual intensity at the prospective time $t$
+        # $\lambda(t) = \lambda_0 + \sum(\alpha \cdot \exp(-\beta \cdot (t - t_i)))$
         intensity_t = lambda0
         for ti in history:
             intensity_t += alpha * np.exp(-beta * (t - ti))
@@ -287,7 +332,7 @@ This section provides the implementation details for the wire-speed risk engine 
 \subsection{FPGA Risk Gate (Verilog)}
 The following RTL module implements Credit Limit Monitoring, Fat-Finger suppression, and Duplicate Detection in a single clock cycle.
 
-\begin{lstlisting}[style=cppstyle, caption={Wire-speed risk gate implementation}, label={lst:riskgate}]
+\begin{lstlisting}[style=verilogstyle, caption={Wire-speed risk gate implementation}, label={lst:riskgate}]
 // Module: risk_gate
 // Implements SEC Rule 15c3-5 Compliance in Hardware
 module risk_gate #(
@@ -483,7 +528,7 @@ double simulate_merton(double S, double mu, double sigma, double lambda,
 \subsection{Heston Stochastic Volatility (Python)}
 Implementation of the mean-reverting volatility process.
 
-\begin{lstlisting}[style=cppstyle, caption={Heston Model paths}, label={lst:heston}]
+\begin{lstlisting}[style=pythonstyle, caption={Heston Model paths}, label={lst:heston}]
 def heston_step(S, v, kappa, theta, sigma, rho, dt):
     dW1 = np.random.normal(0, np.sqrt(dt))
     dW2 = rho*dW1 + np.sqrt(1 - rho**2)*np.random.normal(0, np.sqrt(dt))
@@ -501,7 +546,7 @@ def heston_step(S, v, kappa, theta, sigma, rho, dt):
 \subsection{Proximal Policy Optimisation (PPO) Training Loop}
 This script (using Stable Baselines3) implements the training regime for the adaptive market-making agent.
 
-\begin{lstlisting}[style=cppstyle, caption={PPO training for quoting agent}, label={lst:ppo}]
+\begin{lstlisting}[style=pythonstyle, caption={PPO training for quoting agent}, label={lst:ppo}]
 def train_market_maker(total_timesteps=100000):
     env = MarketMakingEnv()
     model = PPO(
@@ -524,7 +569,7 @@ def train_market_maker(total_timesteps=100000):
 \subsection{Ensemble Performance Evaluation Script (Python)}
 This script manages the multi-run Monte-Carlo backtesting process and calculates the risk-adjusted metrics (Sharpe, Sortino, Calmar) used in Chapter 9.
 
-\begin{lstlisting}[style=cppstyle, caption={Ensemble performance evaluation and metric distribution}, label={lst:ensemble_eval}]
+\begin{lstlisting}[style=pythonstyle, caption={Ensemble performance evaluation and metric distribution}, label={lst:ensemble_eval}]
 import numpy as np
 import pandas as pd
 

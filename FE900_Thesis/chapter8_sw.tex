@@ -1,7 +1,7 @@
 \chapter{Software Control Plane Implementation}
 \label{ch:software_implementation}
 
-This chapter provides a rigorous examination of the design, architectural optimization, and low-level implementation of the ultra-low-latency software system. While the primary execution path is offloaded to the FPGA hardware fabric, which was detailed in Chapter \ref{ch:fpga_implementation}, a robust and deterministic software stack is indispensable. This software stack serves as the Hybrid Control Plane, managing the asynchronous tasks of reinforcement learning model training, historical backtesting, and real-time telemetry ingestion. The software architecture is fundamentally predicated on the principle of \textbf{mechanical sympathy}, which refers to the design of software that explicitly aligns with the underlying CPU microarchitecture to minimize cache misses, branch mispredictions, and kernel-induced non-determinism.
+This chapter provides a rigorous examination of the design, architectural optimization, and low-level implementation of the ultra-low-latency software system. While the primary execution path is offloaded to the FPGA hardware fabric, which was detailed in Chapter \ref{ch:fpga_implementation}, a robust and deterministic software stack is indispensable. This software stack serves as the Hybrid Control Plane, managing the asynchronous tasks of reinforcement learning model training, synthetic backtesting, and real-time telemetry ingestion. The software architecture is fundamentally predicated on the principle of \textbf{mechanical sympathy}, which refers to the design of software that explicitly aligns with the underlying CPU microarchitecture to minimize cache misses, branch mispredictions, and kernel-induced non-determinism.
 
 \section{Software System Architecture}
 
@@ -22,7 +22,7 @@ Key technical advantages of this SPSC implementation include:
     \item \textbf{Determinism:} Without locks, the worst-case execution time of a "push" or "pop" operation is constant and predictable, a non-negotiable requirement for high-frequency trading.
 \end{itemize}
 
-\begin{sidewaysfigure}[h!]
+\begin{sidewaysfigure}[p]
     \centering
     \caption{UML Component Diagram of the Software Engine}
     \label{fig:sw_class_diagram}
