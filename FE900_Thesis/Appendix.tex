@@ -128,7 +128,7 @@ endmodule
 \end{lstlisting}
 
 \subsection{Order Execution and Safety}
-\textbf{Risk Gate (\texttt{risk\_gate}):} A mandatory safety layer that checks every outgoing order against hard limits (Max Notional and Message Rate). It ensures that the probabilistic nature of the AI model does not lead to "fat-finger" errors or regulatory violations.
+\textbf{Risk Gate (\texttt{risk\_gate}):} A mandatory safety layer that checks every outgoing order against hard limits (Max Notional and Message Rate). It ensures that the probabilistic nature of the AI model does not lead to ``fat-finger'' errors or regulatory violations.
 
 \begin{lstlisting}[style=verilogstyle, caption={Deterministic risk management module}, label={lst:risk_a}]
 module risk_gate (

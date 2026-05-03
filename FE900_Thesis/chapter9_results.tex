@@ -43,7 +43,7 @@ Variables in the latency equation:
 \end{table}
 
 The results in Table \ref{tab:latency_breakdown} indicate a median T2T latency of \textbf{822 nanoseconds}. The \textbf{P99 latency}, which represents the tail risk of the distribution, is maintained at 1180 nanoseconds. 
- In high-frequency regimes, minimizing the gap between the median (P50) and the tail (P99) is essential to avoid the "Winner's Curse," where a system is fast on average but fails precisely during high-volatility events where the latency tail expands, as visualized in the probability density function in Figure \ref{fig:latency_hist}.
+ In high-frequency regimes, minimizing the gap between the median (P50) and the tail (P99) is essential to avoid the ``Winner's Curse,'' where a system is fast on average but fails precisely during high-volatility events where the latency tail expands, as visualized in the probability density function in Figure \ref{fig:latency_hist}.
 
 \begin{sidewaysfigure}[p]
     \centering
@@ -56,10 +56,10 @@ The results in Table \ref{tab:latency_breakdown} indicate a median T2T latency o
 \section{Throughput and Capacity Benchmarking}
 To assess the resilience of the system during periods of extreme market activity, such as news-driven volatility bursts, we measured the maximum message processing rate and identified the systemic saturation bounds across a \textbf{100 million event session}.
 
-The optimized architecture demonstrates linear scaling up to a threshold of \textbf{7.5 million messages per second}. As shown in Figure \ref{fig:throughput_comparison}, the system maintains a deterministic execution profile within this "Optimal Operating Zone." During the 100M event Hawkes simulation, the system achieved a sustained throughput of \textbf{1.21 million messages per second} while handling complex self-exciting bursts. However, beyond the 7.5M peak threshold, we observe the onset of non-linear performance degradation:
+The optimized architecture demonstrates linear scaling up to a threshold of \textbf{7.5 million messages per second}. As shown in Figure \ref{fig:throughput_comparison}, the system maintains a deterministic execution profile within this ``Optimal Operating Zone.'' During the 100M event Hawkes simulation, the system achieved a sustained throughput of \textbf{1.21 million messages per second} while handling complex self-exciting bursts. However, beyond the 7.5M peak threshold, we observe the onset of non-linear performance degradation:
 \begin{enumerate}
     \item \textbf{PCIe/DMA Backpressure:} As the event rate approaches the physical limits of the DMA descriptors, the FPGA logic must assert backpressure to prevent buffer overflows. This results in an asymptotic throughput limit of approximately **8.0 million messages per second**.
-    \item \textbf{Tail Latency Expansion:} While the median latency remains low, the P99 latency exhibits significant "spiking" beyond 8M events/sec due to the accumulation of packets in the hardware burst buffers.
+    \item \textbf{Tail Latency Expansion:} While the median latency remains low, the P99 latency exhibits significant ``spiking'' beyond 8M events/sec due to the accumulation of packets in the hardware burst buffers.
 \end{enumerate}
 Despite these physical limitations, the proposed architecture provides a **5.5x throughput advantage** over the standard software baseline, which saturates at merely 1.4 million events per second due to cache contention and kernel overhead.
 
@@ -91,8 +91,8 @@ The agent utilizes a \textbf{Proximal Policy Optimization (PPO)} actor-critic ar
 The core intelligence of the agent is manifested through its dynamic entry and exit logic, which adapts to changing volatility regimes:
 
 \begin{enumerate}
-    \item \textbf{Entry Strategy (Quote Placement):} The agent enters the market by continuously maintaining a two-sided quote. The "aggressiveness" of entry is conditioned on the \textbf{OBI} and \textbf{VPIN} signals. When OBI is neutral and VPIN is low, the agent enters at the inside spread (narrow $\psi_t$) to maximize fill probability. However, when the VPIN exceeds the learned threshold (signaling informed flow), the entry strategy pivots to a "defensive" mode, widening the spreads or pulling quotes entirely to avoid being picked off.
-    \item \textbf{Exit Strategy (Inventory Management):} The exit logic is primarily driven by the \textbf{Inventory Position ($q_t$)}. If the agent accumulates a significant long position ($q_t > 0$), the policy skews the quotes upward (Reservation Price adjustment). This effectively raises the exit price (ask) to capture more alpha while simultaneously making the entry price (bid) less attractive to prevent further accumulation. In "Extreme Stress" scenarios where inventory limits are breached, the strategy switches to an "emergency exit" mode, prioritizing liquidation over spread capture to prevent catastrophic drawdowns.
+    \item \textbf{Entry Strategy (Quote Placement):} The agent enters the market by continuously maintaining a two-sided quote. The ``aggressiveness'' of entry is conditioned on the \textbf{OBI} and \textbf{VPIN} signals. When OBI is neutral and VPIN is low, the agent enters at the inside spread (narrow $\psi_t$) to maximize fill probability. However, when the VPIN exceeds the learned threshold (signaling informed flow), the entry strategy pivots to a ``defensive'' mode, widening the spreads or pulling quotes entirely to avoid being picked off.
+    \item \textbf{Exit Strategy (Inventory Management):} The exit logic is primarily driven by the \textbf{Inventory Position ($q_t$)}. If the agent accumulates a significant long position ($q_t > 0$), the policy skews the quotes upward (Reservation Price adjustment). This effectively raises the exit price (ask) to capture more alpha while simultaneously making the entry price (bid) less attractive to prevent further accumulation. In ``Extreme Stress'' scenarios where inventory limits are breached, the strategy switches to an ``emergency exit'' mode, prioritizing liquidation over spread capture to prevent catastrophic drawdowns.
 \end{enumerate}
 
 By training across the wide spectrum of synthetic scenarios (Low Volatility to Extreme Stress), the RL strategy learns to optimize these entry/exit thresholds, ensuring that capital is only deployed when the probability of adverse selection is low.
@@ -127,7 +127,7 @@ To provide a meaningful assessment of the AI-integrated FPGA framework, we intro
         \mathcal{S} = \frac{E[R_p - R_f]}{\sigma_p}
     \end{equation}
     where $R_p$ is the portfolio return and $\sigma_p$ is the standard deviation of returns. A ratio of 1.85 indicates high efficiency in alpha capture.
-    \item \textbf{Sortino Ratio ($\mathcal{Z}$):} Improves upon Sharpe by only penalizing "downside" volatility ($\sigma_{down}$), which is critical for market makers who are exposed to one-way toxic flow.
+    \item \textbf{Sortino Ratio ($\mathcal{Z}$):} Improves upon Sharpe by only penalizing ``downside'' volatility ($\sigma_{down}$), which is critical for market makers who are exposed to one-way toxic flow.
     \begin{equation}
         \mathcal{Z} = \frac{E[R_p - R_f]}{\sigma_{down}}
     \end{equation}
@@ -139,7 +139,7 @@ To provide a meaningful assessment of the AI-integrated FPGA framework, we intro
     This metric highlights the system's ability to recover from flash-crash events.
 \end{itemize}
 
-The distribution of these metrics across the 50-run ensemble is visualized in Figure \ref{fig:metric_distributions}, demonstrating that the agent's performance is not a result of "lucky" stochastic paths but is a deterministic property of the learned policy.
+The distribution of these metrics across the 50-run ensemble is visualized in Figure \ref{fig:metric_distributions}, demonstrating that the agent's performance is not a result of ``lucky'' stochastic paths but is a deterministic property of the learned policy.
 
 \begin{sidewaysfigure}[p]
     \centering
@@ -165,7 +165,7 @@ The experimental results presented in this chapter provide a comprehensive valid
 
 Key takeaways from the analysis include:
 \begin{itemize}
-    \item \textbf{Latency Dominance:} The system achieves a median tick-to-trade latency of 822 nanoseconds, with a tightly controlled tail (P99 at 1180 ns). This sub-microsecond performance is critical for maintaining queue priority and minimizing the probability of being "picked off" by faster participants.
+    \item \textbf{Latency Dominance:} The system achieves a median tick-to-trade latency of 822 nanoseconds, with a tightly controlled tail (P99 at 1180 ns). This sub-microsecond performance is critical for maintaining queue priority and minimizing the probability of being ``picked off'' by faster participants.
     \item \textbf{High-Throughput Resilience:} By offloading core logic to the FPGA fabric, the architecture sustains a throughput of over 7.5 million messages per second. This represents a 5.5x improvement over optimized software baselines, ensuring systemic stability even during extreme market bursts or flash-crash events.
     \item \textbf{Adaptive Strategy Efficacy:} The reinforcement learning strategy, optimized via PPO, demonstrates superior risk-adjusted performance with a mean Sharpe ratio of 1.85 and a Sortino ratio of 2.10. The agent's ability to learn volatility-aware quoting offsets allows it to navigate toxic flow environments with a high degree of robustness.
     \item \textbf{Operational Determinism:} The jitter analysis proves that the system maintains a predictable performance profile under heavy telemetry load, with standard deviations in latency remaining below 500 ns.

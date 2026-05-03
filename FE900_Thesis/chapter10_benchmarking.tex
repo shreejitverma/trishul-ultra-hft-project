@@ -5,7 +5,7 @@
 This chapter provides a rigorous comparative evaluation between the proposed Hybrid HFT Control Plane and prevailing industrial execution paradigms. By isolating the critical performance vectors, which include determinism, scalability, and risk-adjusted alpha, we quantify the systemic advantages of synthesizing hardware-level execution with adaptive machine intelligence. The system is contrasted against two primary baselines:
 
 \begin{enumerate}
-    \item \textbf{Traditional Software Stack:} This baseline represents the standard high-performance trading architecture utilized by most quantitative firms. It consists of optimized C++ code running on general-purpose CPUs, utilizing **Kernel-Bypass (User-space networking)** and **Core Pinning** to minimize OS overhead. While highly flexible, it is subject to non-deterministic "jitter" caused by L3 cache contention, branch mispredictions, and unavoidable kernel interrupts.
+    \item \textbf{Traditional Software Stack:} This baseline represents the standard high-performance trading architecture utilized by most quantitative firms. It consists of optimized C++ code running on general-purpose CPUs, utilizing **Kernel-Bypass (User-space networking)** and **Core Pinning** to minimize OS overhead. While highly flexible, it is subject to non-deterministic ``jitter'' caused by L3 cache contention, branch mispredictions, and unavoidable kernel interrupts.
     \item \textbf{Static Hardware Strategy:} This baseline represents an FPGA-based execution engine that uses fixed-logic algorithms (e.g., a simple linear model or a constant-spread rule). It achieves the same nanosecond-level determinism as the proposed system but lacks the **adaptive intelligence** of reinforcement learning. It cannot adjust its quoting behavior in response to regime shifts or rising microstructural toxicity (High VPIN).
 \end{enumerate}
 
@@ -32,7 +32,7 @@ Figure \ref{fig:latency_comparison_bench_final} illustrates the contrast between
 \end{sidewaysfigure}
 \clearpage
 
-The traditional software system exhibits a "long-tail" distribution, where the P99 latency is orders of magnitude larger than the P50. These tail events, which are primarily caused by OS interrupts and CPU context switches, frequently occur during periods of high message bursts. This phenomenon is critical because these bursts often coincide with the periods when liquidity provision is most essential. For a market maker, this non-deterministic jitter results in "stale quotes," which are positions that remain at an obsolete price after the market has moved, making them vulnerable to informed participants. The proposed system maintains a tight 910ns P99, which effectively eliminates this systemic vulnerability.
+The traditional software system exhibits a ``long-tail'' distribution, where the P99 latency is orders of magnitude larger than the P50. These tail events, which are primarily caused by OS interrupts and CPU context switches, frequently occur during periods of high message bursts. This phenomenon is critical because these bursts often coincide with the periods when liquidity provision is most essential. For a market maker, this non-deterministic jitter results in ``stale quotes,'' which are positions that remain at an obsolete price after the market has moved, making them vulnerable to informed participants. The proposed system maintains a tight 910ns P99, which effectively eliminates this systemic vulnerability.
 
 \section{Throughput and Capacity Benchmarking}
 The failure of traditional software-based systems during periods of extreme volatility is often due to the inability of the handlers to maintain line-rate processing. This leads to queue saturation and packet loss, a phenomenon that can be explained through \textbf{Little's Law}:
@@ -63,9 +63,9 @@ The primary financial engineering objective of the system is the mitigation of \
 \begin{equation}
     \mathcal{C}_{as} = S_{t+\tau} - P_{exec}
 \end{equation}
-where $S_{t+\tau}$ is the "fair value" of the asset at time $t+\tau$ and $P_{exec}$ is the price at which the market maker was filled.
+where $S_{t+\tau}$ is the ``fair value'' of the asset at time $t+\tau$ and $P_{exec}$ is the price at which the market maker was filled.
 
-Figure \ref{fig:adverse_selection_pnl} depicts system performance during a simulated liquidity shock, such as a flash crash. The \textbf{Traditional System} suffers from severe PnL erosion, as its 1ms latency prevents it from reacting to the price discontinuity, resulting in "toxic fills" at obsolete prices. The \textbf{Static Hardware} system, while fast, fails to adjust its spread to the rising volatility, which also results in capital loss. The \textbf{Project Strategy} utilizes the synthesized RL core to detect the microstructural imbalance and widen its quotations proactively. This adaptive response successfully preserves capital and allows the system to capture the subsequent mean-reversion alpha.
+Figure \ref{fig:adverse_selection_pnl} depicts system performance during a simulated liquidity shock, such as a flash crash. The \textbf{Traditional System} suffers from severe PnL erosion, as its 1ms latency prevents it from reacting to the price discontinuity, resulting in ``toxic fills'' at obsolete prices. The \textbf{Static Hardware} system, while fast, fails to adjust its spread to the rising volatility, which also results in capital loss. The \textbf{Project Strategy} utilizes the synthesized RL core to detect the microstructural imbalance and widen its quotations proactively. This adaptive response successfully preserves capital and allows the system to capture the subsequent mean-reversion alpha.
 
 \begin{sidewaysfigure}[p]
     \centering
@@ -126,11 +126,11 @@ Table \ref{tab:final_comparison_bench} summarizes the corresponding quantitative
 The Project achieves a \textbf{92\% capital utilization rate}, indicating that its adaptive inventory management allows for larger position sizes with lower relative risk.
 
 \section{Systemic Limitations and Boundary Conditions}
-While the proposed hybrid architecture achieves nanosecond-level determinism under standard operational loads, it is not immune to the physical and informational boundaries of the underlying hardware substrate. This section delineates the specific "breaking points" of the system, where performance begins to degrade or becomes non-deterministic.
+While the proposed hybrid architecture achieves nanosecond-level determinism under standard operational loads, it is not immune to the physical and informational boundaries of the underlying hardware substrate. This section delineates the specific ``breaking points'' of the system, where performance begins to degrade or becomes non-deterministic.
 
 \subsection{The Small Packet Problem and PCIe Saturation}
-The most significant limitation occurs during extreme "market data bursts" characterized by a high volume of small packets. \datamethodology\ As shown in the updated Figure \ref{fig:throughput_bench_ch8}, the system maintains constant nanosecond latency for the first 75 million events. 
-However, as the burst intensity increases and the cumulative volume approaches 90 million events, we observe the onset of the **PCIe/DMA Saturation Bound**. The physical transaction-per-second (TPS) limit of the PCIe Gen4 x16 bus causes the FPGA's internal **Burst Buffers** to reach full capacity. This induces an aggressive "Slowdown Point" where Tick-to-Trade latency spikes from 860ns to over **400,000ns** (400 $\mu$s) due to hardware backpressure. This empirical result proves that while the system is ultra-low-latency, its determinism is bounded by the physical drain rate of the host interconnect.
+The most significant limitation occurs during extreme ``market data bursts'' characterized by a high volume of small packets. \datamethodology\ As shown in the updated Figure \ref{fig:throughput_bench_ch8}, the system maintains constant nanosecond latency for the first 75 million events. 
+However, as the burst intensity increases and the cumulative volume approaches 90 million events, we observe the onset of the **PCIe/DMA Saturation Bound**. The physical transaction-per-second (TPS) limit of the PCIe Gen4 x16 bus causes the FPGA's internal **Burst Buffers** to reach full capacity. This induces an aggressive ``Slowdown Point'' where Tick-to-Trade latency spikes from 860ns to over **400,000ns** (400 $\mu$s) due to hardware backpressure. This empirical result proves that while the system is ultra-low-latency, its determinism is bounded by the physical drain rate of the host interconnect.
 
 \subsection{Resource Constraints and Model Complexity}
 The deterministic nature of the RL inference core is dependent on the available **DSP48 slices** and **Block RAM (BRAM)** on the Kintex UltraScale+ FPGA. 
@@ -144,7 +144,7 @@ Currently, the system is optimized for a 3-layer neural network. Attempting to d
 \end{enumerate}
 
 \subsection{Cold-Start Jitter and Cache Warm-up}
-Although the software control plane utilizes CPU isolation, the system exhibits a "Cold-Start" effect. During the first few thousand ticks of a session, the CPU's branch predictor and the L1/L2 caches are not yet "warm," leading to transient P99 spikes. This limitation highlights the necessity of a pre-session "warm-up" period where synthetic data is streamed through the pipeline to ensure the hardware and software states are fully optimized before live execution begins.
+Although the software control plane utilizes CPU isolation, the system exhibits a ``Cold-Start'' effect. During the first few thousand ticks of a session, the CPU's branch predictor and the L1/L2 caches are not yet ``warm,'' leading to transient P99 spikes. This limitation highlights the necessity of a pre-session ``warm-up'' period where synthetic data is streamed through the pipeline to ensure the hardware and software states are fully optimized before live execution begins.
 
 \section{Conclusion}
 The empirical evidence confirms that the Hybrid HFT Control Plane provides a superior technological and financial foundation for high-frequency market making. By eliminating stochastic jitter through hardware execution and incorporating adaptive machine intelligence via reinforcement learning, the system achieves a level of performance and resilience that is unattainable by traditional architectural paradigms.

@@ -18,7 +18,7 @@ Variables and features in the state vector:
     \item $\rho_t$: The \textbf{Order Book Imbalance} at time $t$, representing the normalized volume difference between the best bid and ask ($L1$ imbalance).
     \item $\sigma_t$: The \textbf{rolling volatility estimate}, typically calculated over a sliding window of the last $N$ ticks to proxy current market risk.
     \item $q_t$: The \textbf{net inventory position} of the market maker, where $q_t \in [q_{min}, q_{max}]$.
-    \item $\psi_{t-1}$: The \textbf{previous spread} utilized by the agent, allowing the model to incorporate "quoting inertia" and avoid jitter.
+    \item $\psi_{t-1}$: The \textbf{previous spread} utilized by the agent, allowing the model to incorporate ``quoting inertia'' and avoid jitter.
     \item $\Delta S_t$: The \textbf{mid-price innovation}, defined as $S_t - S_{t-1}$, capturing short-term momentum.
     \item $\tau_t$: The \textbf{time-to-horizon} parameter, $T-t$, which informs the agent about the remaining duration of the trading session.
     \item $\text{vpin}_t$: A proxy for \textbf{Order Flow Toxicity}, calculated using volume-synchronized probability of informed trading metrics \citep{Easley2012}.
@@ -45,7 +45,7 @@ Variables in the reward function:
 \begin{itemize}
     \item $\Delta \text{PnL}_t$: The \textbf{mark-to-market (MtM) profit and loss} change between $t-1$ and $t$. It includes captured spread from fills and the valuation change of the existing inventory $q_{t-1}$.
     \item $\eta$: The \textbf{inventory risk aversion coefficient}.
-    \item $\phi(q_t)$: The \textbf{inventory penalty function}, often modeled as $\phi(q_t) = q_t^2$. This term penalizes the agent for holding large positions, forcing it to "lean" the book to neutralize risk.
+    \item $\phi(q_t)$: The \textbf{inventory penalty function}, often modeled as $\phi(q_t) = q_t^2$. This term penalizes the agent for holding large positions, forcing it to ``lean'' the book to neutralize risk.
     \item $\zeta$: The \textbf{transaction/execution cost coefficient}.
     \item $\mathcal{L}_{cost}(a_t)$: A penalty for \textbf{adverse selection} and quoting instability, discouraging the agent from placing orders that are immediately picked off by toxic flow.
 \end{itemize}
@@ -66,7 +66,7 @@ Terms in the PPO objective:
 \end{itemize}
 
 \subsection{Value Function Approximation and Advantage Estimation (GAE)}
-The "Critic" network approximates the \textbf{Value Function} $V(s_t)$, which estimates the expected cumulative discounted reward from state $s_t$. To reduce variance in the gradient estimates, we use \textbf{Generalized Advantage Estimation (GAE)}:
+The ``Critic'' network approximates the \textbf{Value Function} $V(s_t)$, which estimates the expected cumulative discounted reward from state $s_t$. To reduce variance in the gradient estimates, we use \textbf{Generalized Advantage Estimation (GAE)}:
 \begin{equation}
     \hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}
 \end{equation}
@@ -92,7 +92,7 @@ Variables in quantization:
     \item $z$: The \textbf{zero-point offset}.
     \item $q_{min}, q_{max}$: The limits of the target integer range (e.g., $-128$ to $127$ for \text{INT8}).
 \end{itemize}
-By incorporating this "straight-through estimator" during backpropagation, the model learns weights that are inherently robust to the precision limits of the hardware.
+By incorporating this ``straight-through estimator'' during backpropagation, the model learns weights that are inherently robust to the precision limits of the hardware.
 
 \subsection{Weight Pruning and Sparsity}
 To achieve sub-15ns inference, we apply \textbf{Iterative Magnitude Pruning (IMP)}. We remove the weights with the smallest absolute values, inducing \textbf{structured sparsity} in the network layers:
@@ -102,12 +102,12 @@ To achieve sub-15ns inference, we apply \textbf{Iterative Magnitude Pruning (IMP
 where $M$ is a binary mask. This sparsity allows the FPGA to skip redundant multiplications, drastically reducing power consumption and latency.
 
 \section{Conclusion}
-The formulation and optimization of the reinforcement learning strategy presented in this chapter represent the "intelligence layer" of the proposed ultra-HFT system. By transitioning from the static assumptions of classical stochastic control to the dynamic, data-driven paradigm of Proximal Policy Optimization (PPO), we have developed an agent capable of navigating the complexities of modern, non-stationary market microstructure.
+The formulation and optimization of the reinforcement learning strategy presented in this chapter represent the ``intelligence layer'' of the proposed ultra-HFT system. By transitioning from the static assumptions of classical stochastic control to the dynamic, data-driven paradigm of Proximal Policy Optimization (PPO), we have developed an agent capable of navigating the complexities of modern, non-stationary market microstructure.
 
 The significance of this chapter lies in the dual optimization of the policy:
 \begin{itemize}
     \item \textbf{Algorithmic Robustness:} The MDP formulation ensures that the agent is aware of critical microstructural signals, such as flow toxicity (VPIN) and order book imbalance, allowing it to adapt its quoting behavior to different volatility regimes.
-    \item \textbf{Hardware Compatibility:} Through the application of Quantization-Aware Training (QAT) and Iterative Magnitude Pruning, the deep learning model is transformed from a computationally expensive software artifact into a lean, fixed-point hardware core. This process ensures that the "intelligence" of the RL agent does not come at the cost of unacceptable latency.
+    \item \textbf{Hardware Compatibility:} Through the application of Quantization-Aware Training (QAT) and Iterative Magnitude Pruning, the deep learning model is transformed from a computationally expensive software artifact into a lean, fixed-point hardware core. This process ensures that the ``intelligence'' of the RL agent does not come at the cost of unacceptable latency.
 \end{itemize}
 
 In conclusion, this methodology provides a scalable framework for bridging the gap between sophisticated financial engineering and deterministic hardware execution. The resulting policy is not only microstructurally aware but is also mathematically prepared for the nanosecond-level constraints of the FPGA fabric. The subsequent chapters will detail the architectural implementation and the physical hardware-software interface required to operationalize these learned policies at wire speed.

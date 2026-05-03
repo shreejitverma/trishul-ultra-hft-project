@@ -23,7 +23,7 @@ Execution at major electronic venues (e.g., NASDAQ, NYSE) is governed by \textbf
     \item \textbf{Price Condition:} There exists an aggressive market order at price $p'$ such that $p' \geq p$ (for sell orders) or $p' \leq p$ (for buy orders).
     \item \textbf{Time Priority (Queue Position):} No other order $O'$ exists in $L_t$ with price $p$ and arrival time $\tau' < \tau$.
 \end{enumerate}
-This rule underscores the necessity of the ultra-low-latency execution implemented in this research. \textit{Queue position} is a primary determinant of fill probability; therefore, any delay in quoting response (the "tick-to-trade" latency) significantly increases the risk of \textbf{adverse selection} and missed execution alpha. If a market maker reacts too slowly to a mid-price move, they remain at the top of the queue at an "obsolete" price, making them a target for informed traders.
+This rule underscores the necessity of the ultra-low-latency execution implemented in this research. \textit{Queue position} is a primary determinant of fill probability; therefore, any delay in quoting response (the ``tick-to-trade'' latency) significantly increases the risk of \textbf{adverse selection} and missed execution alpha. If a market maker reacts too slowly to a mid-price move, they remain at the top of the queue at an ``obsolete'' price, making them a target for informed traders.
 
 \subsection{Point Process Representation of the LOB}
 To model the stochastic evolution of the LOB, we represent the arrival of events as a \textbf{Point Process}. The cumulative number of orders of type $k$ arriving up to time $t$ is denoted by $N_t^k$. The intensity of these arrivals, $\lambda_t^k$, is defined as the conditional probability of an event occurring in an infinitesimal interval $dt$:
@@ -32,7 +32,7 @@ To model the stochastic evolution of the LOB, we represent the arrival of events
 \end{equation}
 where $\mathcal{F}_t$ is the filtration representing the history of the LOB up to time $t$. 
 
-In this research, we move beyond the assumption of constant Poisson intensity and implement a \textbf{Self-Exciting Hawkes Process}. In high-frequency regimes, the arrival of one order increases the probability of subsequent arrivals, capturing the "clustering" behavior of market participants. The instantaneous intensity $\lambda(t)$ is modeled as:
+In this research, we move beyond the assumption of constant Poisson intensity and implement a \textbf{Self-Exciting Hawkes Process}. In high-frequency regimes, the arrival of one order increases the probability of subsequent arrivals, capturing the ``clustering'' behavior of market participants. The instantaneous intensity $\lambda(t)$ is modeled as:
 \begin{equation}
     \lambda(t) = \lambda_0 + \sum_{t_i < t} \alpha e^{-\beta(t - t_i)}
 \end{equation}
@@ -43,7 +43,7 @@ Variables in the Hawkes intensity function:
     \item $\beta$: The \textbf{decay rate}, which controls how quickly the intensity returns to the base level $\lambda_0$.
     \item $t_i$: The captured arrival times of all previous events.
 \end{itemize}
-The ratio $\frac{\alpha}{\beta}$ represents the **branching ratio** (the expected number of child events triggered by a parent event). Our implementation ensures $\frac{\alpha}{\beta} < 1$ to maintain process stationarity. This model provides a high-fidelity representation of "order flow toxicity" and liquidity bursts common in ultra-HFT environments.
+The ratio $\frac{\alpha}{\beta}$ represents the **branching ratio** (the expected number of child events triggered by a parent event). Our implementation ensures $\frac{\alpha}{\beta} < 1$ to maintain process stationarity. This model provides a high-fidelity representation of ``order flow toxicity'' and liquidity bursts common in ultra-HFT environments.
 
 \section{The Avellaneda and Stoikov Optimal Control Framework}
 The core financial engineering problem for a market maker is to determine the optimal bid-ask offsets that maximize terminal utility while managing inventory risk. We build upon the seminal stochastic control framework developed by \citet{Avellaneda2008}, which extends the \citet{Ho1981} model to the high-frequency domain.
@@ -105,11 +105,11 @@ The HJB equation components:
     \begin{equation}
         \lambda(\delta) = A e^{-k\delta}
     \end{equation}
-    where $A$ is the arrival rate of market orders and $k$ is the "decay" constant related to the density of the LOB. High $k$ implies that moving away from the mid-price drastically reduces fill probability.
+    where $A$ is the arrival rate of market orders and $k$ is the ``decay'' constant related to the density of the LOB. High $k$ implies that moving away from the mid-price drastically reduces fill probability.
 \end{itemize}
 
 \subsection{The Reservation Price and Optimal Offsets}
-The \textbf{Reservation Price} $r(s, q, t)$ is a fundamental concept in this framework. It represents the "indifference price" at which the market maker is neutral toward their current inventory. If the market maker has a long position ($q > 0$), their reservation price will be \textit{lower} than the mid-price to reflect the risk of a price drop.
+The \textbf{Reservation Price} $r(s, q, t)$ is a fundamental concept in this framework. It represents the ``indifference price'' at which the market maker is neutral toward their current inventory. If the market maker has a long position ($q > 0$), their reservation price will be \textit{lower} than the mid-price to reflect the risk of a price drop.
 \begin{equation}
     r(s, q, t) = S_t - q \gamma \sigma^2 (T - t)
 \end{equation}
@@ -133,7 +133,7 @@ This derivation reveals the fundamental mechanics of market making:
 \end{enumerate}
 
 \section{Microstructural Signals and Adverse Selection}
-Classical market-making models, such as the Avellaneda and Stoikov framework, assume that order arrivals follow an exogenous Poisson process that is independent of the current state of the Limit Order Book (LOB). However, in modern high-frequency environments, the probability of an order fill and the subsequent price move are highly contingent on \textbf{microstructural signals}. Ignoring these signals leads to \textbf{adverse selection}, where the market maker provides liquidity to "informed" traders and suffers losses as the mid-price moves against their position.
+Classical market-making models, such as the Avellaneda and Stoikov framework, assume that order arrivals follow an exogenous Poisson process that is independent of the current state of the Limit Order Book (LOB). However, in modern high-frequency environments, the probability of an order fill and the subsequent price move are highly contingent on \textbf{microstructural signals}. Ignoring these signals leads to \textbf{adverse selection}, where the market maker provides liquidity to ``informed'' traders and suffers losses as the mid-price moves against their position.
 
 \subsection{Order Book Imbalance (OBI)}
 The Order Book Imbalance $\rho_t$ is a primary high-frequency signal used in this research to proxy \textbf{information asymmetry} and predict short-term price innovations. It measures the relative supply and demand at the best bid and ask levels.
@@ -149,27 +149,27 @@ Variables in the OBI equation:
 
 The interpretation of $\rho_t$ is as follows:
 \begin{enumerate}
-    \item $\rho_t \rightarrow 1$: Indicates a significant surplus of buy interest relative to sell interest. This "buy pressure" often precedes an upward movement in the mid-price as aggressive market orders consume the remaining ask liquidity.
-    \item $\rho_t \rightarrow -1$: Indicates a surplus of sell interest ("sell pressure"), typically preceding a downward mid-price move.
+    \item $\rho_t \rightarrow 1$: Indicates a significant surplus of buy interest relative to sell interest. This ``buy pressure'' often precedes an upward movement in the mid-price as aggressive market orders consume the remaining ask liquidity.
+    \item $\rho_t \rightarrow -1$: Indicates a surplus of sell interest (``sell pressure''), typically preceding a downward mid-price move.
     \item $\rho_t \approx 0$: Indicates a balanced book with no clear directional bias.
 \end{enumerate}
-In our adaptive system, $\rho_t$ is used to adjust the reservation price $r$ beyond the inventory-based skew. If $\rho_t > 0.8$, the system anticipates a price increase and shifts the reservation price \textit{upward}, even if inventory is balanced, to avoid being "picked off" by aggressive buyers.
+In our adaptive system, $\rho_t$ is used to adjust the reservation price $r$ beyond the inventory-based skew. If $\rho_t > 0.8$, the system anticipates a price increase and shifts the reservation price \textit{upward}, even if inventory is balanced, to avoid being ``picked off'' by aggressive buyers.
 
 \subsection{Volume Toxicity and VPIN}
-To quantify the "toxicity" of the incoming order flow, we incorporate concepts from the \textbf{Volume-Synchronized Probability of Informed Trading (VPIN)} framework \citep{Easley2012}. Flow toxicity occurs when market orders are consistently lopsided, suggesting that traders possess private information or superior predictive models.
+To quantify the ``toxicity'' of the incoming order flow, we incorporate concepts from the \textbf{Volume-Synchronized Probability of Informed Trading (VPIN)} framework \citep{Easley2012}. Flow toxicity occurs when market orders are consistently lopsided, suggesting that traders possess private information or superior predictive models.
 \begin{equation}
     \text{Toxicity}_t \approx \frac{|E[V_t^b] - E[V_t^a]|}{V_{total}}
 \end{equation}
 where $E[V]$ denotes the expected volume of aggressive orders over a fixed time window. A high toxicity value signals that the market maker's limit orders are likely being filled by informed participants, increasing the probability of \textbf{post-fill price drift}.
 
-\subsection{Adverse Selection and the "Winner's Curse"}
-Adverse selection in market making is often referred to as the \textbf{Winner's Curse}. The market maker "wins" the trade (gets a fill) precisely when it is least advantageous to do so. Formally, if a market maker is filled on a bid at $S_t - \delta^b$, the expected profit is:
+\subsection{Adverse Selection and the ``Winner's Curse''}
+Adverse selection in market making is often referred to as the \textbf{Winner's Curse}. The market maker ``wins'' the trade (gets a fill) precisely when it is least advantageous to do so. Formally, if a market maker is filled on a bid at $S_t - \delta^b$, the expected profit is:
 \begin{equation}
     E[\Pi] = \delta^b - E[S_{t+\tau} - S_t | \text{bid fill at } t]
 \end{equation}
 where $\tau$ is the holding period. In a toxic environment, $E[S_{t+\tau} - S_t | \text{bid fill at } t] < 0$ and its magnitude may exceed the captured spread $\delta^b$, leading to a net loss.
 
-To mitigate this, the \textbf{Adaptive Reinforcement Learning Model} (detailed in Chapter \ref{ch:rl_strategy}) utilizes $\rho_t$, $\sigma_t$, and trade flow imbalances as non-linear features. By learning the complex relationship between these microstructural variables and future price delta, the RL agent can dynamically "widen" its spreads or "withdraw" from the book during periods of high toxicity, significantly outperforming static AS-heuristics.
+To mitigate this, the \textbf{Adaptive Reinforcement Learning Model} (detailed in Chapter \ref{ch:rl_strategy}) utilizes $\rho_t$, $\sigma_t$, and trade flow imbalances as non-linear features. By learning the complex relationship between these microstructural variables and future price delta, the RL agent can dynamically ``widen'' its spreads or ``withdraw'' from the book during periods of high toxicity, significantly outperforming static AS-heuristics.
 
 \section{Stochastic Discounting and Multi-Period Optimization}
 Beyond the single-period terminal utility, a production-grade HFT system must consider the \textbf{path-dependent} nature of wealth. We introduce the concept of a \textbf{discounted reward function} to ensure that the system prioritizes immediate stability while pursuing long-term profitability. The RL agent's objective function is formulated as:

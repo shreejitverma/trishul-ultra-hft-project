@@ -3,8 +3,8 @@
 
 This chapter delineates the rigorous methodological approach and low-level RTL implementation used to realize the proposed AI-integrated ultra-HFT system. The central hypothesis that hardware-accelerated reinforcement learning (RL) can provide a superior risk-adjusted return compared to traditional heuristic-based models necessitates a hybrid architecture. We bifurcate the system into two distinct operational domains: the \textbf{Ultra-Low-Latency (ULL) Data Path} for deterministic execution, and the \textbf{Hybrid Control Plane} for asynchronous model management and telemetry.
 
-\section{The Ultra-Low-Latency Data Path: "Pure-in-Gates" Philosophy}
-The data path is architected using a "pure-in-gates" philosophy, ensuring that every operation on the critical path, from network ingress to order dispatch, is implemented as a combinatorial or pipelined synchronous logic circuit. This eliminates the non-determinism associated with soft-processor cores or operating system interrupts.
+\section{The Ultra-Low-Latency Data Path: ``Pure-in-Gates'' Philosophy}
+The data path is architected using a ``pure-in-gates'' philosophy, ensuring that every operation on the critical path, from network ingress to order dispatch, is implemented as a combinatorial or pipelined synchronous logic circuit. This eliminates the non-determinism associated with soft-processor cores or operating system interrupts.
 
 \subsection{Network Ingress: Cycle-Accurate Deterministic Parsing}
 The ingress pipeline minimizes latency by processing network headers in parallel with the data stream arrival. The \texttt{rx\_parser} module implements a hierarchical \textbf{Finite State Machine (FSM)} that peels away encapsulation layers at line-rate. The FSM states are synchronized to the 322.26 MHz clock ($T_{cyc} \approx 3.1$ ns):
@@ -47,25 +47,25 @@ To maximize throughput, the RL Core is decomposed into a 4-stage pipeline:
     \begin{itemize}
         \item \textbf{Quote Skewing:} If the signal indicates a high probability of upward mid-price movement (positive OBI), the hardware skews the quotes higher, narrowing the ask offset and widening the bid offset to proactively capture the momentum.
         \item \textbf{Spread Optimization:} Under high-volatility regimes (Hawkes burst detection), the signal triggers an expansion of the symmetric spread $\psi^*$ to maximize the \textbf{Liquidity Risk Premium} and protect against adverse selection.
-        \item \textbf{Inventory Rebalancing:} If current inventory $q_t$ approaches the limits, the signal prioritizes "passive liquidation" by only quoting on the side that reduces the position.
+        \item \textbf{Inventory Rebalancing:} If current inventory $q_t$ approaches the limits, the signal prioritizes ``passive liquidation'' by only quoting on the side that reduces the position.
     \end{itemize}
     If the confidence level of $a^*$ exceeds the programmable threshold, the corresponding order parameters are emitted to the OUCH encoder.
 
 \end{enumerate}
 
 \section{Hardware Risk Management: Pre-Trade Gating}
-To mitigate the risks of "hallucination" in probabilistic RL models, the outputs of the AI core are gated by the \texttt{risk\_gate} module. This deterministic safety envelope enforces hard constraints:
+To mitigate the risks of ``hallucination'' in probabilistic RL models, the outputs of the AI core are gated by the \texttt{risk\_gate} module. This deterministic safety envelope enforces hard constraints:
 \begin{itemize}
     \item \textbf{Max Notional Exposure:} $Q_{total} \cdot P_{exec} < \text{Limit}_{notional}$. This check is performed using a 64-bit hardware multiplier.
-    \item \textbf{Message Rate Limiter:} Implements a \textbf{Token Bucket} algorithm to prevent "Quote Stuffing." If the number of orders sent within a 1ms window exceeds the threshold, subsequent orders are suppressed.
-    \item \textbf{Inventory Hard Limits:} Prevents the RL agent from exceeding $q_{max}$ or $q_{min}$, forcing a "Liquidation-Only" mode if limits are reached.
+    \item \textbf{Message Rate Limiter:} Implements a \textbf{Token Bucket} algorithm to prevent ``Quote Stuffing.'' If the number of orders sent within a 1ms window exceeds the threshold, subsequent orders are suppressed.
+    \item \textbf{Inventory Hard Limits:} Prevents the RL agent from exceeding $q_{max}$ or $q_{min}$, forcing a ``Liquidation-Only'' mode if limits are reached.
 \end{itemize}
 
 \section{Hardware-Software Co-Design via PCIe Gen4}
 The system utilizes a \textbf{PCIe Gen4 x16} interface (throughput $\approx 31.5$ GB/s) to bridge the FPGA with the software management layer.
 \begin{itemize}
     \item \textbf{AXI-Lite Control Interface:} The software uses memory-mapped I/O (MMIO) to write model weights and risk parameters into the FPGA's configuration registers. This allows for \textbf{Hot-Swapping} of the RL policy without stopping the hardware pipeline.
-    \item \textbf{AXI-Memory Mapped (AXI-MM) Telemetry:} The FPGA writes high-resolution timestamps ($1$ ns precision) and execution logs into a shared DMA region in the host's \textbf{Huge-Page RAM}. This provides the "Godhood" level observability needed for performance validation.
+    \item \textbf{AXI-Memory Mapped (AXI-MM) Telemetry:} The FPGA writes high-resolution timestamps ($1$ ns precision) and execution logs into a shared DMA region in the host's \textbf{Huge-Page RAM}. This provides the ``Godhood'' level observability needed for performance validation.
 \end{itemize}
 
 \section{Timing Closure and Physical Constraints}
@@ -77,9 +77,9 @@ In the domain of high-frequency trading, the speed of execution must be balanced
 \subsection{Wire-Speed Risk Checks}
 The compliance engine enforces three primary constraints in a single clock cycle:
 \begin{enumerate}
-    \item \textbf{Credit Limit Monitoring:} The system maintains a running total of the gross notional exposure. If an order would cause the aggregate exposure to exceed the pre-defined capital limit for the sub-account, the order is dropped in hardware, and a "Kill Switch" signal is sent to the software control plane.
+    \item \textbf{Credit Limit Monitoring:} The system maintains a running total of the gross notional exposure. If an order would cause the aggregate exposure to exceed the pre-defined capital limit for the sub-account, the order is dropped in hardware, and a ``Kill Switch'' signal is sent to the software control plane.
     \item \textbf{Fat-Finger Suppression:} A combinatorial comparator checks the order quantity and price against baseline volatility bands. This prevents the transmission of anomalous orders caused by model divergence or sensor noise.
-    \item \textbf{Duplicate Order Detection:} Using a high-speed Bloom Filter implemented in LUTs, the system identifies and suppresses repeated "Enter Order" messages that occur within a sub-microsecond window, a common signature of algorithmic "runaway" loops.
+    \item \textbf{Duplicate Order Detection:} Using a high-speed Bloom Filter implemented in LUTs, the system identifies and suppresses repeated ``Enter Order'' messages that occur within a sub-microsecond window, a common signature of algorithmic ``runaway'' loops.
 \end{enumerate}
 
 \section{Verification Methodology: Bit-Accurate Synchrony}
@@ -88,7 +88,7 @@ The transition from a high-level Python/C++ reinforcement learning model to a fi
 \subsection{Universal Verification Methodology (UVM) and Formal Checks}
 We utilize a UVM-based testbench to subject the RTL modules to millions of constrained-random market scenarios.
 \begin{itemize}
-    \item \textbf{Golden Model Comparison:} The output of the FPGA's systolic array is compared cycle-by-cycle against a "Golden Reference" model implemented in software. Any discrepancy in the least significant bit (LSB) of the inference output triggers a verification failure.
+    \item \textbf{Golden Model Comparison:} The output of the FPGA's systolic array is compared cycle-by-cycle against a ``Golden Reference'' model implemented in software. Any discrepancy in the least significant bit (LSB) of the inference output triggers a verification failure.
     \item \textbf{Formal Property Verification (FPV):} We use formal tools to mathematically prove that the \texttt{risk\_gate} can never be bypassed. By defining safety properties in **SystemVerilog Assertions (SVA)**, we ensure that the execution logic is logically tied to the compliance gate, rendering it physically impossible to send an un-checked order.
 \end{itemize}
 

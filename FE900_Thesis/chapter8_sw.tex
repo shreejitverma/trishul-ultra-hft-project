@@ -8,7 +8,7 @@ This chapter provides a rigorous examination of the design, architectural optimi
 The software architecture is designed to operate as a deterministic event-processing engine. To achieve nanosecond-level consistency, we employ a \textbf{Thread-per-Core (TPC)} execution model where context switching is entirely eliminated through hard processor affinity and CPU isolation.
 
 \subsection{Hard Core Pinning and CPU Isolation}
-In a standard multi-threaded environment, the operating system scheduler dynamically migrates threads across physical cores, causing L1 and L2 cache invalidations and increasing jitter. To mitigate this, our system utilizes the \texttt{pthread\_setaffinity\_np} API to pin each critical software module to a specific physical core. Furthermore, we utilize the Linux kernel parameters \texttt{isolcpus} and \texttt{nohz\_full} to ensure that the trading cores are shielded from kernel interrupts and periodic timer ticks. This creates a "quiet" environment where the CPU can dedicate its entire execution budget to the trading logic.
+In a standard multi-threaded environment, the operating system scheduler dynamically migrates threads across physical cores, causing L1 and L2 cache invalidations and increasing jitter. To mitigate this, our system utilizes the \texttt{pthread\_setaffinity\_np} API to pin each critical software module to a specific physical core. Furthermore, we utilize the Linux kernel parameters \texttt{isolcpus} and \texttt{nohz\_full} to ensure that the trading cores are shielded from kernel interrupts and periodic timer ticks. This creates a ``quiet'' environment where the CPU can dedicate its entire execution budget to the trading logic.
 
 \subsection{Modular Decomposition and Inter-Thread Communication}
 The system is decomposed into a series of decoupled, highly specialized modules. These modules do not utilize mutexes or semaphores for synchronization, as these primitives involve kernel-mode transitions that introduce millisecond-scale latency spikes. Instead, communication is performed via \textbf{Lock-Free Single-Producer Single-Consumer (SPSC) queues}, as visualized in the UML component diagram in Figure \ref{fig:sw_class_diagram}.
@@ -19,7 +19,7 @@ Key technical advantages of this SPSC implementation include:
 \begin{itemize}
     \item \textbf{Contention-Free Design:} Since only one thread modifies the head pointer and another modifies the tail, there is zero resource contention at the hardware level.
     \item \textbf{Cache-Line Padding:} To prevent \textbf{False Sharing}, the head and tail pointers are separated by 64 bytes (the standard x86\_64/ARM cache-line size), ensuring they reside in different cache lines.
-    \item \textbf{Determinism:} Without locks, the worst-case execution time of a "push" or "pop" operation is constant and predictable, a non-negotiable requirement for high-frequency trading.
+    \item \textbf{Determinism:} Without locks, the worst-case execution time of a ``push'' or ``pop'' operation is constant and predictable, a non-negotiable requirement for high-frequency trading.
 \end{itemize}
 
 \begin{sidewaysfigure}[p]
@@ -98,7 +98,7 @@ Variables in the routing logic:
 Assets with high $\Xi$ (e.g., highly liquid ETFs) are routed to the FPGA path to bypass the OS network stack via \texttt{vfio-pci}, while less sensitive assets are handled by the CPU.
 
 \subsection{Avoidance of False Sharing}
-To ensure that the multi-core execution remains efficient, we apply \textbf{Cache-Line Padding}. Since the L1 cache line size on modern x86\_64 processors is 64 bytes, we ensure that the producer and consumer pointers of our SPSC queues are separated by at least 64 bytes of "dummy" data. This prevents the \textbf{MESI protocol} (Modified, Exclusive, Shared, Invalid) from causing constant cache-line invalidations between cores, a phenomenon known as \textbf{False Sharing}, which would otherwise destroy the system's performance.
+To ensure that the multi-core execution remains efficient, we apply \textbf{Cache-Line Padding}. Since the L1 cache line size on modern x86\_64 processors is 64 bytes, we ensure that the producer and consumer pointers of our SPSC queues are separated by at least 64 bytes of ``dummy'' data. This prevents the \textbf{MESI protocol} (Modified, Exclusive, Shared, Invalid) from causing constant cache-line invalidations between cores, a phenomenon known as \textbf{False Sharing}, which would otherwise destroy the system's performance.
 
 \section{Physical Deployment and Nanosecond Synchronization}
 The efficacy of an ultra-high-frequency trading system is not only a function of its architectural latency but also its integration into the physical environment of the data center. This section discusses the operational requirements for co-located deployment and the management of temporal drift.
@@ -107,7 +107,7 @@ The efficacy of an ultra-high-frequency trading system is not only a function of
 To minimize the speed-of-light propagation delay, the system is designed for deployment in a **Co-location (Co-lo)** facility, such as Equinix NY4 (Secaucus) or CH2 (Chicago). In these environments, even the physical length of the fiber-optic patch cables becomes a source of competitive advantage. We utilize **Fiber-Optic Cable Length Parity** to ensure that the time-of-flight for market data arrival and order transmission is symmetric and predictable.
 
 \subsection{Precision Time Protocol (IEEE 1588 PTP)}
-To maintain a consistent "Market View" across the hybrid FPGA-CPU architecture, the system implements hardware-level **PTP (Precision Time Protocol)** synchronization. 
+To maintain a consistent ``Market View'' across the hybrid FPGA-CPU architecture, the system implements hardware-level **PTP (Precision Time Protocol)** synchronization. 
 \begin{itemize}
     \item \textbf{Hardware Timestamping:} The FPGA utilizes a dedicated **PTP Servo Core** to synchronize its internal 1ns-precision clock with the data center's **Grandmaster Clock**. Every packet processed by the system is timestamped at the physical layer (PHY) the moment the Start-of-Frame delimiter is detected.
     \item \textbf{Clock Drift Correction:} The software control plane monitors the offset between the FPGA clock and the system's real-time clock. Using a Proportional-Integral (PI) control loop, the system corrects for clock drift induced by thermal fluctuations in the data center, ensuring that all telemetry logs are accurately aligned with the exchange's matching engine timestamps.

@@ -32,7 +32,7 @@
 \contentsline {section}{\numberline {3.4}Microstructural Signals and Adverse Selection}{37}{section.3.4}%
 \contentsline {subsection}{\numberline {3.4.1}Order Book Imbalance (OBI)}{37}{subsection.3.4.1}%
 \contentsline {subsection}{\numberline {3.4.2}Volume Toxicity and VPIN}{38}{subsection.3.4.2}%
-\contentsline {subsection}{\numberline {3.4.3}Adverse Selection and the "Winner's Curse"}{39}{subsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.4.3}Adverse Selection and the ``Winner's Curse''}{39}{subsection.3.4.3}%
 \contentsline {section}{\numberline {3.5}Stochastic Discounting and Multi-Period Optimization}{39}{section.3.5}%
 \contentsline {section}{\numberline {3.6}Conclusion}{40}{section.3.6}%
 \contentsline {chapter}{\numberline {4}Volatility Dynamics and Synthetic Data Generation}{41}{chapter.4}%
@@ -77,7 +77,7 @@
 \contentsline {section}{\numberline {6.3}Software Support and Hybrid Co-Design}{65}{section.6.3}%
 \contentsline {section}{\numberline {6.4}Conclusion}{66}{section.6.4}%
 \contentsline {chapter}{\numberline {7}FPGA System Methodology and Implementation}{67}{chapter.7}%
-\contentsline {section}{\numberline {7.1}The Ultra-Low-Latency Data Path: "Pure-in-Gates" Philosophy}{67}{section.7.1}%
+\contentsline {section}{\numberline {7.1}The Ultra-Low-Latency Data Path: ``Pure-in-Gates'' Philosophy}{67}{section.7.1}%
 \contentsline {subsection}{\numberline {7.1.1}Network Ingress: Cycle-Accurate Deterministic Parsing}{67}{subsection.7.1.1}%
 \contentsline {subsection}{\numberline {7.1.2}Feed Handling: Semantic Extraction and Bit-Slicing}{68}{subsection.7.1.2}%
 \contentsline {section}{\numberline {7.2}Core Innovation: The RL-Inference Systolic Array}{69}{section.7.2}%
