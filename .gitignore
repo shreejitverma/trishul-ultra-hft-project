@@ -18,3 +18,22 @@ cmake-build-*/
 # Data files
 *.bin
 *.pcap
+data/tick-data/*
+data/order-books/*
+1000
+
+# Logs
+logs/*.json
+logs/*.log
+
+# LaTeX auxiliary files
+*.aux
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.toc
+*.blg
+*.bbl
+*.synctex.gz
