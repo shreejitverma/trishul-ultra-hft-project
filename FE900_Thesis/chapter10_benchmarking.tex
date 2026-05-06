@@ -5,8 +5,8 @@
 This chapter provides a rigorous comparative evaluation between the proposed Hybrid HFT Control Plane and prevailing industrial execution paradigms. By isolating the critical performance vectors, which include determinism, scalability, and risk-adjusted alpha, we quantify the systemic advantages of synthesizing hardware-level execution with adaptive machine intelligence. The system is contrasted against two primary baselines:
 
 \begin{enumerate}
-    \item \textbf{Traditional Software Stack:} This baseline represents the standard high-performance trading architecture utilized by most quantitative firms. It consists of optimized C++ code running on general-purpose CPUs, utilizing **Kernel-Bypass (User-space networking)** and **Core Pinning** to minimize OS overhead. While highly flexible, it is subject to non-deterministic ``jitter'' caused by L3 cache contention, branch mispredictions, and unavoidable kernel interrupts.
-    \item \textbf{Static Hardware Strategy:} This baseline represents an FPGA-based execution engine that uses fixed-logic algorithms (e.g., a simple linear model or a constant-spread rule). It achieves the same nanosecond-level determinism as the proposed system but lacks the **adaptive intelligence** of reinforcement learning. It cannot adjust its quoting behavior in response to regime shifts or rising microstructural toxicity (High VPIN).
+    \item \textbf{Traditional Software Stack:} This baseline represents the standard high-performance trading architecture utilized by most quantitative firms. It consists of optimized C++ code running on general-purpose CPUs, utilizing \textbf{Kernel-Bypass (User-space networking)} and \textbf{Core Pinning} to minimize OS overhead. While highly flexible, it is subject to non-deterministic ``jitter'' caused by L3 cache contention, branch mispredictions, and unavoidable kernel interrupts.
+    \item \textbf{Static Hardware Strategy:} This baseline represents an FPGA-based execution engine that uses fixed-logic algorithms (e.g., a simple linear model or a constant-spread rule). It achieves the same nanosecond-level determinism as the proposed system but lacks the \textbf{adaptive intelligence} of reinforcement learning. It cannot adjust its quoting behavior in response to regime shifts or rising microstructural toxicity (High VPIN).
 \end{enumerate}
 
 \section{Quantifying the Latency Penalty: Determinism vs. Stochastic Jitter}
@@ -150,3 +150,4 @@ Although the software control plane utilizes CPU isolation, the system exhibits 
 
 \section{Conclusion}
 The empirical evidence confirms that the Hybrid HFT Control Plane provides a superior technological and financial foundation for high-frequency market making. By eliminating stochastic jitter through hardware execution and incorporating adaptive machine intelligence via reinforcement learning, the system achieves a level of performance and resilience that is unattainable by traditional architectural paradigms.
+gms.

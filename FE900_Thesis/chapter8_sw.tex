@@ -104,12 +104,12 @@ To ensure that the multi-core execution remains efficient, we apply \textbf{Cach
 The efficacy of an ultra-high-frequency trading system is not only a function of its architectural latency but also its integration into the physical environment of the data center. This section discusses the operational requirements for co-located deployment and the management of temporal drift.
 
 \subsection{Data Center Co-location and Fiber-Optic Parity}
-To minimize the speed-of-light propagation delay, the system is designed for deployment in a **Co-location (Co-lo)** facility, such as Equinix NY4 (Secaucus) or CH2 (Chicago). In these environments, even the physical length of the fiber-optic patch cables becomes a source of competitive advantage. We utilize **Fiber-Optic Cable Length Parity** to ensure that the time-of-flight for market data arrival and order transmission is symmetric and predictable.
+To minimize the speed-of-light propagation delay, the system is designed for deployment in a \textbf{Co-location (Co-lo)} facility, such as Equinix NY4 (Secaucus) or CH2 (Chicago). In these environments, even the physical length of the fiber-optic patch cables becomes a source of competitive advantage. We utilize \textbf{Fiber-Optic Cable Length Parity} to ensure that the time-of-flight for market data arrival and order transmission is symmetric and predictable.
 
-\subsection{Precision Time Protocol (IEEE 1588 PTP)}
-To maintain a consistent ``Market View'' across the hybrid FPGA-CPU architecture, the system implements hardware-level **PTP (Precision Time Protocol)** synchronization. 
+\subsection{Precision Time Protocol (PTP) Synchronization}
+To maintain a consistent ``Market View'' across the hybrid FPGA-CPU architecture, the system implements hardware-level \textbf{PTP (Precision Time Protocol)} synchronization.
 \begin{itemize}
-    \item \textbf{Hardware Timestamping:} The FPGA utilizes a dedicated **PTP Servo Core** to synchronize its internal 1ns-precision clock with the data center's **Grandmaster Clock**. Every packet processed by the system is timestamped at the physical layer (PHY) the moment the Start-of-Frame delimiter is detected.
+    \item \textbf{Hardware Timestamping:} The FPGA utilizes a dedicated \textbf{PTP Servo Core} to synchronize its internal 1ns-precision clock with the data center's \textbf{Grandmaster Clock}. Every packet processed by the system is timestamped at the physical layer (PHY) the moment the Start-of-Frame delimiter is detected.
     \item \textbf{Clock Drift Correction:} The software control plane monitors the offset between the FPGA clock and the system's real-time clock. Using a Proportional-Integral (PI) control loop, the system corrects for clock drift induced by thermal fluctuations in the data center, ensuring that all telemetry logs are accurately aligned with the exchange's matching engine timestamps.
 \end{itemize}
 

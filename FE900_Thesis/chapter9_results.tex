@@ -60,7 +60,7 @@ To assess the resilience of the system during periods of extreme market activity
 
 The optimized architecture demonstrates linear scaling up to a threshold of \textbf{7.5 million messages per second}. As shown in Figure \ref{fig:throughput_comparison}, the system maintains a deterministic execution profile within this ``Optimal Operating Zone.'' During the 100M event Hawkes simulation, the system achieved a sustained throughput of \textbf{1.21 million messages per second} while handling complex self-exciting bursts. However, beyond the 7.5M peak threshold, we observe the onset of non-linear performance degradation:
 \begin{enumerate}
-    \item \textbf{PCIe/DMA Backpressure:} As the event rate approaches the physical limits of the DMA descriptors, the FPGA logic must assert backpressure to prevent buffer overflows. This results in an asymptotic throughput limit of approximately **8.0 million messages per second**.
+    \item \textbf{PCIe/DMA Backpressure:} As the event rate approaches the physical limits of the DMA descriptors, the FPGA logic must assert backpressure to prevent buffer overflows. This results in an asymptotic throughput limit of approximately \textbf{8.0 million messages per second}.
     \item \textbf{Tail Latency Expansion:} While the median latency remains low, the P99 latency exhibits significant ``spiking'' beyond 8M events/sec due to the accumulation of packets in the hardware burst buffers.
 \end{enumerate}
 Despite these physical limitations, the proposed architecture provides a \textbf{5.5x throughput advantage} over the standard software baseline, which saturates at merely 1.4 million events per second due to cache contention and kernel overhead.
@@ -100,7 +100,7 @@ The core intelligence of the agent is manifested through its dynamic entry and e
 By training across the wide spectrum of synthetic scenarios (Low Volatility to Extreme Stress), the RL strategy learns to optimize these entry/exit thresholds, ensuring that capital is only deployed when the probability of adverse selection is low.
 
 \subsection{Risk-Adjusted Performance Metrics}
-The profitability of the market-making policy is assessed using several key performance indicators (KPIs). To ensure the robustness of the RL agent's performance, we executed \textbf{50 independent evaluation runs} using different stochastic seeds for the synthetic data generator. The performance evaluation was conducted over **252 simulated trading days**, representing a full trading year of high-frequency activity. For all risk-adjusted calculations, a **risk-free rate ($R_f$) of 4.25\%** was utilized.
+The profitability of the market-making policy is assessed using several key performance indicators (KPIs). To ensure the robustness of the RL agent's performance, we executed \textbf{50 independent evaluation runs} using different stochastic seeds for the synthetic data generator. The performance evaluation was conducted over \textbf{252 simulated trading days}, representing a full trading year of high-frequency activity. For all risk-adjusted calculations, a \textbf{risk-free rate ($R_f$) of 4.25\%} was utilized.
 
 \begin{table}[h!]
     \centering
@@ -176,3 +176,4 @@ Key takeaways from the analysis include:
 \end{itemize}
 
 In conclusion, these results suggest that the proposed framework is not only a viable solution for modern electronic market making but also represents a significant advancement in the design of hybrid AI-hardware trading systems. The integration of nanosecond-level execution with adaptive, microstructural intelligence provides a robust foundation for liquidity provision in the increasingly complex and volatile global financial landscape.
+ape.

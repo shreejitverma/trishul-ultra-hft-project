@@ -72,7 +72,7 @@ The system utilizes a \textbf{PCIe Gen4 x16} interface (throughput $\approx 31.5
 Achieving timing closure at 322.26 MHz on a modern Kintex UltraScale+ FPGA requires rigorous physical constraints. We utilize \textbf{Floorplanning} (P-blocks) to co-locate the MAC units and the Order Book logic, minimizing the wire delay ($T_{prop}$) between features and inference. The design is verified to have a \textbf{Positive Slack} of $> 0.2$ ns across all PVT (Process, Voltage, Temperature) corners, ensuring operational stability in high-density data centers.
 
 \section{Deterministic Compliance and Regulatory Gating}
-In the domain of high-frequency trading, the speed of execution must be balanced by the absolute certainty of regulatory compliance. The proposed architecture incorporates a hardware-level compliance engine, implemented as a serial gate at the end of the Egress pipeline. This ensures that every order transmitted to the exchange complies with **SEC Rule 15c3-5 (Market Access Rule)** without adding non-deterministic software latency.
+In the domain of high-frequency trading, the speed of execution must be balanced by the absolute certainty of regulatory compliance. The proposed architecture incorporates a hardware-level compliance engine, implemented as a serial gate at the end of the Egress pipeline. This ensures that every order transmitted to the exchange complies with \textbf{SEC Rule 15c3-5 (Market Access Rule)} without adding non-deterministic software latency.
 
 \subsection{Wire-Speed Risk Checks}
 The compliance engine enforces three primary constraints in a single clock cycle:
@@ -89,7 +89,7 @@ The transition from a high-level Python/C++ reinforcement learning model to a fi
 We utilize a UVM-based testbench to subject the RTL modules to millions of constrained-random market scenarios.
 \begin{itemize}
     \item \textbf{Golden Model Comparison:} The output of the FPGA's systolic array is compared cycle-by-cycle against a ``Golden Reference'' model implemented in software. Any discrepancy in the least significant bit (LSB) of the inference output triggers a verification failure.
-    \item \textbf{Formal Property Verification (FPV):} We use formal tools to mathematically prove that the \texttt{risk\_gate} can never be bypassed. By defining safety properties in **SystemVerilog Assertions (SVA)**, we ensure that the execution logic is logically tied to the compliance gate, rendering it physically impossible to send an un-checked order.
+    \item \textbf{Formal Property Verification (FPV):} We use formal tools to mathematically prove that the \texttt{risk\_gate} can never be bypassed. By defining safety properties in \textbf{SystemVerilog Assertions (SVA)}, we ensure that the execution logic is logically tied to the compliance gate, rendering it physically impossible to send an un-checked order.
 \end{itemize}
 
 \section{Conclusion}
