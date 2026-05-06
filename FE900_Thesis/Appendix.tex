@@ -413,7 +413,7 @@ bool PretradeChecker::check_order(const strategy::StrategyOrder& order) noexcept
 \end{lstlisting}
 
 \section{Core Synchronisation Primitives}
-\subsection{Lock-Free Single-Producer Single-Consumer (SPSC) Queue (C++)}
+\subsection{Lock-Free SPSC Queue (C++)}
 The following implementation provides a deterministic, thread-safe communication channel between CPU cores without using mutexes.
 
 \begin{lstlisting}[style=cppstyle, caption={Lock-free SPSC Ring Buffer}, label={lst:spsc}]

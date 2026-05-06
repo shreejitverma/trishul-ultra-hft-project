@@ -16,7 +16,7 @@ In the domain of high-frequency liquidity provision, the distribution of latency
 \end{equation}
 Variables in the latency model:
 \begin{itemize}
-    \item $\mathcal{L}_{fixed}$: The constant propagation delay of the FPGA gates and physical medium, which is invariant regardless of market load.
+    \item $\mathcal{L}_{fixed}$: The constant propagation delay of FPGA gates and physical medium, which is invariant regardless of market load.
     \item $\mathcal{J}$: The stochastic jitter function, representing the non-deterministic delays introduced by the operating system and CPU.
     \item $\lambda$: The instantaneous message arrival rate.
     \item $\mathcal{C}$: The probability of a cache miss or context switch occurring during the execution path.
@@ -106,6 +106,7 @@ Table \ref{tab:final_comparison_bench} summarizes the corresponding quantitative
 
 \begin{table}[h!]
     \centering
+    \resizebox{\textwidth}{!}{
     \begin{tabular}{|l|c|c|c|}
         \hline
         \textbf{Performance Metric} & \textbf{Traditional (SW)} & \textbf{Static (HW)} & \textbf{Project (Adaptive HW)} \\
@@ -119,6 +120,7 @@ Table \ref{tab:final_comparison_bench} summarizes the corresponding quantitative
         Capital Utilization ($\mathcal{U}$) & 65\% & 78\% & 92\% \\
         \hline
     \end{tabular}
+    }
     \caption{Consolidated Comparative Benchmark Results.}
     \label{tab:final_comparison_bench}
 \end{table}
@@ -130,10 +132,10 @@ While the proposed hybrid architecture achieves nanosecond-level determinism und
 
 \subsection{The Small Packet Problem and PCIe Saturation}
 The most significant limitation occurs during extreme ``market data bursts'' characterized by a high volume of small packets. \datamethodology\ As shown in the updated Figure \ref{fig:throughput_bench_ch8}, the system maintains constant nanosecond latency for the first 75 million events. 
-However, as the burst intensity increases and the cumulative volume approaches 90 million events, we observe the onset of the **PCIe/DMA Saturation Bound**. The physical transaction-per-second (TPS) limit of the PCIe Gen4 x16 bus causes the FPGA's internal **Burst Buffers** to reach full capacity. This induces an aggressive ``Slowdown Point'' where Tick-to-Trade latency spikes from 860ns to over **400,000ns** (400 $\mu$s) due to hardware backpressure. This empirical result proves that while the system is ultra-low-latency, its determinism is bounded by the physical drain rate of the host interconnect.
+However, as the burst intensity increases and the cumulative volume approaches 90 million events, we observe the onset of the \textbf{PCIe/DMA Saturation Bound}. The physical transaction-per-second (TPS) limit of the PCIe Gen4 x16 bus causes the FPGA's internal \textbf{Burst Buffers} to reach full capacity. This induces an aggressive ``Slowdown Point'' where Tick-to-Trade latency spikes from 860ns to over \textbf{400,000ns} (400 $\mu$s) due to hardware backpressure. This empirical result proves that while the system is ultra-low-latency, its determinism is bounded by the physical drain rate of the host interconnect.
 
 \subsection{Resource Constraints and Model Complexity}
-The deterministic nature of the RL inference core is dependent on the available **DSP48 slices** and **Block RAM (BRAM)** on the Kintex UltraScale+ FPGA. 
+The deterministic nature of the RL inference core is dependent on the available \textbf{DSP48 slices} and \textbf{Block RAM (BRAM)} on the Kintex UltraScale+ FPGA. 
 \begin{equation}
     \text{Complexity Limit} = \frac{\text{Total DSP Slices}}{\text{Parallel MAC Operations per Cycle}}
 \end{equation}

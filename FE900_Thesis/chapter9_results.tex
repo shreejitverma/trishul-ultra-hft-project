@@ -25,6 +25,7 @@ Variables in the latency equation:
 
 \begin{table}[h!]
     \centering
+    \resizebox{0.85\textwidth}{!}{
     \begin{tabular}{|l|c|c|c|}
         \hline
         \textbf{Pipeline Stage} & \textbf{P50 Latency (ns)} & \textbf{P99 Latency (ns)} & \textbf{Contribution (\%)} \\
@@ -38,6 +39,7 @@ Variables in the latency equation:
         \textbf{Total T2T} & \textbf{822} & \textbf{1180} & \textbf{100\%} \\
         \hline
     \end{tabular}
+    }
     \caption{Detailed Breakdown of Tick-to-Trade Latency within the Software Pipeline under Hawkes Load.}
     \label{tab:latency_breakdown}
 \end{table}
@@ -61,7 +63,7 @@ The optimized architecture demonstrates linear scaling up to a threshold of \tex
     \item \textbf{PCIe/DMA Backpressure:} As the event rate approaches the physical limits of the DMA descriptors, the FPGA logic must assert backpressure to prevent buffer overflows. This results in an asymptotic throughput limit of approximately **8.0 million messages per second**.
     \item \textbf{Tail Latency Expansion:} While the median latency remains low, the P99 latency exhibits significant ``spiking'' beyond 8M events/sec due to the accumulation of packets in the hardware burst buffers.
 \end{enumerate}
-Despite these physical limitations, the proposed architecture provides a **5.5x throughput advantage** over the standard software baseline, which saturates at merely 1.4 million events per second due to cache contention and kernel overhead.
+Despite these physical limitations, the proposed architecture provides a \textbf{5.5x throughput advantage} over the standard software baseline, which saturates at merely 1.4 million events per second due to cache contention and kernel overhead.
 
 \begin{sidewaysfigure}[p]
     \centering
@@ -102,6 +104,7 @@ The profitability of the market-making policy is assessed using several key perf
 
 \begin{table}[h!]
     \centering
+    \resizebox{0.85\textwidth}{!}{
     \begin{tabular}{|l|c|c|c|}
         \hline
         \textbf{Metric} & \textbf{Mean Value} & \textbf{Std. Dev.} & \textbf{95\% Confidence Interval} \\
@@ -114,6 +117,7 @@ The profitability of the market-making policy is assessed using several key perf
         Trade Win Rate & 55.30\% & 0.8\% & [53.7\%, 56.9\%] \\
         \hline
     \end{tabular}
+    }
     \caption{Ensemble Financial Performance across 50 Independent Runs.}
     \label{tab:strategy_performance_ensemble}
 \end{table}
