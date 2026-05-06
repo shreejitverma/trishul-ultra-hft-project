@@ -3,7 +3,7 @@
 
 \section{Introduction}
 The inherent non-stationarity of financial markets, characterized by shifting volatility regimes, transient liquidity droughts, and non-linear microstructural dependencies, necessitates a quoting strategy that possesses high \textbf{adaptive capacity}. While the stochastic control framework derived in Chapter \ref{ch:microstructure} provides a theoretical benchmark, its reliance on simplifying assumptions (e.g., constant parameters, independent Poisson arrivals) limits its efficacy in fragmented, toxic environments.
- This chapter details the formulation of a \textbf{Deep Reinforcement Learning (DRL)} framework used to optimize market-making policies. \datamethodology\ We transform the continuous quoting problem into a discrete-time \textbf{Markov Decision Process (MDP)} and delineate the architectural and algorithmic innovations required to derive robust, hardware-accelerated execution policies.
+ This chapter details the formulation of a \textbf{Deep Reinforcement Learning (DRL)} framework used to optimize market-making policies. Building on the foundational success of deep learning in decision-making tasks \citep{Mnih2015,Arulkumaran2017}, \datamethodology\ we transform the continuous quoting problem into a discrete-time \textbf{Markov Decision Process (MDP)} and delineate the architectural and algorithmic innovations required to derive robust, hardware-accelerated execution policies.
 
 \section{Markov Decision Process (MDP) Formulation}
 We model the market-making task as a discrete-time MDP defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$. The agent (the market maker) interacts with the environment (the Limit Order Book) by observing the state $s_t$, taking an action $a_t$, and receiving a reward $r_t$ and a next state $s_{t+1}$.
@@ -51,7 +51,7 @@ Variables in the reward function:
 \end{itemize}
 
 \section{The Proximal Policy Optimization (PPO) Algorithm}
-To derive the optimal policy $\pi_\theta(a|s)$, we employ the \textbf{Proximal Policy Optimization (PPO)} algorithm. PPO is an \textit{actor-critic} method that ensures stable learning by constraining the magnitude of policy updates.
+To derive the optimal policy $\pi_\theta(a|s)$, we employ the \textbf{Proximal Policy Optimization (PPO)} algorithm \citep{Schulman2017}. PPO is an \textit{actor-critic} method that evolved from the Trust Region Policy Optimization (TRPO) framework \citep{Schulman2015}. It ensures stable learning by constraining the magnitude of policy updates using a clipped surrogate objective, making it particularly suitable for the noisy and high-dimensional state spaces of financial markets.
 
 \subsection{The Clipped Surrogate Objective}
 The PPO agent maximizes the following objective function:
