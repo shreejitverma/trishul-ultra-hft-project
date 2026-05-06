@@ -132,52 +132,97 @@ This derivation reveals the fundamental mechanics of market making:
     \item \textbf{Volatility Expansion:} As $\sigma$ increases, the optimal spread $\psi^*$ widens to compensate the market maker for the higher risk of price gapping.
 \end{enumerate}
 
-\section{Analytical Closed-Form Solution for the Avellaneda-Stoikov Model}
-\label{sec:as_closed_form}
-While the HJB equation presented in Section 3.2 is a non-linear partial differential equation, \citet{Avellaneda2008} demonstrate that under the assumption of exponential fill intensities $\lambda(\delta) = A e^{-k\delta}$ and constant absolute risk aversion (CARA), an analytical closed-form solution exists. This section provides the full derivation, establishing the deterministic benchmark used for calibrating our hardware-software hybrid.
+\section{Analytical Closed-Form Solution for the Avellaneda-Stoikov Model: A Step-by-Step Derivation}
+\label{sec:as_masterclass}
+While the HJB equation presented in Section 3.2 is a non-linear partial differential equation, \citet{Avellaneda2008} demonstrate that under specific assumptions, an analytical closed-form solution exists. As this model serves as the foundational benchmark for our adaptive AI system, we provide here the full, step-by-step derivation—the "masterclass" approach to solving the market-making problem.
 
-\subsection{Transformation of the Value Function}
-To solve the HJB equation, we eliminate the cash variable $x$ by exploiting the translation invariance of exponential utility. We propose the following Ansatz for the value function $u(s, x, q, t)$:
+\subsection{Step 1: The Stochastic System and Objective}
+We start with a market maker operating in a continuous-time horizon $[0, T]$. The state of the system is defined by three variables:
+\begin{enumerate}
+    \item \textbf{Mid-price ($S_t$):} $dS_t = \sigma dW_t$.
+    \item \textbf{Cash ($X_t$):} $dX_t = (S_t + \delta^a_t) dN^a_t - (S_t - \delta^b_t) dN^b_t$.
+    \item \textbf{Inventory ($q_t$):} $dq_t = dN^b_t - dN^a_t$.
+\end{enumerate}
+The market maker's objective is to maximize the expected exponential utility of their total wealth at time $T$:
 \begin{equation}
-    u(s, x, q, t) = -\exp(-\gamma x) \exp(-\gamma \phi(s, q, t))
+    \max_{\delta^a, \delta^b} \mathbf{E} \left[ -\exp(-\gamma (X_T + q_T S_T)) \right]
 \end{equation}
-where $\phi(s, q, t)$ represents the \textbf{certainty equivalent wealth} of the market maker. Substituting this into the HJB equation and separating the mid-price $s$ and inventory $q$, we further decompose $\phi$ as:
-\begin{equation}
-    \phi(s, q, t) = q s + \psi(q, t)
-\end{equation}
-Substituting this decomposition back into the HJB equation leads to a system of coupled ordinary differential equations (ODEs) for $\psi(q, t)$.
 
-\subsection{Optimal Offsets and Spread Derivation}
-Taking the first-order conditions (FOC) with respect to the bid and ask offsets $\delta^b$ and $\delta^a$ in the transformed HJB equation, we find the optimal distances from the mid-price:
+\subsection{Step 2: The Hamilton-Jacobi-Bellman (HJB) Equation}
+Using the Dynamic Programming Principle, we define the Value Function $u(s, x, q, t)$. The HJB equation for this system, accounting for the diffusion of $S_t$ and the jumps of $N^a$ and $N^b$, is:
 \begin{equation}
-    \delta^b = \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \psi(q, t) - \psi(q+1, t)
+\begin{aligned}
+    \frac{\partial u}{\partial t} + \frac{1}{2} \sigma^2 \frac{\partial^2 u}{\partial s^2} &+ \max_{\delta^b} \lambda^b(\delta^b) [u(s, x-s+\delta^b, q+1, t) - u] \\
+    &+ \max_{\delta^a} \lambda^a(\delta^a) [u(s, x+s+\delta^a, q-1, t) - u] = 0
+\end{aligned}
+\end{equation}
+with the terminal condition: $u(s, x, q, T) = -\exp(-\gamma (x + qs))$.
+
+\subsection{Step 3: Separating Variables with the Exponential Ansatz}
+The constant absolute risk aversion (CARA) property allows us to "pull out" the cash component. We propose the following transformation:
+\begin{equation}
+    u(s, x, q, t) = -\exp(-\gamma x) \exp(-\gamma \theta(s, q, t))
+\end{equation}
+Substituting this into the HJB, the $\exp(-\gamma x)$ term cancels out. We then further decompose the function $\theta$ as:
+\begin{equation}
+    \theta(s, q, t) = q s + \psi(q, t)
+\end{equation}
+Here, $qs$ represents the mark-to-market value of the inventory, and $\psi(q, t)$ represents the \textbf{inventory risk adjustment}. The HJB equation reduces to:
+\begin{equation}
+\begin{aligned}
+    \frac{\partial \psi}{\partial t} - \frac{1}{2} \gamma \sigma^2 q^2 &+ \max_{\delta^b} \frac{\lambda^b(\delta^b)}{\gamma} [1 - \exp(-\gamma (\delta^b + \psi(q+1, t) - \psi(q, t)))] \\
+    &+ \max_{\delta^a} \frac{\lambda^a(\delta^a)}{\gamma} [1 - \exp(-\gamma (\delta^a + \psi(q-1, t) - \psi(q, t)))] = 0
+\end{aligned}
+\end{equation}
+
+\subsection{Step 4: Solving the Optimal Offsets (FOCs)}
+Assuming the fill intensity follows the exponential form $\lambda(\delta) = A e^{-k\delta}$, we take the derivative with respect to $\delta^b$ and $\delta^a$ and set them to zero. For the bid side:
+\begin{equation}
+    \frac{d}{d \delta^b} \left( A e^{-k \delta^b} [1 - \exp(-\gamma (\delta^b + \Delta \psi_+))] \right) = 0
+\end{equation}
+where $\Delta \psi_+ = \psi(q+1, t) - \psi(q, t)$. Solving for $\delta^b$ and $\delta^a$ yields:
+\begin{equation}
+    \delta^b(q, t) = \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \psi(q, t) - \psi(q+1, t)
 \end{equation}
 \begin{equation}
-    \delta^a = \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \psi(q, t) - \psi(q-1, t)
+    \delta^a(q, t) = \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \psi(q, t) - \psi(q-1, t)
 \end{equation}
-By utilizing a second-order Taylor expansion for $\psi(q \pm 1, t)$ around $q$, we can approximate the difference terms:
+
+\subsection{Step 5: Linearizing the System via Taylor Expansion}
+To find a closed-form solution for the difference terms $\psi(q) - \psi(q \pm 1)$, we use a second-order Taylor expansion around $q$:
 \begin{equation}
-    \psi(q, t) - \psi(q+1, t) \approx -\frac{\partial \psi}{\partial q} - \frac{1}{2} \frac{\partial^2 \psi}{\partial q^2}
+    \psi(q \pm 1, t) \approx \psi(q, t) \pm \frac{\partial \psi}{\partial q} + \frac{1}{2} \frac{\partial^2 \psi}{\partial q^2}
 \end{equation}
-Under the assumption of a finite-horizon $T$, the resulting optimal quoting strategy is centered around the \textbf{Reservation Price} $r(s, q, t)$:
+Substituting these approximations into the reduced HJB and solving for the optimal distances from the mid-price, we arrive at the \textbf{Reservation Price} $r(s, q, t)$:
 \begin{equation}
     r(s, q, t) = S_t - q \gamma \sigma^2 (T - t)
 \end{equation}
-The optimal quotes $P_{bid}$ and $P_{ask}$ are then given by the closed-form expressions:
+The reservation price is the "fair value" for the market maker, skewed by their inventory risk.
+
+\subsection{Step 6: The Final Closed-Form Solution}
+The optimal bid and ask quotes are centered around the reservation price $r$ with a symmetric spread $\psi^*$:
 \begin{equation}
-    P_{bid} = r(s, q, t) - \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right)
+    P_{bid} = r(s, q, t) - \frac{\psi^*}{2}, \quad P_{ask} = r(s, q, t) + \frac{\psi^*}{2}
+\end{equation}
+where the optimal spread is:
+\begin{equation}
+    \psi^*(t) = \frac{2}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \gamma \sigma^2 (T - t)
+\end{equation}
+Equivalently, the individual offsets from the mid-price are:
+\begin{equation}
+    \delta^b(q, t) = \frac{1}{2} \psi^*(t) + q \gamma \sigma^2 (T - t)
 \end{equation}
 \begin{equation}
-    P_{ask} = r(s, q, t) + \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right)
+    \delta^a(q, t) = \frac{1}{2} \psi^*(t) - q \gamma \sigma^2 (T - t)
 \end{equation}
 
-\subsection{Interpretation of the Closed-Form Result}
-The full closed-form solution yields two critical components for the market maker's policy:
-\begin{enumerate}
-    \item \textbf{The Inventory Risk Premium:} The term $q \gamma \sigma^2 (T - t)$ shifts the quotes to induce a mean-reverting force on the inventory. As the position $q$ grows, the reservation price $r$ deviates further from the mid-price $S$, causing the market maker to quote more aggressively on the liquidation side.
-    \item \textbf{The Optimal Indifference Spread:} The constant term $\frac{2}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right)$ represents the minimum spread required to compensate the market maker for the risk of market order arrivals.
-\end{enumerate}
-This analytical solution serves as the "ideal" policy under Gaussian assumptions. However, as explored in the following section, microstructural factors such as \textbf{Order Book Imbalance} and non-Gaussian volatility require the adaptive, non-linear capabilities of the AI-integrated FPGA to maintain profitability.
+\subsection{Final Synthesis: The AS Policy in Practice}
+This derivation provides a rigorous deterministic policy:
+\begin{itemize}
+    \item \textbf{Inventory Skew:} If $q > 0$ (long), the reservation price $r$ is lowered. The market maker quotes a lower bid (to avoid buying more) and a lower ask (to liquidate faster).
+    \item \textbf{Risk-Averse Spreads:} The spread $\psi^*$ widens linearly with volatility $\sigma^2$ and the risk-aversion parameter $\gamma$, reflecting the increased cost of holding inventory in uncertain regimes.
+\end{itemize}
+This analytical solution provides the "optimal baseline." Our research uses this baseline to initialize the \textbf{AI-Integrated FPGA}, which then learns to refine these offsets using non-Gaussian microstructural signals like Order Book Imbalance (OBI).
 
 \section{Microstructural Signals and Adverse Selection}
 Classical market-making models, such as the Avellaneda and Stoikov framework, assume that order arrivals follow an exogenous Poisson process that is independent of the current state of the Limit Order Book (LOB). However, in modern high-frequency environments, the probability of an order fill and the subsequent price move are highly contingent on \textbf{microstructural signals}. Ignoring these signals leads to \textbf{adverse selection}, where the market maker provides liquidity to ``informed'' traders and suffers losses as the mid-price moves against their position.
