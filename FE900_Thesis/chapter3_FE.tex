@@ -132,6 +132,53 @@ This derivation reveals the fundamental mechanics of market making:
     \item \textbf{Volatility Expansion:} As $\sigma$ increases, the optimal spread $\psi^*$ widens to compensate the market maker for the higher risk of price gapping.
 \end{enumerate}
 
+\section{Analytical Closed-Form Solution for the Avellaneda-Stoikov Model}
+\label{sec:as_closed_form}
+While the HJB equation presented in Section 3.2 is a non-linear partial differential equation, \citet{Avellaneda2008} demonstrate that under the assumption of exponential fill intensities $\lambda(\delta) = A e^{-k\delta}$ and constant absolute risk aversion (CARA), an analytical closed-form solution exists. This section provides the full derivation, establishing the deterministic benchmark used for calibrating our hardware-software hybrid.
+
+\subsection{Transformation of the Value Function}
+To solve the HJB equation, we eliminate the cash variable $x$ by exploiting the translation invariance of exponential utility. We propose the following Ansatz for the value function $u(s, x, q, t)$:
+\begin{equation}
+    u(s, x, q, t) = -\exp(-\gamma x) \exp(-\gamma \phi(s, q, t))
+\end{equation}
+where $\phi(s, q, t)$ represents the \textbf{certainty equivalent wealth} of the market maker. Substituting this into the HJB equation and separating the mid-price $s$ and inventory $q$, we further decompose $\phi$ as:
+\begin{equation}
+    \phi(s, q, t) = q s + \psi(q, t)
+\end{equation}
+Substituting this decomposition back into the HJB equation leads to a system of coupled ordinary differential equations (ODEs) for $\psi(q, t)$.
+
+\subsection{Optimal Offsets and Spread Derivation}
+Taking the first-order conditions (FOC) with respect to the bid and ask offsets $\delta^b$ and $\delta^a$ in the transformed HJB equation, we find the optimal distances from the mid-price:
+\begin{equation}
+    \delta^b = \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \psi(q, t) - \psi(q+1, t)
+\end{equation}
+\begin{equation}
+    \delta^a = \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right) + \psi(q, t) - \psi(q-1, t)
+\end{equation}
+By utilizing a second-order Taylor expansion for $\psi(q \pm 1, t)$ around $q$, we can approximate the difference terms:
+\begin{equation}
+    \psi(q, t) - \psi(q+1, t) \approx -\frac{\partial \psi}{\partial q} - \frac{1}{2} \frac{\partial^2 \psi}{\partial q^2}
+\end{equation}
+Under the assumption of a finite-horizon $T$, the resulting optimal quoting strategy is centered around the \textbf{Reservation Price} $r(s, q, t)$:
+\begin{equation}
+    r(s, q, t) = S_t - q \gamma \sigma^2 (T - t)
+\end{equation}
+The optimal quotes $P_{bid}$ and $P_{ask}$ are then given by the closed-form expressions:
+\begin{equation}
+    P_{bid} = r(s, q, t) - \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right)
+\end{equation}
+\begin{equation}
+    P_{ask} = r(s, q, t) + \frac{1}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right)
+\end{equation}
+
+\subsection{Interpretation of the Closed-Form Result}
+The full closed-form solution yields two critical components for the market maker's policy:
+\begin{enumerate}
+    \item \textbf{The Inventory Risk Premium:} The term $q \gamma \sigma^2 (T - t)$ shifts the quotes to induce a mean-reverting force on the inventory. As the position $q$ grows, the reservation price $r$ deviates further from the mid-price $S$, causing the market maker to quote more aggressively on the liquidation side.
+    \item \textbf{The Optimal Indifference Spread:} The constant term $\frac{2}{\gamma} \ln \left( 1 + \frac{\gamma}{k} \right)$ represents the minimum spread required to compensate the market maker for the risk of market order arrivals.
+\end{enumerate}
+This analytical solution serves as the "ideal" policy under Gaussian assumptions. However, as explored in the following section, microstructural factors such as \textbf{Order Book Imbalance} and non-Gaussian volatility require the adaptive, non-linear capabilities of the AI-integrated FPGA to maintain profitability.
+
 \section{Microstructural Signals and Adverse Selection}
 Classical market-making models, such as the Avellaneda and Stoikov framework, assume that order arrivals follow an exogenous Poisson process that is independent of the current state of the Limit Order Book (LOB). However, in modern high-frequency environments, the probability of an order fill and the subsequent price move are highly contingent on \textbf{microstructural signals}. Ignoring these signals leads to \textbf{adverse selection}, where the market maker provides liquidity to ``informed'' traders and suffers losses as the mid-price moves against their position.
 
