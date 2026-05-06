@@ -121,7 +121,6 @@
 \newcommand{\datamethodology}{While our system is fully designed for integration with live exchange environments, we utilize high-fidelity synthetic data for evaluation to capture a wide spectrum of possible market scenarios. This approach ensures better adaptability and resilience to complex, multi-regime dynamics that may not be fully represented in a fixed historical sequence.}
 
 \newcommand{\thesisabstract}{
-\enlargethispage{2\baselineskip}
 \begin{center}
 \MakeUppercase{\thesistitle}
  
@@ -129,18 +128,15 @@
 ABSTRACT
 \vspace{4pt}
 \end{center}
-This Master's thesis investigates the integration of artificial intelligence (AI) with field-programmable gate arrays (FPGAs) to develop an integrated reinforcement learning (RL)–FPGA framework for market making under high-volatility scenarios. Traditional market-making models often struggle with latency and adaptability during periods of high volatility, leading to increased inventory risk and suboptimal performance. By combining RL’s adaptive decision-making capabilities with FPGA’s hardware-level acceleration, the proposed system seeks to reduce latency bottlenecks, improve inventory risk management, and enhance robustness in stressed market conditions. Our hybrid system embeds RL algorithms for dynamic bid-ask spread optimization directly onto FPGA hardware, enabling sub-microsecond inference times while responding to real-time market signals such as order flow imbalances and extreme volatility events. Using high-fidelity simulated scenarios calibrated to historical tick-level data from major exchanges, the framework is evaluated through metrics including Sharpe ratio, adverse selection mitigation, and latency benchmarks. \datamethodology\ The expectation is to achieve significant improvements in profitability and risk management compared to software-based RL or standalone FPGA implementations. This work will contribute to a scalable AI-FPGA architecture, highlighting practical deployment challenges, and offering insights for future quant engineering in dynamic markets, with potential applications in NYC's competitive HFT landscape. The complete source code, hardware implementation (Verilog RTL), and reinforcement learning environment are available at \url{https://github.com/shreejitverma/trishul-ultra-hft-project}.
+This Master's thesis investigates the integration of artificial intelligence (AI) with field-programmable gate arrays (FPGAs) to develop an integrated reinforcement learning (RL)–FPGA framework for market making under high-volatility scenarios. Traditional market-making models often struggle with latency and adaptability during periods of high volatility, leading to increased inventory risk and suboptimal performance. By combining RL’s adaptive decision-making capabilities with FPGA’s hardware-level acceleration, the proposed system seeks to reduce latency bottlenecks, improve inventory risk management, and enhance robustness in stressed market conditions. Our hybrid system embeds RL algorithms for dynamic bid-ask spread optimization directly onto FPGA hardware, enabling sub-microsecond inference times while responding to real-time market signals such as order flow imbalances and extreme volatility events. Using high-fidelity simulated scenarios calibrated to historical tick-level data from major exchanges, the framework is evaluated through metrics including Sharpe ratio, adverse selection mitigation, and latency benchmarks. \datamethodology\ The expectation is to achieve significant improvements in profitability and risk management compared to software-based RL or standalone FPGA implementations. 
 
-\newpage
-\begin{flushleft}
-\begin{spacing}{1.2}
-Author: \thesisname \\
-Advisor: \thesischairadvisor \\
-Date: \thesisdate \\
-Department: \thesisdepartment \\
-Degree: \thesisdegree \\
-\end{spacing}
-\end{flushleft}
+This work will contribute to a scalable AI-FPGA architecture, highlighting practical deployment challenges, and offering insights for future quant engineering in dynamic markets, with potential applications in NYC's competitive HFT landscape. The complete source code, hardware implementation (Verilog RTL), and reinforcement learning environment are available at \url{https://github.com/shreejitverma/trishul-ultra-hft-project}.
+
+\vspace{3em}
+\begin{center}
+\textbf{Author:} \thesisname \quad $\vert$ \quad \textbf{Advisor:} \thesischairadvisor \quad $\vert$ \quad \textbf{Date:} \thesisdate \\[0.5em]
+\textbf{Department:} \thesisdepartment \quad $\vert$ \quad \textbf{Degree:} \thesisdegree
+\end{center}
 \newpage}
 
 
